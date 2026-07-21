@@ -1,0 +1,15 @@
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+# Runtime data
+data/recordings/
+data/database/*.db
+data/database/*.db-*
+logs/
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
