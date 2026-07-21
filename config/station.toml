@@ -1,0 +1,21 @@
+[station]
+id = "project-field-mouse-001"
+name = "Backyard Sanctuary"
+timezone = "America/Los_Angeles"
+
+[audio]
+device = "plughw:2,0"
+sample_rate = 48000
+channels = 1
+sample_format = "S16_LE"
+recording_duration_seconds = 15
+recording_interval_seconds = 900
+
+[storage]
+recordings_directory = "data/recordings"
+database_path = "data/database/fieldmouse.db"
+logs_directory = "logs"
+
+[detection]
+enabled = false
+minimum_confidence = 0.70
