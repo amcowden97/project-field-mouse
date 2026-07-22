@@ -8,7 +8,7 @@ device = "plughw:2,0"
 sample_rate = 48000
 channels = 1
 sample_format = "S16_LE"
-recording_duration_seconds = 15
+recording_duration_seconds = 60
 recording_interval_seconds = 900
 
 [storage]
@@ -19,3 +19,21 @@ logs_directory = "logs"
 [detection]
 enabled = false
 minimum_confidence = 0.70
+
+[birdnet]
+enabled = true
+
+# Approximate Bremerton coordinates.
+# These are intentionally not your precise home coordinates.
+latitude = 47.5673
+longitude = -122.6326
+
+minimum_confidence = 0.25
+occurrence_threshold = 0.03
+
+poll_interval_seconds = 10
+
+[storage]
+empty_recording_retention_days = 3
+detection_recording_retention_days = 30
+cleanup_interval_hours = 6
