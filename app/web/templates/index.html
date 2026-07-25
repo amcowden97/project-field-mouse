@@ -11,6 +11,7 @@
     <title>Project Field Mouse</title>
 
         <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script defer src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </head>
 
 <body>
@@ -27,9 +28,9 @@
                 </div>
             </div>
 
-            <div class="online">
+            <div class="online {% if not stats.recorder_recent %}offline{% endif %}" id="station-status">
                 <span class="online-dot"></span>
-                Station online
+                <span id="station-status-text">{% if stats.recorder_recent %}Station listening{% else %}Recorder not recently seen{% endif %}</span>
             </div>
         </header>
 
@@ -38,7 +39,7 @@
                 <div class="stat-label">Last 24 hours</div>
 
                 <div class="stat-value">
-                    {{ stats.detections_last_24_hours }}
+                    <span id="detections-24h">{{ stats.detections_last_24_hours }}</span>
                 </div>
 
                 <div class="stat-detail">
@@ -50,7 +51,7 @@
                 <div class="stat-label">Species observed</div>
 
                 <div class="stat-value">
-                    {{ stats.species_count }}
+                    <span id="species-count">{{ stats.species_count }}</span>
                 </div>
 
                 <div class="stat-detail">
@@ -62,11 +63,11 @@
                 <div class="stat-label">Recordings stored</div>
 
                 <div class="stat-value">
-                    {{ stats.total_recordings }}
+                    <span id="recording-count">{{ stats.total_recordings }}</span>
                 </div>
 
                 <div class="stat-detail">
-                    {{ stats.total_recording_bytes | filesize }}
+                    <span id="recording-size">{{ stats.total_recording_bytes | filesize }}</span>
                 </div>
             </article>
 
@@ -74,16 +75,16 @@
                 <div class="stat-label">Disk usage</div>
 
                 <div class="stat-value">
-                    {{ stats.disk_percent }}%
+                    <span id="disk-percent">{{ stats.disk_percent }}</span>%
                 </div>
 
                 <div class="stat-detail">
-                    {{ stats.disk_free | filesize }} available
+                    <span id="disk-free">{{ stats.disk_free | filesize }}</span> available
                 </div>
 
                 <div class="disk-track">
                     <div
-                        class="disk-bar"
+                        class="disk-bar" id="disk-bar"
                         style="width: {{ stats.disk_percent }}%"
                     ></div>
                 </div>
@@ -158,7 +159,9 @@
 
                             <div>
                                 <h3 class="species-name">
-                                    {{ detection.common_name }}
+                                    <a href="{{ url_for('species_detail', common_name=detection.common_name) }}">
+                                        {{ detection.common_name }}
+                                    </a>
                                 </h3>
 
                                 {% if detection.scientific_name %}
@@ -170,9 +173,7 @@
                         </div>
 
                         <div class="metadata">
-                            <span>
-                                🕒 {{ detection.recorded_at }}
-                            </span>
+                            <span>🕒 <span class="local-time" data-timestamp="{{ detection.recorded_at }}">{{ detection.recorded_at }}</span></span>
 
                             {% if detection.duration_seconds %}
                                 <span>
@@ -182,14 +183,19 @@
                             {% endif %}
                         </div>
 
-                        <audio controls preload="none">
-                            <source
-                                src="/audio/{{ detection.recording_id }}"
-                                type="audio/wav"
-                            >
-
-                            Your browser does not support audio playback.
-                        </audio>
+                        {% if detection.audio_available %}
+                            <audio controls preload="none">
+                                <source
+                                    src="/audio/{{ detection.recording_id }}"
+                                    type="audio/wav"
+                                >
+                                Your browser does not support audio playback.
+                            </audio>
+                        {% else %}
+                            <div class="audio-unavailable">
+                                Audio clip has been cleaned up
+                            </div>
+                        {% endif %}
                     </div>
 
                     <div class="confidence {{ confidence_class }}">

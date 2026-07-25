@@ -6,7 +6,7 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
-from flask import Flask, abort, render_template, request, send_file
+from flask import Flask, abort, jsonify, render_template, request, send_file
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -407,6 +407,39 @@ def audio(recording_id: int):
         mimetype="audio/wav",
         conditional=True,
     )
+
+
+@app.route("/api/dashboard")
+def dashboard_api():
+    """Return lightweight live dashboard data for browser refreshes."""
+    if not DATABASE_PATH.is_file():
+        return jsonify({
+            "status": "error",
+            "database": "missing",
+        }), 500
+
+    with get_database() as connection:
+        stats = get_dashboard_stats(connection)
+        latest_detection = get_latest_detection(connection)
+
+    latest = dict(latest_detection) if latest_detection is not None else None
+
+    if latest is not None:
+        latest_path = resolve_recording_path(latest["file_path"])
+        latest["audio_available"] = bool(
+            latest_path and latest_path.is_file()
+        )
+        latest["confidence_percent"] = round(
+            float(latest["confidence"]) * 100,
+            1,
+        )
+
+    return jsonify({
+        "status": "ok",
+        "stats": stats,
+        "latest_detection": latest,
+        "refreshed_at": datetime.now(timezone.utc).isoformat(),
+    })
 
 
 @app.route("/health")
