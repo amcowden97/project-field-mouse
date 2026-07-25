@@ -35,3 +35,14 @@ data/logs/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Project Field Mouse runtime data
+data/database/*.db
+data/database/*.db-shm
+data/database/*.db-wal
+data/recordings/
+data/processed/
+logs/
+
+# Local configuration secrets
+.env
