@@ -1,15 +1,37 @@
-
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
+
+# Virtual environments
 .venv/
-.env
-# Runtime data
-data/recordings/
-data/database/*.db
-data/database/*.db-*
-logs/
-# Editors and operating systems
+venv/
+
+# Editors
 .vscode/
 .idea/
+*.swp
+*~
 .DS_Store
+
+# Runtime data
+data/recordings/
+data/logs/
+*.log
+
+# SQLite transient files
+*.db-shm
+*.db-wal
+*.sqlite-shm
+*.sqlite-wal
+
+# Temporary and backup files
+*.tmp
+*.bak
+*.old
+*.before-*
+
+# Test and coverage output
+.pytest_cache/
+.coverage
+htmlcov/
