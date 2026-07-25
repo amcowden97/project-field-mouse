@@ -323,7 +323,7 @@ def run_one_recording(config_path: Path) -> int:
     command = [
         sys.executable,
         "-m",
-        "fieldmouse.services.scheduler",
+        "app.services.scheduler",
         "--config",
         str(config_path),
         "--once",

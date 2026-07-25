@@ -8,13 +8,13 @@ from datetime import datetime
 from pathlib import Path
 from threading import Event, Lock
 
-from fieldmouse.audio.recorder import record_audio
-from fieldmouse.config import (
+from app.audio.recorder import record_audio
+from app.config import (
     ConfigurationError,
     FieldMouseConfig,
     load_config,
 )
-from fieldmouse.database import DatabaseError
+from app.database import DatabaseError
 
 
 shutdown_event = Event()

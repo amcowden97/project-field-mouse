@@ -6,7 +6,7 @@ import sqlite3
 import time
 from pathlib import Path
 
-from fieldmouse.detectors.process_recording import (
+from app.detectors.process_recording import (
     DEFAULT_CONFIDENCE,
     DEFAULT_DATABASE,
     DEFAULT_LATITUDE,

@@ -8,12 +8,12 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from fieldmouse.config import (
+from app.config import (
     ConfigurationError,
     FieldMouseConfig,
     load_config,
 )
-from fieldmouse.database import (
+from app.database import (
     DatabaseError,
     connect_database,
     initialize_database,

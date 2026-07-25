@@ -8,7 +8,7 @@ from pathlib import Path
 
 import birdnet
 
-from fieldmouse.detectors.local_species import (
+from app.detectors.local_species import (
     DEFAULT_LATITUDE,
     DEFAULT_LONGITUDE,
     DEFAULT_OCCURRENCE_THRESHOLD,

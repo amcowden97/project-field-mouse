@@ -15,4 +15,4 @@ fi
 
 export PYTHONPATH="$PROJECT_ROOT/source"
 
-python3 -m fieldmouse.audio.recorder "$@"
+python3 -m app.audio.recorder "$@"

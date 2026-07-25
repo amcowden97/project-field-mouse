@@ -1,4 +1,4 @@
-from fieldmouse.database.connection import (
+from app.database.connection import (
     DatabaseError,
     connect_database,
     initialize_database,

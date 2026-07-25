@@ -6,7 +6,7 @@ from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fieldmouse.config import FieldMouseConfig
+from app.config import FieldMouseConfig
 
 
 class DatabaseError(RuntimeError):

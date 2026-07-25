@@ -46,3 +46,6 @@ logs/
 
 # Local configuration secrets
 .env
+
+# Runtime SQLite databases
+data/database/*.db

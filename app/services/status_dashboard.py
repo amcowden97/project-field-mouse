@@ -501,7 +501,7 @@ def build_service_panel() -> Panel:
         "fieldmouse-birdnet.service"
     )
     cleanup = service_state(
-        "fieldmouse-cleanup.timer"
+        "app-cleanup.timer"
     )
 
     table.add_row(
@@ -1008,7 +1008,7 @@ def build_compact_dashboard(
             "fieldmouse-birdnet.service"
         )
         cleanup = service_state(
-            "fieldmouse-cleanup.timer"
+            "app-cleanup.timer"
         )
 
         disk = shutil.disk_usage(
