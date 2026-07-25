@@ -15,9 +15,6 @@ recording_interval_seconds = 900
 recordings_directory = "data/recordings"
 database_path = "data/database/fieldmouse.db"
 logs_directory = "logs"
-empty_recording_retention_days = 3
-detection_recording_retention_days = 30
-cleanup_interval_hours = 6
 
 [detection]
 enabled = false
@@ -36,22 +33,7 @@ occurrence_threshold = 0.03
 
 poll_interval_seconds = 10
 
-[adaptive_recording]
-enabled = true
-
-# Local clock-based monitoring windows.
-dawn_start = "05:00"
-dawn_end = "09:00"
-evening_start = "17:00"
-evening_end = "21:00"
-
-dawn_interval_seconds = 60
-day_interval_seconds = 60
-evening_interval_seconds = 60
-night_interval_seconds = 60
-
-# Temporarily increase sampling after BirdNET hears a bird.
-burst_enabled = true
-burst_interval_seconds = 60
-burst_duration_minutes = 20
-burst_minimum_confidence = 0.50
+[storage]
+empty_recording_retention_days = 3
+detection_recording_retention_days = 30
+cleanup_interval_hours = 6

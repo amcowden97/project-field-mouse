@@ -1,0 +1,26 @@
+[Unit]
+Description=Project Field Mouse Recording Scheduler
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+User=amcowden97
+Group=amcowden97
+
+WorkingDirectory=/home/amcowden97/Project-Field-Mouse
+
+Environment=PYTHONPATH=/home/amcowden97/Project-Field-Mouse/source
+Environment=PYTHONUNBUFFERED=1
+
+ExecStart=/home/amcowden97/Project-Field-Mouse/.venv/bin/python -m fieldmouse.services.scheduler
+
+Restart=on-failure
+RestartSec=10
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
