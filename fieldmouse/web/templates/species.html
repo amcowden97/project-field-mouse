@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        {{ species.common_name }} · Project Field Mouse
+    </title>
+
+    <style>
+        :root {
+            --background: #101713;
+            --surface: #17221b;
+            --surface-light: #213027;
+            --text: #f4f1df;
+            --muted: #aebcac;
+            --green: #93b977;
+            --green-light: #c2dda9;
+            --border: rgba(255, 255, 255, 0.09);
+            --shadow: rgba(0, 0, 0, 0.28);
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at top left,
+                    rgba(94, 132, 83, 0.17),
+                    transparent 34%
+                ),
+                var(--background);
+            color: var(--text);
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        .page {
+            width: min(1050px, calc(100% - 28px));
+            margin: 0 auto;
+            padding: 22px 0 48px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 18px;
+            color: var(--green-light);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 17px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 22px;
+            border-radius: var(--radius);
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(42, 62, 49, 0.96),
+                    var(--surface)
+                );
+            border: 1px solid var(--border);
+            box-shadow: 0 12px 27px var(--shadow);
+        }
+
+        .bird-icon {
+            display: grid;
+            place-items: center;
+            width: 72px;
+            height: 72px;
+            border-radius: 21px;
+            background: rgba(147, 185, 119, 0.14);
+            font-size: 38px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(1.7rem, 5vw, 2.6rem);
+            letter-spacing: -0.045em;
+        }
+
+        .scientific-name {
+            margin-top: 5px;
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            margin-top: 13px;
+            color: var(--muted);
+            font-size: 0.83rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            min-height: 112px;
+            padding: 16px;
+            border-radius: var(--radius);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 24px var(--shadow);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+        }
+
+        .stat-value {
+            margin-top: 11px;
+            font-size: 1.65rem;
+            font-weight: 780;
+            letter-spacing: -0.04em;
+        }
+
+        .activity-card {
+            margin-bottom: 20px;
+            padding: 18px;
+            border-radius: var(--radius);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 24px var(--shadow);
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 13px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-size: 1.08rem;
+        }
+
+        .activity-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 7px;
+            min-height: 130px;
+            padding-top: 16px;
+            overflow-x: auto;
+        }
+
+        .activity-day {
+            display: grid;
+            grid-template-rows: 1fr auto auto;
+            align-items: end;
+            gap: 6px;
+            min-width: 40px;
+            height: 115px;
+            text-align: center;
+        }
+
+        .activity-bar-wrap {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 76px;
+        }
+
+        .activity-bar {
+            width: 24px;
+            min-height: 4px;
+            border-radius: 7px 7px 3px 3px;
+            background:
+                linear-gradient(
+                    to top,
+                    var(--green),
+                    var(--green-light)
+                );
+        }
+
+        .activity-count {
+            color: var(--green-light);
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .activity-date {
+            color: var(--muted);
+            font-size: 0.67rem;
+            white-space: nowrap;
+        }
+
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 12px;
+            border-radius: var(--radius);
+            background: rgba(23, 34, 27, 0.94);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(14px);
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .filter-button {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .filter-button.active {
+            background: var(--green);
+            border-color: transparent;
+            color: #12200f;
+        }
+
+        .result-count {
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .detection-list {
+            display: grid;
+            gap: 11px;
+        }
+
+        .detection-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            padding: 16px;
+            border-radius: var(--radius);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: 0 9px 21px var(--shadow);
+        }
+
+        .time {
+            font-size: 0.93rem;
+            font-weight: 730;
+        }
+
+        .metadata {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 13px;
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 0.79rem;
+        }
+
+        .confidence {
+            align-self: start;
+            min-width: 72px;
+            padding: 8px 10px;
+            border-radius: 11px;
+            background: rgba(147, 185, 119, 0.16);
+            color: var(--green-light);
+            text-align: center;
+            font-weight: 780;
+        }
+
+        audio {
+            width: min(480px, 100%);
+            height: 38px;
+            margin-top: 12px;
+        }
+
+        .audio-unavailable {
+            width: fit-content;
+            margin-top: 12px;
+            padding: 8px 11px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.045);
+            color: var(--muted);
+            font-size: 0.76rem;
+        }
+
+        .empty-state {
+            padding: 42px 18px;
+            border-radius: var(--radius);
+            background: var(--surface);
+            border: 1px dashed var(--border);
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .footer {
+            margin-top: 28px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 0.77rem;
+        }
+
+        @media (max-width: 760px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 560px) {
+            .page {
+                width: calc(100% - 18px);
+                padding-top: 12px;
+            }
+
+            .hero {
+                padding: 17px;
+            }
+
+            .bird-icon {
+                width: 58px;
+                height: 58px;
+                border-radius: 17px;
+                font-size: 30px;
+            }
+
+            .toolbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .detection-card {
+                position: relative;
+                grid-template-columns: 1fr;
+            }
+
+            .confidence {
+                position: absolute;
+                top: 14px;
+                right: 14px;
+            }
+
+            .time {
+                padding-right: 80px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <a class="back-link" href="/">
+            ← Back to station
+        </a>
+
+        <section class="hero">
+            <div class="bird-icon">🐦</div>
+
+            <div>
+                <h1>{{ species.common_name }}</h1>
+
+                {% if species.scientific_name %}
+                    <div class="scientific-name">
+                        {{ species.scientific_name }}
+                    </div>
+                {% endif %}
+
+                <div class="hero-meta">
+                    <span>
+                        First detected
+                        <span
+                            class="local-time"
+                            data-timestamp="{{ species.first_detected_at }}"
+                        >
+                            {{ species.first_detected_at }}
+                        </span>
+                    </span>
+
+                    <span>
+                        Last detected
+                        <span
+                            class="relative-time"
+                            data-timestamp="{{ species.last_detected_at }}"
+                        >
+                            {{ species.last_detected_at }}
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <div class="stat-label">
+                    Total detections
+                </div>
+
+                <div class="stat-value">
+                    {{ species.total_detections }}
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-label">
+                    Active days
+                </div>
+
+                <div class="stat-value">
+                    {{ species.active_days }}
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-label">
+                    Average confidence
+                </div>
+
+                <div class="stat-value">
+                    {{ species.average_confidence }}%
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-label">
+                    Highest confidence
+                </div>
+
+                <div class="stat-value">
+                    {{ species.highest_confidence }}%
+                </div>
+            </article>
+        </section>
+
+        <section class="activity-card">
+            <div class="section-heading">
+                <h2>14-day activity</h2>
+
+                <span class="result-count">
+                    Detection count by day
+                </span>
+            </div>
+
+            {% set maximum_count =
+                daily_activity
+                | map(attribute='detection_count')
+                | max
+                | default(1)
+            %}
+
+            <div class="activity-chart">
+                {% for day in daily_activity %}
+                    {% set height =
+                        (
+                            day.detection_count /
+                            maximum_count *
+                            72
+                        )
+                    %}
+
+                    <div class="activity-day">
+                        <div class="activity-bar-wrap">
+                            <div
+                                class="activity-bar"
+                                style="height: {{ height }}px"
+                                title="{{ day.detection_count }} detections"
+                            ></div>
+                        </div>
+
+                        <div class="activity-count">
+                            {{ day.detection_count }}
+                        </div>
+
+                        <div
+                            class="activity-date"
+                            data-date="{{ day.activity_date }}"
+                        >
+                            {{ day.activity_date }}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        No activity during the last 14 days.
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <nav class="toolbar">
+            <div class="filters">
+                <a
+                    class="filter-button
+                    {% if minimum_confidence == 0 %}active{% endif %}"
+                    href="?min_confidence=0"
+                >
+                    All
+                </a>
+
+                <a
+                    class="filter-button
+                    {% if minimum_confidence == 0.6 %}active{% endif %}"
+                    href="?min_confidence=0.6"
+                >
+                    60%+
+                </a>
+
+                <a
+                    class="filter-button
+                    {% if minimum_confidence == 0.8 %}active{% endif %}"
+                    href="?min_confidence=0.8"
+                >
+                    80%+
+                </a>
+
+                <a
+                    class="filter-button
+                    {% if minimum_confidence == 0.9 %}active{% endif %}"
+                    href="?min_confidence=0.9"
+                >
+                    90%+
+                </a>
+            </div>
+
+            <div class="result-count">
+                {{ detections | length }} recent detections
+            </div>
+        </nav>
+
+        <section class="detection-list">
+            {% for detection in detections %}
+                <article class="detection-card">
+                    <div>
+                        <div
+                            class="time local-time"
+                            data-timestamp="{{ detection.created_at }}"
+                        >
+                            {{ detection.created_at }}
+                        </div>
+
+                        <div class="metadata">
+                            <span>
+                                Call begins at
+                                {{ detection.start_time }}s
+                            </span>
+
+                            <span>
+                                Ends at
+                                {{ detection.end_time }}s
+                            </span>
+
+                            {% if detection.duration_seconds %}
+                                <span>
+                                    Recording:
+                                    {{ detection.duration_seconds | round | int }}s
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if detection.audio_available %}
+                            <audio controls preload="none">
+                                <source
+                                    src="/audio/{{ detection.recording_id }}"
+                                    type="audio/wav"
+                                >
+                            </audio>
+                        {% else %}
+                            <div class="audio-unavailable">
+                                Audio no longer stored
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="confidence">
+                        {{ "%.1f" | format(
+                            detection.confidence * 100
+                        ) }}%
+                    </div>
+                </article>
+            {% else %}
+                <div class="empty-state">
+                    No detections match this filter.
+                </div>
+            {% endfor %}
+        </section>
+
+        <footer class="footer">
+            Project Field Mouse · Nature Connected
+        </footer>
+    </main>
+
+    <script>
+        function parseTimestamp(value) {
+            if (!value) {
+                return null;
+            }
+
+            const parsed = new Date(value);
+
+            if (Number.isNaN(parsed.getTime())) {
+                return null;
+            }
+
+            return parsed;
+        }
+
+        function formatRelativeTime(timestamp) {
+            const seconds = Math.max(
+                0,
+                Math.floor(
+                    (Date.now() - timestamp.getTime()) / 1000
+                )
+            );
+
+            if (seconds < 60) {
+                return "just now";
+            }
+
+            const minutes = Math.floor(seconds / 60);
+
+            if (minutes < 60) {
+                return `${minutes}m ago`;
+            }
+
+            const hours = Math.floor(minutes / 60);
+
+            if (hours < 24) {
+                return `${hours}h ago`;
+            }
+
+            const days = Math.floor(hours / 24);
+
+            return `${days}d ago`;
+        }
+
+        document
+            .querySelectorAll(".local-time")
+            .forEach((element) => {
+                const timestamp = parseTimestamp(
+                    element.dataset.timestamp
+                );
+
+                if (!timestamp) {
+                    return;
+                }
+
+                element.textContent =
+                    timestamp.toLocaleString([], {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                    });
+            });
+
+        document
+            .querySelectorAll(".relative-time")
+            .forEach((element) => {
+                const timestamp = parseTimestamp(
+                    element.dataset.timestamp
+                );
+
+                if (!timestamp) {
+                    return;
+                }
+
+                element.textContent =
+                    formatRelativeTime(timestamp);
+            });
+
+        document
+            .querySelectorAll(".activity-date")
+            .forEach((element) => {
+                const value = element.dataset.date;
+
+                if (!value) {
+                    return;
+                }
+
+                const date = new Date(
+                    `${value}T12:00:00`
+                );
+
+                element.textContent =
+                    date.toLocaleDateString([], {
+                        month: "short",
+                        day: "numeric",
+                    });
+            });
+    </script>
+</body>
+</html>
