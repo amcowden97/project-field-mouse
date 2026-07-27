@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <meta
+        name="theme-color"
+        content="#244a35"
+    >
+
+    <title>{% block title %}Project Field Mouse{% endblock %}</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard-v2.css') }}"
+    >
+
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <div class="site-shell">
+        <header class="site-header">
+            <div class="brand-lockup">
+                <div class="brand-scene" aria-hidden="true">
+                    <div class="pixel-moon"></div>
+                    <div class="pixel-mouse">🐭</div>
+                    <div class="pixel-log"></div>
+                </div>
+
+                <div class="brand-copy">
+                    <p class="eyebrow">Nature Connected</p>
+                    <h1>Project Field Mouse</h1>
+                    <p class="site-subtitle">
+                        A tiny window into the wildlife nearby
+                    </p>
+                </div>
+            </div>
+
+            {% block station_status %}{% endblock %}
+        </header>
+
+        {% include "partials/navigation.html" %}
+
+        <main class="page-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="site-footer">
+            <span>Project Field Mouse</span>
+            <span aria-hidden="true">·</span>
+            <span>Nature Connected</span>
+        </footer>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

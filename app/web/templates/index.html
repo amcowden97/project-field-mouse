@@ -1,223 +1,354 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
+{% extends "base.html" %}
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
+{% set active_page = "overview" %}
 
-    <title>Project Field Mouse</title>
+{% block title %}Backyard Sanctuary · Project Field Mouse{% endblock %}
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-    <script defer src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fieldmouse-theme.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-refinement.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/todays-visitors.css') }}">
-</head>
+{% block station_status %}
+<div
+    class="station-pill {% if not stats.recorder_recent %}offline{% endif %}"
+    id="station-status"
+>
+    <span class="station-dot"></span>
 
-<body>
-    <main class="page">
-        <header class="hero">
-            <div class="brand">
-                <div class="mascot">🐭</div>
+    <span>
+        <strong>Backyard Sanctuary</strong>
+        <small id="station-status-text">
+            {% if stats.recorder_recent %}
+                Station listening
+            {% else %}
+                Recorder not recently seen
+            {% endif %}
+        </small>
+    </span>
+</div>
+{% endblock %}
 
-                <div>
-                    <h1>Project Field Mouse</h1>
-                    <p class="subtitle">
-                        Nature connected at Backyard Sanctuary
-                    </p>
-                </div>
+{% block content %}
+<section class="welcome-panel">
+    <div class="welcome-copy">
+        <p class="section-kicker">Field Site 001</p>
+        <h2>Good evening from Backyard Sanctuary</h2>
+
+        <p>
+            Your listening station is quietly collecting the songs,
+            calls, and small mysteries passing through the yard.
+        </p>
+    </div>
+
+    <div class="welcome-illustration" aria-hidden="true">
+        <div class="pixel-sky">
+            <span class="pixel-star star-one">✦</span>
+            <span class="pixel-star star-two">·</span>
+            <span class="pixel-star star-three">✧</span>
+            <span class="pixel-bird">🐦</span>
+            <span class="pixel-grass">♒♒♒</span>
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="section-kicker">At a glance</p>
+            <h2>Today at the station</h2>
+        </div>
+
+        <span class="journal-note">
+            Updated from live station data
+        </span>
+    </div>
+
+    <div class="stats-grid">
+        <article class="stat-card">
+            <span class="stat-icon" aria-hidden="true">♪</span>
+
+            <div>
+                <p class="stat-label">Last 24 hours</p>
+
+                <strong class="stat-value" id="detections-24h">
+                    {{ stats.detections_last_24_hours }}
+                </strong>
+
+                <p class="stat-detail">bird detections</p>
             </div>
+        </article>
 
-            <div class="online {% if not stats.recorder_recent %}offline{% endif %}" id="station-status">
-                <span class="online-dot"></span>
-                <span id="station-status-text">{% if stats.recorder_recent %}Station listening{% else %}Recorder not recently seen{% endif %}</span>
+        <article class="stat-card">
+            <span class="stat-icon" aria-hidden="true">✿</span>
+
+            <div>
+                <p class="stat-label">Species observed</p>
+
+                <strong class="stat-value" id="species-count">
+                    {{ stats.species_count }}
+                </strong>
+
+                <p class="stat-detail">on the station life list</p>
             </div>
-        </header>
+        </article>
 
-        <section class="stats-grid">
-            <article class="stat-card">
-                <div class="stat-label">Last 24 hours</div>
+        <article class="stat-card">
+            <span class="stat-icon" aria-hidden="true">▣</span>
 
-                <div class="stat-value">
-                    <span id="detections-24h">{{ stats.detections_last_24_hours }}</span>
-                </div>
+            <div>
+                <p class="stat-label">Recordings stored</p>
 
-                <div class="stat-detail">
-                    bird detections
-                </div>
-            </article>
+                <strong class="stat-value" id="recording-count">
+                    {{ stats.total_recordings }}
+                </strong>
 
-            <article class="stat-card">
-                <div class="stat-label">Species observed</div>
+                <p class="stat-detail" id="recording-size">
+                    {{ stats.total_recording_bytes | filesize }}
+                </p>
+            </div>
+        </article>
 
-                <div class="stat-value">
-                    <span id="species-count">{{ stats.species_count }}</span>
-                </div>
+        <article class="stat-card">
+            <span class="stat-icon" aria-hidden="true">◫</span>
 
-                <div class="stat-detail">
-                    across all detections
-                </div>
-            </article>
+            <div class="disk-stat">
+                <p class="stat-label">Disk usage</p>
 
-            <article class="stat-card">
-                <div class="stat-label">Recordings stored</div>
-
-                <div class="stat-value">
-                    <span id="recording-count">{{ stats.total_recordings }}</span>
-                </div>
-
-                <div class="stat-detail">
-                    <span id="recording-size">{{ stats.total_recording_bytes | filesize }}</span>
-                </div>
-            </article>
-
-            <article class="stat-card">
-                <div class="stat-label">Disk usage</div>
-
-                <div class="stat-value">
+                <strong class="stat-value">
                     <span id="disk-percent">{{ stats.disk_percent }}</span>%
-                </div>
+                </strong>
 
-                <div class="stat-detail">
-                    <span id="disk-free">{{ stats.disk_free | filesize }}</span> available
-                </div>
+                <p class="stat-detail">
+                    <span id="disk-free">
+                        {{ stats.disk_free | filesize }}
+                    </span>
+                    available
+                </p>
 
-                <div class="disk-track">
+                <div
+                    class="disk-track"
+                    role="progressbar"
+                    aria-label="Disk usage"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="{{ stats.disk_percent }}"
+                >
                     <div
-                        class="disk-bar" id="disk-bar"
+                        class="disk-bar"
+                        id="disk-bar"
                         style="width: {{ stats.disk_percent }}%"
                     ></div>
                 </div>
-            </article>
-        </section>
-
-        <nav class="toolbar">
-            <div class="filters">
-                <a
-                    class="filter-button
-                    {% if minimum_confidence == 0 %}active{% endif %}"
-                    href="/?min_confidence=0&limit={{ limit }}"
-                >
-                    All
-                </a>
-
-                <a
-                    class="filter-button
-                    {% if minimum_confidence == 0.6 %}active{% endif %}"
-                    href="/?min_confidence=0.6&limit={{ limit }}"
-                >
-                    60%+
-                </a>
-
-                <a
-                    class="filter-button
-                    {% if minimum_confidence == 0.8 %}active{% endif %}"
-                    href="/?min_confidence=0.8&limit={{ limit }}"
-                >
-                    80%+
-                </a>
-
-                <a
-                    class="filter-button
-                    {% if minimum_confidence == 0.9 %}active{% endif %}"
-                    href="/?min_confidence=0.9&limit={{ limit }}"
-                >
-                    90%+
-                </a>
             </div>
+        </article>
+    </div>
+</section>
 
-            <div class="result-count">
-                Showing {{ detections | length }} recent detections
-            </div>
-        </nav>
-
-        <div class="section-title">
-            <h2>Recent activity</h2>
-
-            <span>
-                Average confidence:
-                {{ stats.average_confidence }}%
-            </span>
+<section class="section-block visitors-section">
+    <div class="section-heading">
+        <div>
+            <p class="section-kicker">Field notes</p>
+            <h2>Latest visitors</h2>
         </div>
 
-        <section class="detection-list">
-            {% for detection in detections %}
-                {% set percentage = detection.confidence * 100 %}
+        <a class="text-link" href="#recent-activity">
+            View activity ↓
+        </a>
+    </div>
 
-                {% if percentage >= 90 %}
-                    {% set confidence_class = "confidence-high" %}
-                {% elif percentage >= 80 %}
-                    {% set confidence_class = "confidence-medium" %}
-                {% else %}
-                    {% set confidence_class = "confidence-low" %}
-                {% endif %}
+    <div class="visitor-grid">
+        {% for detection in detections[:4] %}
+            {% set percentage = detection.confidence * 100 %}
 
-                <article class="detection-card">
-                    <div>
-                        <div class="species-row">
-                            <div class="bird-icon">🐦</div>
+            <article class="visitor-card">
+                <div class="visitor-portrait" aria-hidden="true">
+                    {% if loop.index == 1 %}
+                        🐦
+                    {% elif loop.index == 2 %}
+                        🪶
+                    {% elif loop.index == 3 %}
+                        🌲
+                    {% else %}
+                        🎵
+                    {% endif %}
+                </div>
 
-                            <div>
-                                <h3 class="species-name">
-                                    <a href="{{ url_for('species_detail', common_name=detection.common_name) }}">
-                                        {{ detection.common_name }}
-                                    </a>
-                                </h3>
+                <div class="visitor-copy">
+                    <h3>
+                        <a href="{{ url_for('species_detail', common_name=detection.common_name) }}">
+                            {{ detection.common_name }}
+                        </a>
+                    </h3>
 
-                                {% if detection.scientific_name %}
-                                    <div class="scientific-name">
-                                        {{ detection.scientific_name }}
-                                    </div>
-                                {% endif %}
-                            </div>
+                    {% if detection.scientific_name %}
+                        <p class="scientific-name">
+                            {{ detection.scientific_name }}
+                        </p>
+                    {% endif %}
+
+                    <div class="visitor-meta">
+                        <span>{{ "%.1f" | format(percentage) }}% confidence</span>
+                        <span
+                            class="local-time"
+                            data-timestamp="{{ detection.recorded_at }}"
+                        >
+                            {{ detection.recorded_at }}
+                        </span>
+                    </div>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-journal-card">
+                <span aria-hidden="true">🌙</span>
+
+                <div>
+                    <h3>The yard is quiet for now</h3>
+                    <p>
+                        New visitors will appear here after the station
+                        records its next detection.
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block" id="recent-activity">
+    <div class="section-heading activity-heading">
+        <div>
+            <p class="section-kicker">Listening log</p>
+            <h2>Recent activity</h2>
+        </div>
+
+        <span class="journal-note">
+            Average confidence: {{ stats.average_confidence }}%
+        </span>
+    </div>
+
+    <nav class="confidence-filter" aria-label="Confidence filters">
+        <a
+            class="{% if minimum_confidence == 0 %}active{% endif %}"
+            href="/?min_confidence=0&limit={{ limit }}#recent-activity"
+        >
+            All
+        </a>
+
+        <a
+            class="{% if minimum_confidence == 0.6 %}active{% endif %}"
+            href="/?min_confidence=0.6&limit={{ limit }}#recent-activity"
+        >
+            60%+
+        </a>
+
+        <a
+            class="{% if minimum_confidence == 0.8 %}active{% endif %}"
+            href="/?min_confidence=0.8&limit={{ limit }}#recent-activity"
+        >
+            80%+
+        </a>
+
+        <a
+            class="{% if minimum_confidence == 0.9 %}active{% endif %}"
+            href="/?min_confidence=0.9&limit={{ limit }}#recent-activity"
+        >
+            90%+
+        </a>
+    </nav>
+
+    <p class="result-count">
+        Showing {{ detections | length }} recent detections
+    </p>
+
+    <div class="detection-list">
+        {% for detection in detections %}
+            {% set percentage = detection.confidence * 100 %}
+
+            {% if percentage >= 90 %}
+                {% set confidence_class = "confidence-high" %}
+            {% elif percentage >= 80 %}
+                {% set confidence_class = "confidence-medium" %}
+            {% else %}
+                {% set confidence_class = "confidence-low" %}
+            {% endif %}
+
+            <article class="detection-card">
+                <div class="detection-main">
+                    <div class="species-row">
+                        <div class="species-pixel" aria-hidden="true">
+                            🐦
                         </div>
 
-                        <div class="metadata">
-                            <span>🕒 <span class="local-time" data-timestamp="{{ detection.recorded_at }}">{{ detection.recorded_at }}</span></span>
+                        <div>
+                            <h3 class="species-name">
+                                <a href="{{ url_for('species_detail', common_name=detection.common_name) }}">
+                                    {{ detection.common_name }}
+                                </a>
+                            </h3>
 
-                            {% if detection.duration_seconds %}
-                                <span>
-                                    🎙️ {{ detection.duration_seconds | round | int }}
-                                    seconds
-                                </span>
+                            {% if detection.scientific_name %}
+                                <p class="scientific-name">
+                                    {{ detection.scientific_name }}
+                                </p>
                             {% endif %}
                         </div>
+                    </div>
 
-                        {% if detection.audio_available %}
-                            <audio controls preload="none">
-                                <source
-                                    src="/audio/{{ detection.recording_id }}"
-                                    type="audio/wav"
-                                >
-                                Your browser does not support audio playback.
-                            </audio>
-                        {% else %}
-                            <div class="audio-unavailable">
-                                Audio clip has been cleaned up
-                            </div>
+                    <div class="metadata">
+                        <span>
+                            <span aria-hidden="true">◷</span>
+
+                            <span
+                                class="local-time"
+                                data-timestamp="{{ detection.recorded_at }}"
+                            >
+                                {{ detection.recorded_at }}
+                            </span>
+                        </span>
+
+                        {% if detection.duration_seconds %}
+                            <span>
+                                <span aria-hidden="true">◉</span>
+                                {{ detection.duration_seconds | round | int }}
+                                seconds
+                            </span>
                         {% endif %}
                     </div>
 
-                    <div class="confidence {{ confidence_class }}">
-                        {{ "%.1f" | format(percentage) }}%
-                    </div>
-                </article>
-            {% else %}
-                <div class="empty-state">
-                    No detections match this confidence filter yet.
+                    {% if detection.audio_available %}
+                        <audio controls preload="none">
+                            <source
+                                src="/audio/{{ detection.recording_id }}"
+                                type="audio/wav"
+                            >
+                            Your browser does not support audio playback.
+                        </audio>
+                    {% else %}
+                        <p class="audio-unavailable">
+                            Audio clip has been cleaned up
+                        </p>
+                    {% endif %}
                 </div>
-            {% endfor %}
-        </section>
 
-        <footer class="footer">
-            Project Field Mouse · Nature Connected
-        </footer>
-    </main>
-    <script defer src="{{ url_for('static', filename='js/fieldmouse-theme.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/dashboard-refinement.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/todays-visitors.js') }}"></script>
-</body>
-</html>
+                <div class="confidence {{ confidence_class }}">
+                    {{ "%.1f" | format(percentage) }}%
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-journal-card">
+                <span aria-hidden="true">🍂</span>
+
+                <div>
+                    <h3>No matching field notes</h3>
+                    <p>
+                        Try lowering the confidence filter to reveal
+                        more detections.
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script
+    defer
+    src="{{ url_for('static', filename='js/dashboard.js') }}"
+></script>
+{% endblock %}
