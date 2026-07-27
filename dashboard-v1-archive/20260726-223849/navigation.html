@@ -9,7 +9,7 @@
 
     <a
         class="navigation-item {% if active_page == 'activity' %}active{% endif %}"
-        href="/activity"
+        href="{% if active_page == 'overview' %}#recent-activity{% else %}/#recent-activity{% endif %}"
     >
         <span class="navigation-icon" aria-hidden="true">♪</span>
         <span>Activity</span>

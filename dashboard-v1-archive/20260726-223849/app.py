@@ -162,70 +162,6 @@ def get_latest_detection(
     ).fetchone()
 
 
-def get_detection_rows(
-    connection: sqlite3.Connection,
-    minimum_confidence: float,
-    limit: int,
-    offset: int = 0,
-) -> list[dict]:
-    rows = connection.execute(
-        """
-        SELECT
-            d.id AS detection_id,
-            d.recording_id,
-            d.common_name,
-            d.scientific_name,
-            d.confidence,
-            d.start_time,
-            d.end_time,
-            d.created_at,
-            r.recorded_at,
-            r.file_path,
-            r.duration_seconds
-        FROM detections d
-        JOIN recordings r ON r.id = d.recording_id
-        WHERE d.confidence >= ?
-        ORDER BY d.created_at DESC, d.confidence DESC
-        LIMIT ? OFFSET ?
-        """,
-        (minimum_confidence, limit, offset),
-    ).fetchall()
-
-    detections = []
-
-    for row in rows:
-        detection = dict(row)
-
-        recording_path = resolve_recording_path(
-            detection["file_path"]
-        )
-
-        detection["audio_available"] = bool(
-            recording_path
-            and recording_path.is_file()
-        )
-
-        detections.append(detection)
-
-    return detections
-
-
-def get_detection_count(
-    connection: sqlite3.Connection,
-    minimum_confidence: float,
-) -> int:
-    row = connection.execute(
-        """
-        SELECT COUNT(*) AS result_count
-        FROM detections
-        WHERE confidence >= ?
-        """,
-        (minimum_confidence,),
-    ).fetchone()
-
-    return int(row["result_count"] or 0)
-
-
 @app.template_filter("filesize")
 def format_filesize(byte_count: int | float | None) -> str:
     if not byte_count:
@@ -264,12 +200,44 @@ def index():
     limit = max(10, min(limit, 500))
 
     with get_database() as connection:
+        rows = connection.execute(
+            """
+            SELECT
+                d.id AS detection_id,
+                d.recording_id,
+                d.common_name,
+                d.scientific_name,
+                d.confidence,
+                d.start_time,
+                d.end_time,
+                d.created_at,
+                r.recorded_at,
+                r.file_path,
+                r.duration_seconds
+            FROM detections d
+            JOIN recordings r ON r.id = d.recording_id
+            WHERE d.confidence >= ?
+            ORDER BY d.created_at DESC, d.confidence DESC
+            LIMIT ?
+            """,
+            (minimum_confidence, limit),
+        ).fetchall()
 
-        detections = get_detection_rows(
-            connection,
-            minimum_confidence=minimum_confidence,
-            limit=min(limit, 6),
-        )
+        detections = []
+
+        for row in rows:
+            detection = dict(row)
+
+            recording_path = resolve_recording_path(
+                detection["file_path"]
+            )
+
+            detection["audio_available"] = bool(
+                recording_path
+                and recording_path.is_file()
+            )
+
+            detections.append(detection)
 
         stats = get_dashboard_stats(connection)
         top_species = get_top_species(connection)
@@ -295,84 +263,6 @@ def index():
         latest_detection=latest_detection,
         minimum_confidence=minimum_confidence,
         limit=limit,
-    )
-
-
-@app.route("/activity")
-def activity():
-    try:
-        minimum_confidence = float(
-            request.args.get("min_confidence", "0.80")
-        )
-    except ValueError:
-        minimum_confidence = 0.80
-
-    minimum_confidence = max(
-        0.0,
-        min(minimum_confidence, 1.0),
-    )
-
-    try:
-        page = int(request.args.get("page", "1"))
-    except ValueError:
-        page = 1
-
-    page = max(1, page)
-
-    try:
-        per_page = int(request.args.get("per_page", "20"))
-    except ValueError:
-        per_page = 20
-
-    per_page = max(10, min(per_page, 100))
-    offset = (page - 1) * per_page
-
-    with get_database() as connection:
-        total_results = get_detection_count(
-            connection,
-            minimum_confidence,
-        )
-
-        detections = get_detection_rows(
-            connection,
-            minimum_confidence=minimum_confidence,
-            limit=per_page,
-            offset=offset,
-        )
-
-        stats = get_dashboard_stats(connection)
-
-    total_pages = max(
-        1,
-        (total_results + per_page - 1) // per_page,
-    )
-
-    if page > total_pages and total_results > 0:
-        page = total_pages
-        offset = (page - 1) * per_page
-
-        with get_database() as connection:
-            detections = get_detection_rows(
-                connection,
-                minimum_confidence=minimum_confidence,
-                limit=per_page,
-                offset=offset,
-            )
-
-    first_result = offset + 1 if total_results else 0
-    last_result = min(offset + len(detections), total_results)
-
-    return render_template(
-        "activity.html",
-        detections=detections,
-        stats=stats,
-        minimum_confidence=minimum_confidence,
-        page=page,
-        per_page=per_page,
-        total_results=total_results,
-        total_pages=total_pages,
-        first_result=first_result,
-        last_result=last_result,
     )
 
 

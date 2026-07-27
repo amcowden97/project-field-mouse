@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% set active_page = "activity" %}
+
+{% block title %}Activity · Project Field Mouse{% endblock %}
+
+{% block station_status %}
+<div
+    class="station-pill {% if not stats.recorder_recent %}offline{% endif %}"
+>
+    <span class="station-dot"></span>
+
+    <span>
+        <strong>Backyard Sanctuary</strong>
+        <small>
+            {% if stats.recorder_recent %}
+                Station listening
+            {% else %}
+                Recorder not recently seen
+            {% endif %}
+        </small>
+    </span>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-intro activity-intro">
+    <div>
+        <p class="section-kicker">Listening log</p>
+        <h2>Wildlife activity</h2>
+
+        <p>
+            Browse the calls heard by Backyard Sanctuary, listen to
+            available recordings, and filter the log by confidence.
+        </p>
+    </div>
+
+    <div class="activity-intro-art" aria-hidden="true">
+        <span>♪</span>
+        <span>🐦</span>
+        <span>♫</span>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="activity-toolbar">
+        <div>
+            <p class="section-kicker">Detection confidence</p>
+
+            <nav
+                class="confidence-filter"
+                aria-label="Confidence filters"
+            >
+                <a
+                    class="{% if minimum_confidence == 0 %}active{% endif %}"
+                    href="/activity?min_confidence=0&per_page={{ per_page }}"
+                >
+                    All
+                </a>
+
+                <a
+                    class="{% if minimum_confidence == 0.6 %}active{% endif %}"
+                    href="/activity?min_confidence=0.6&per_page={{ per_page }}"
+                >
+                    60%+
+                </a>
+
+                <a
+                    class="{% if minimum_confidence == 0.8 %}active{% endif %}"
+                    href="/activity?min_confidence=0.8&per_page={{ per_page }}"
+                >
+                    80%+
+                </a>
+
+                <a
+                    class="{% if minimum_confidence == 0.9 %}active{% endif %}"
+                    href="/activity?min_confidence=0.9&per_page={{ per_page }}"
+                >
+                    90%+
+                </a>
+            </nav>
+        </div>
+
+        <div class="activity-count-card">
+            <strong>{{ total_results }}</strong>
+            <span>matching detections</span>
+        </div>
+    </div>
+
+    <div class="activity-range">
+        {% if total_results %}
+            Showing {{ first_result }}–{{ last_result }}
+            of {{ total_results }}
+        {% else %}
+            No matching detections
+        {% endif %}
+    </div>
+
+    <div class="detection-list">
+        {% for detection in detections %}
+            {% set percentage = detection.confidence * 100 %}
+
+            {% if percentage >= 90 %}
+                {% set confidence_class = "confidence-high" %}
+            {% elif percentage >= 80 %}
+                {% set confidence_class = "confidence-medium" %}
+            {% else %}
+                {% set confidence_class = "confidence-low" %}
+            {% endif %}
+
+            <article class="detection-card">
+                <div class="detection-main">
+                    <div class="species-row">
+                        <div class="species-pixel" aria-hidden="true">
+                            🐦
+                        </div>
+
+                        <div>
+                            <h3 class="species-name">
+                                <a href="{{ url_for('species_detail', common_name=detection.common_name) }}">
+                                    {{ detection.common_name }}
+                                </a>
+                            </h3>
+
+                            {% if detection.scientific_name %}
+                                <p class="scientific-name">
+                                    {{ detection.scientific_name }}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="metadata">
+                        <span>
+                            <span aria-hidden="true">◷</span>
+
+                            <span
+                                class="local-time"
+                                data-timestamp="{{ detection.recorded_at }}"
+                            >
+                                {{ detection.recorded_at }}
+                            </span>
+                        </span>
+
+                        {% if detection.duration_seconds %}
+                            <span>
+                                <span aria-hidden="true">◉</span>
+                                {{ detection.duration_seconds | round | int }}
+                                seconds
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {% if detection.audio_available %}
+                        <audio controls preload="none">
+                            <source
+                                src="/audio/{{ detection.recording_id }}"
+                                type="audio/wav"
+                            >
+                            Your browser does not support audio playback.
+                        </audio>
+                    {% else %}
+                        <p class="audio-unavailable">
+                            Audio clip has been cleaned up
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="confidence {{ confidence_class }}">
+                    {{ "%.1f" | format(percentage) }}%
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-journal-card">
+                <span aria-hidden="true">🍂</span>
+
+                <div>
+                    <h3>No matching field notes</h3>
+
+                    <p>
+                        Try lowering the confidence filter to reveal
+                        more detections.
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if total_pages > 1 %}
+        <nav class="pagination" aria-label="Activity pages">
+            {% if page > 1 %}
+                <a
+                    class="pagination-button"
+                    href="/activity?page={{ page - 1 }}&min_confidence={{ minimum_confidence }}&per_page={{ per_page }}"
+                >
+                    ← Previous
+                </a>
+            {% else %}
+                <span class="pagination-button disabled">
+                    ← Previous
+                </span>
+            {% endif %}
+
+            <span class="pagination-status">
+                Page <strong>{{ page }}</strong>
+                of <strong>{{ total_pages }}</strong>
+            </span>
+
+            {% if page < total_pages %}
+                <a
+                    class="pagination-button"
+                    href="/activity?page={{ page + 1 }}&min_confidence={{ minimum_confidence }}&per_page={{ per_page }}"
+                >
+                    Next →
+                </a>
+            {% else %}
+                <span class="pagination-button disabled">
+                    Next →
+                </span>
+            {% endif %}
+        </nav>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script
+    defer
+    src="{{ url_for('static', filename='js/dashboard.js') }}"
+></script>
+{% endblock %}
