@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+
+{% set active_page = "device" %}
+
+{% block title %}Device · Project Field Mouse{% endblock %}
+
+{% block station_status %}
+<div
+    class="station-pill {% if not stats.recorder_recent %}offline{% endif %}"
+>
+    <span class="station-dot"></span>
+
+    <span>
+        <strong>{{ device.hostname }}</strong>
+
+        <small>
+            {% if stats.recorder_recent %}
+                Station recording normally
+            {% else %}
+                Recorder needs attention
+            {% endif %}
+        </small>
+    </span>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-intro device-intro">
+    <div>
+        <p class="section-kicker">Station health</p>
+
+        <h2>Backyard Sanctuary Device</h2>
+
+        <p>
+            A live look at the Raspberry Pi, its Field Mouse services,
+            storage, database, and recent recording activity.
+        </p>
+    </div>
+
+    <div class="device-intro-art" aria-hidden="true">
+        <div class="pi-shelter">
+            <div class="shelter-roof"></div>
+            <div class="pi-board">
+                <span class="pi-chip"></span>
+                <span class="pi-light"></span>
+                <span class="pi-port pi-port-one"></span>
+                <span class="pi-port pi-port-two"></span>
+            </div>
+            <span class="shelter-mouse">🐭</span>
+        </div>
+    </div>
+</section>
+
+<section class="device-overview-grid">
+    <article class="device-overview-card">
+        <span class="device-overview-icon" aria-hidden="true">⌂</span>
+
+        <div>
+            <span class="device-overview-label">Hostname</span>
+            <strong>{{ device.hostname }}</strong>
+            <small>Station identity</small>
+        </div>
+    </article>
+
+    <article class="device-overview-card">
+        <span class="device-overview-icon" aria-hidden="true">⌁</span>
+
+        <div>
+            <span class="device-overview-label">Local address</span>
+            <strong>
+                {{ device.ip_address or "Unavailable" }}
+            </strong>
+            <small>Current network address</small>
+        </div>
+    </article>
+
+    <article class="device-overview-card">
+        <span class="device-overview-icon" aria-hidden="true">◷</span>
+
+        <div>
+            <span class="device-overview-label">System uptime</span>
+            <strong>{{ device.uptime }}</strong>
+            <small>Since the Raspberry Pi started</small>
+        </div>
+    </article>
+
+    <article class="device-overview-card">
+        <span class="device-overview-icon" aria-hidden="true">♨</span>
+
+        <div>
+            <span class="device-overview-label">CPU temperature</span>
+
+            <strong>
+                {% if device.cpu_temperature is not none %}
+                    {{ device.cpu_temperature }}°C
+                {% else %}
+                    Unavailable
+                {% endif %}
+            </strong>
+
+            <small>
+                {% if device.cpu_temperature is not none %}
+                    {% if device.cpu_temperature < 65 %}
+                        Comfortable operating temperature
+                    {% elif device.cpu_temperature < 80 %}
+                        Warm, but within normal limits
+                    {% else %}
+                        Temperature needs attention
+                    {% endif %}
+                {% else %}
+                    Thermal sensor could not be read
+                {% endif %}
+            </small>
+        </div>
+    </article>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="section-kicker">Background workers</p>
+            <h2>Field Mouse services</h2>
+        </div>
+
+        <span class="journal-note">
+            Read directly from systemd
+        </span>
+    </div>
+
+    <div class="service-grid">
+        {% for service in device.services %}
+            <article class="service-card">
+                <div class="service-heading">
+                    <span
+                        class="service-indicator {{ service.state_class }}"
+                    ></span>
+
+                    <div>
+                        <h3>{{ service.label }}</h3>
+                        <code>{{ service.name }}</code>
+                    </div>
+                </div>
+
+                <dl class="service-details">
+                    <div>
+                        <dt>Status</dt>
+                        <dd class="service-state {{ service.state_class }}">
+                            {{ service.display_state }}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Startup</dt>
+                        <dd>{{ service.enabled_state }}</dd>
+                    </div>
+                </dl>
+
+                {% if service.name == "fieldmouse-recorder.service" %}
+                    <p class="service-description">
+                        Captures the station’s scheduled WAV recordings.
+                    </p>
+                {% elif service.name == "fieldmouse-birdnet.service" %}
+                    <p class="service-description">
+                        Processes recordings and saves wildlife detections.
+                    </p>
+                {% elif service.name == "fieldmouse-dashboard.service" %}
+                    <p class="service-description">
+                        Serves this dashboard on the local network.
+                    </p>
+                {% else %}
+                    <p class="service-description">
+                        Removes recordings according to the retention policy.
+                    </p>
+                {% endif %}
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="device-detail-grid">
+    <article class="section-block device-detail-card">
+        <div class="section-heading">
+            <div>
+                <p class="section-kicker">Storage</p>
+                <h2>Recording archive</h2>
+            </div>
+        </div>
+
+        <div class="large-meter-copy">
+            <strong>{{ stats.disk_percent }}%</strong>
+            <span>of the system disk is in use</span>
+        </div>
+
+        <div
+            class="device-meter"
+            role="progressbar"
+            aria-label="Disk usage"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="{{ stats.disk_percent }}"
+        >
+            <div style="width: {{ stats.disk_percent }}%"></div>
+        </div>
+
+        <dl class="device-data-list">
+            <div>
+                <dt>Used</dt>
+                <dd>{{ stats.disk_used | filesize }}</dd>
+            </div>
+
+            <div>
+                <dt>Available</dt>
+                <dd>{{ stats.disk_free | filesize }}</dd>
+            </div>
+
+            <div>
+                <dt>Total capacity</dt>
+                <dd>{{ stats.disk_total | filesize }}</dd>
+            </div>
+
+            <div>
+                <dt>Recording files</dt>
+                <dd>{{ stats.total_recordings }}</dd>
+            </div>
+
+            <div>
+                <dt>Recording data</dt>
+                <dd>
+                    {{ stats.total_recording_bytes | filesize }}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Archive path</dt>
+                <dd><code>{{ recordings_path }}</code></dd>
+            </div>
+        </dl>
+    </article>
+
+    <article class="section-block device-detail-card">
+        <div class="section-heading">
+            <div>
+                <p class="section-kicker">Memory</p>
+                <h2>System resources</h2>
+            </div>
+        </div>
+
+        {% if device.memory.percent is not none %}
+            <div class="large-meter-copy">
+                <strong>{{ device.memory.percent }}%</strong>
+                <span>of memory is currently in use</span>
+            </div>
+
+            <div
+                class="device-meter"
+                role="progressbar"
+                aria-label="Memory usage"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="{{ device.memory.percent }}"
+            >
+                <div style="width: {{ device.memory.percent }}%"></div>
+            </div>
+        {% else %}
+            <p class="device-unavailable">
+                Memory information could not be read.
+            </p>
+        {% endif %}
+
+        <dl class="device-data-list">
+            <div>
+                <dt>Memory used</dt>
+                <dd>
+                    {% if device.memory.used is not none %}
+                        {{ device.memory.used | filesize }}
+                    {% else %}
+                        Unavailable
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Memory available</dt>
+                <dd>
+                    {% if device.memory.available is not none %}
+                        {{ device.memory.available | filesize }}
+                    {% else %}
+                        Unavailable
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Memory total</dt>
+                <dd>
+                    {% if device.memory.total is not none %}
+                        {{ device.memory.total | filesize }}
+                    {% else %}
+                        Unavailable
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Load — 1 minute</dt>
+                <dd>
+                    {{ device.load_average.one
+                        if device.load_average.one is not none
+                        else "Unavailable" }}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Load — 5 minutes</dt>
+                <dd>
+                    {{ device.load_average.five
+                        if device.load_average.five is not none
+                        else "Unavailable" }}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Load — 15 minutes</dt>
+                <dd>
+                    {{ device.load_average.fifteen
+                        if device.load_average.fifteen is not none
+                        else "Unavailable" }}
+                </dd>
+            </div>
+        </dl>
+    </article>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="section-kicker">Field Mouse records</p>
+            <h2>Database and recent activity</h2>
+        </div>
+
+        <a class="text-link" href="/activity">
+            Open activity log →
+        </a>
+    </div>
+
+    <div class="database-grid">
+        <article>
+            <span>Database size</span>
+            <strong>{{ database_size | filesize }}</strong>
+            <code>{{ database_path }}</code>
+        </article>
+
+        <article>
+            <span>Total recordings</span>
+            <strong>
+                {{ database_stats.recording_count or 0 }}
+            </strong>
+            <small>Rows stored in the database</small>
+        </article>
+
+        <article>
+            <span>Total detections</span>
+            <strong>
+                {{ database_stats.detection_count or 0 }}
+            </strong>
+            <small>Wildlife observations recorded</small>
+        </article>
+
+        <article>
+            <span>Latest recording</span>
+
+            {% if database_stats.latest_recording_at %}
+                <strong
+                    class="local-time"
+                    data-timestamp="{{ database_stats.latest_recording_at }}"
+                >
+                    {{ database_stats.latest_recording_at }}
+                </strong>
+            {% else %}
+                <strong>None yet</strong>
+            {% endif %}
+
+            <small>
+                {% if stats.recorder_recent %}
+                    Recorder is operating recently
+                {% else %}
+                    No recording within the expected window
+                {% endif %}
+            </small>
+        </article>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script
+    defer
+    src="{{ url_for('static', filename='js/dashboard.js') }}"
+></script>
+{% endblock %}
