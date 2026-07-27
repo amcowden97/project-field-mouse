@@ -531,3 +531,45 @@ select:focus {
     color: #fff;
     background: var(--fm-moss, #496b4f);
 }
+
+/* Direct Device Status navigation button */
+.fm-device-direct-link {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 1000;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 44px;
+    padding: 9px 16px;
+    border: 1px solid rgba(73, 107, 79, 0.2);
+    border-radius: 999px;
+    color: #ffffff;
+    background: var(--fm-moss, #496b4f);
+    box-shadow:
+        0 3px 0 var(--fm-moss-dark, #2f5039),
+        0 8px 22px rgba(39, 55, 45, 0.2);
+    font-size: 0.87rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.fm-device-direct-link:hover {
+    color: #ffffff;
+    background: var(--fm-moss-dark, #2f5039);
+}
+
+.fm-device-direct-link:active {
+    transform: translateY(2px);
+    box-shadow:
+        0 1px 0 var(--fm-moss-dark, #2f5039),
+        0 4px 12px rgba(39, 55, 45, 0.18);
+}
+
+@media (max-width: 600px) {
+    .fm-device-direct-link {
+        right: 12px;
+        bottom: 12px;
+    }
+}
