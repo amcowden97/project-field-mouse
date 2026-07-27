@@ -25,7 +25,7 @@
         { label: "Overview", href: "/", icon: "🏡" },
         { label: "Life List", href: "/life-list", icon: "📖" },
         { label: "Species", href: "#recent-activity", icon: "🐦" },
-        { label: "Device", href: "/static/device/index.html", icon: "⚙️" },
+        { label: "Device", href: "/device", icon: "⚙️" },
         { label: "Map", href: "/map", icon: "🗺️" }
     ];
 
