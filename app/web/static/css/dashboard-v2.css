@@ -2139,3 +2139,330 @@ audio {
         grid-template-columns: 1fr;
     }
 }
+
+/* ---------------------------------------------------------
+   Dashboard V2: Species detail
+   --------------------------------------------------------- */
+
+.species-detail-intro {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.9),
+            rgba(203, 216, 194, 0.64)
+        ),
+        var(--paper);
+}
+
+.species-back-link {
+    display: inline-block;
+    margin-bottom: 14px;
+    color: var(--forest-700);
+    font-size: 0.82rem;
+    font-weight: 900;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+}
+
+.species-detail-scientific {
+    margin: 8px 0 0 !important;
+    color: var(--brown) !important;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.05rem !important;
+    font-style: italic;
+}
+
+.species-detail-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    margin-top: 22px;
+}
+
+.species-detail-dates span {
+    display: grid;
+    gap: 3px;
+}
+
+.species-detail-dates strong {
+    color: var(--forest-700);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.species-detail-dates time {
+    color: var(--ink-soft);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.9rem;
+}
+
+.species-detail-art {
+    display: grid;
+    min-width: 250px;
+    place-items: center;
+}
+
+.species-field-frame {
+    position: relative;
+    width: 190px;
+    height: 150px;
+    border: 4px solid var(--forest-950);
+    border-radius: 9px;
+    background:
+        linear-gradient(
+            to bottom,
+            #dde5ca 0 62%,
+            #91a877 62% 72%,
+            #536e45 72%
+        );
+    box-shadow:
+        8px 8px 0 var(--sage-300),
+        inset 0 0 0 7px rgba(255, 250, 240, 0.48);
+    image-rendering: pixelated;
+}
+
+.species-frame-leaf {
+    position: absolute;
+    top: 13px;
+    left: 17px;
+    color: var(--forest-700);
+    font-family: Georgia, serif;
+    font-size: 2rem;
+}
+
+.species-frame-bird {
+    position: absolute;
+    right: 54px;
+    bottom: 29px;
+    font-size: 4rem;
+    filter: saturate(0.72);
+    transform: scaleX(-1);
+}
+
+.species-frame-notes {
+    position: absolute;
+    top: 25px;
+    right: 22px;
+    color: var(--gold);
+    font-family: "Courier New", monospace;
+    font-size: 1.3rem;
+    font-weight: 900;
+}
+
+.species-detail-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+    margin-top: 28px;
+}
+
+.species-summary-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    min-width: 0;
+    min-height: 132px;
+    padding: 18px;
+    border: 2px solid var(--forest-800);
+    border-radius: var(--radius-medium);
+    background: var(--paper);
+    box-shadow:
+        0 4px 0 rgba(45, 89, 66, 0.25),
+        0 9px 20px var(--shadow);
+}
+
+.species-summary-icon {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    place-items: center;
+    color: var(--forest-950);
+    border: 2px solid var(--forest-950);
+    border-radius: 7px;
+    background: var(--gold);
+    font-family: "Courier New", monospace;
+    font-size: 1.1rem;
+    font-weight: 900;
+    box-shadow: 3px 3px 0 var(--sage-300);
+}
+
+.species-summary-card > div {
+    min-width: 0;
+}
+
+.species-summary-card div > span {
+    display: block;
+    color: var(--forest-700);
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.species-summary-card strong {
+    display: block;
+    margin-top: 6px;
+    color: var(--forest-900);
+    font-family: "Courier New", monospace;
+    font-size: clamp(1.55rem, 3vw, 2.15rem);
+    line-height: 1;
+}
+
+.species-summary-card small {
+    display: block;
+    margin-top: 9px;
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+}
+
+.species-activity-chart {
+    display: grid;
+    grid-template-columns: repeat(14, minmax(42px, 1fr));
+    align-items: end;
+    gap: 8px;
+    min-height: 190px;
+    padding: 20px 12px 8px;
+    overflow-x: auto;
+    border: 2px solid var(--sage-300);
+    border-radius: var(--radius-medium);
+    background:
+        repeating-linear-gradient(
+            to top,
+            transparent 0,
+            transparent 34px,
+            rgba(111, 148, 115, 0.14) 34px,
+            rgba(111, 148, 115, 0.14) 35px
+        ),
+        #fffdf5;
+}
+
+.species-activity-day {
+    display: grid;
+    grid-template-rows: 22px 120px auto;
+    align-items: end;
+    justify-items: center;
+    min-width: 42px;
+}
+
+.species-bar-value {
+    color: var(--forest-700);
+    font-family: "Courier New", monospace;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.species-bar-track {
+    display: flex;
+    width: 100%;
+    height: 120px;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.species-bar {
+    width: 24px;
+    min-height: 4px;
+    border: 2px solid var(--forest-950);
+    border-radius: 4px 4px 1px 1px;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            var(--forest-700) 0,
+            var(--forest-700) 7px,
+            var(--forest-500) 7px,
+            var(--forest-500) 12px
+        );
+    box-shadow: 3px 0 0 rgba(174, 194, 164, 0.66);
+}
+
+.calendar-date {
+    color: var(--ink-soft);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.68rem;
+    white-space: nowrap;
+}
+
+.species-detection-toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 22px;
+}
+
+.species-detection-toolbar h2 {
+    margin: 0;
+    color: var(--forest-900);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+.species-filter-area {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.species-result-count {
+    min-width: max-content;
+    color: var(--ink-soft);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.84rem;
+    font-style: italic;
+}
+
+.species-detection-card .species-name {
+    font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+    .species-detail-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .species-detection-toolbar {
+        display: block;
+    }
+
+    .species-filter-area {
+        align-items: flex-start;
+        margin-top: 17px;
+    }
+}
+
+@media (max-width: 680px) {
+    .species-detail-art {
+        min-width: 0;
+        margin-top: 24px;
+    }
+
+    .species-field-frame {
+        width: 170px;
+        height: 134px;
+    }
+
+    .species-detail-summary {
+        grid-template-columns: 1fr;
+        gap: 11px;
+        margin-top: 18px;
+    }
+
+    .species-summary-card {
+        min-height: 0;
+    }
+
+    .species-filter-area {
+        display: block;
+    }
+
+    .species-result-count {
+        display: block;
+        margin-top: 11px;
+    }
+
+    .species-activity-chart {
+        grid-template-columns: repeat(14, 46px);
+    }
+}
