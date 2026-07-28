@@ -2466,3 +2466,73 @@ audio {
         grid-template-columns: repeat(14, 46px);
     }
 }
+
+/* Dashboard V3 — cohesive single-image brand banner */
+.site-header.site-header-v3 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(190px, auto);
+    align-items: center;
+    gap: 1rem;
+    min-height: 0;
+    padding: 14px 18px;
+    overflow: hidden;
+    border: 3px solid var(--forest-950);
+    border-radius: var(--radius-large) var(--radius-large) 0 0;
+    background: #efe2bd;
+    box-shadow:
+        0 5px 0 var(--forest-950),
+        0 16px 30px var(--shadow);
+}
+
+.pfm-cohesive-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+}
+
+.pfm-cohesive-brand img {
+    display: block;
+    width: min(100%, 1060px);
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.site-header-status {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.site-header-v3 .station-pill {
+    min-width: 190px;
+}
+
+@media (max-width: 980px) {
+    .site-header.site-header-v3 {
+        grid-template-columns: 1fr;
+    }
+
+    .site-header-status {
+        justify-content: center;
+    }
+
+    .site-header-v3 .station-pill {
+        width: min(100%, 440px);
+    }
+}
+
+@media (max-width: 560px) {
+    .site-header.site-header-v3 {
+        padding: 10px;
+    }
+
+    .pfm-cohesive-brand img {
+        width: 100%;
+    }
+
+    .site-header-v3 .station-pill {
+        width: 100%;
+        min-width: 0;
+    }
+}

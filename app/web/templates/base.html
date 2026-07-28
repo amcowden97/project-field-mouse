@@ -25,30 +25,25 @@
 
 <body>
     <div class="site-shell">
-        <header class="site-header">
-            <div class="brand-lockup">
-                <div class="brand-scene" aria-hidden="true">
-                    <div class="pixel-moon"></div>
-                    <div class="pixel-mouse">🐭</div>
-                    <div class="pixel-log"></div>
-                </div>
-
-                <div class="brand-copy">
-                    <p class="eyebrow">Nature Connected</p>
-                    <h1>Project Field Mouse</h1>
-                    <p class="site-subtitle">
-                        A tiny window into the wildlife nearby
-                    </p>
-                </div>
+        <header class="site-header site-header-v3">
+            <div class="pfm-cohesive-brand">
+                <img
+                    src="{{ url_for('static', filename='img/branding/project-field-mouse-cohesive-banner.png') }}"
+                    alt="Project Field Mouse — Nature Connected"
+                    width="1060"
+                    height="218"
+                >
             </div>
 
-            {% block station_status %}{% endblock %}
+            <div class="site-header-status">
+                {% block station_status %}{% endblock %}
+            </div>
         </header>
 
         {% include "partials/navigation.html" %}
 
         <main class="page-content">
-            {% block content %}{% endblock %}
+{% block content %}{% endblock %}
         </main>
 
         <footer class="site-footer">
