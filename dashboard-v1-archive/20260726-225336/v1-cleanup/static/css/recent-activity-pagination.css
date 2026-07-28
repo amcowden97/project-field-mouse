@@ -1,0 +1,107 @@
+/*
+ * Project Field Mouse
+ * Recent Activity pagination controls
+ */
+
+.fm-activity-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: min(1180px, calc(100% - 32px));
+    margin: 16px auto 30px;
+    padding: 14px 16px;
+    border: 1px solid rgba(73, 107, 79, 0.16);
+    border-radius: 18px;
+    background: rgba(255, 250, 240, 0.88);
+    box-shadow: 0 6px 18px rgba(39, 55, 45, 0.08);
+}
+
+.fm-activity-pagination__status {
+    color: var(--fm-muted, #65766b);
+    font-size: 0.88rem;
+}
+
+.fm-activity-pagination__status strong {
+    color: var(--fm-moss-dark, #2f5039);
+}
+
+.fm-activity-pagination__actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.fm-activity-pagination__button {
+    min-height: 40px;
+    padding: 8px 15px;
+    border: 1px solid rgba(73, 107, 79, 0.18);
+    border-radius: 999px;
+    color: #fff;
+    background: var(--fm-moss, #496b4f);
+    box-shadow: 0 3px 0 var(--fm-moss-dark, #2f5039);
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.fm-activity-pagination__button:hover {
+    color: #fff;
+    background: var(--fm-moss-dark, #2f5039);
+    box-shadow: 0 4px 0 #233e2c;
+}
+
+.fm-activity-pagination__button:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--fm-moss-dark, #2f5039);
+}
+
+.fm-activity-pagination__button--secondary {
+    color: var(--fm-moss-dark, #2f5039);
+    background: transparent;
+    box-shadow: none;
+}
+
+.fm-activity-pagination__button--secondary:hover {
+    color: #fff;
+    box-shadow: none;
+}
+
+.fm-activity-pagination__button[hidden] {
+    display: none;
+}
+
+.fm-activity-hidden {
+    display: none !important;
+}
+
+.fm-activity-pagination__complete {
+    color: var(--fm-muted, #65766b);
+    font-size: 0.82rem;
+    font-style: italic;
+}
+
+@media (max-width: 650px) {
+    .fm-activity-pagination {
+        align-items: stretch;
+        flex-direction: column;
+        width: min(100% - 20px, 1180px);
+    }
+
+    .fm-activity-pagination__actions {
+        width: 100%;
+    }
+
+    .fm-activity-pagination__button {
+        flex: 1;
+    }
+}
+
+@media print {
+    .fm-activity-pagination {
+        display: none !important;
+    }
+
+    .fm-activity-hidden {
+        display: block !important;
+    }
+}

@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% set active_page = "life-list" %}
+
+{% block title %}Life List · Project Field Mouse{% endblock %}
+
+{% block station_status %}
+<div
+    class="station-pill {% if not stats.recorder_recent %}offline{% endif %}"
+>
+    <span class="station-dot"></span>
+
+    <span>
+        <strong>Backyard Sanctuary</strong>
+
+        <small>
+            {{ stats.species_count }}
+            {% if stats.species_count == 1 %}
+                species collected
+            {% else %}
+                species collected
+            {% endif %}
+        </small>
+    </span>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-intro life-list-intro">
+    <div>
+        <p class="section-kicker">Backyard collection</p>
+
+        <h2>The Backyard Sanctuary Life List</h2>
+
+        <p>
+            Every species heard by the station earns a place in this
+            living field guide. Open a card to explore its detections
+            and available recordings.
+        </p>
+    </div>
+
+    <div class="life-list-intro-art" aria-hidden="true">
+        <div class="field-guide-book">
+            <span class="book-leaf">❧</span>
+            <span class="book-bird">🐦</span>
+            <span class="book-lines">≡</span>
+        </div>
+    </div>
+</section>
+
+<section class="collection-summary">
+    <article class="collection-summary-card">
+        <span class="summary-symbol" aria-hidden="true">✦</span>
+
+        <div>
+            <span class="summary-label">Species collected</span>
+            <strong>{{ species | length }}</strong>
+        </div>
+    </article>
+
+    <article class="collection-summary-card">
+        <span class="summary-symbol" aria-hidden="true">⌛</span>
+
+        <div>
+            <span class="summary-label">First discovery</span>
+
+            {% if first_species %}
+                <strong>{{ first_species.common_name }}</strong>
+
+                <span
+                    class="summary-date local-time"
+                    data-timestamp="{{ first_species.first_detected_at }}"
+                >
+                    {{ first_species.first_detected_at }}
+                </span>
+            {% else %}
+                <strong>Waiting for a visitor</strong>
+            {% endif %}
+        </div>
+    </article>
+
+    <article class="collection-summary-card">
+        <span class="summary-symbol" aria-hidden="true">★</span>
+
+        <div>
+            <span class="summary-label">Newest addition</span>
+
+            {% if newest_species %}
+                <strong>{{ newest_species.common_name }}</strong>
+
+                <span
+                    class="summary-date local-time"
+                    data-timestamp="{{ newest_species.first_detected_at }}"
+                >
+                    {{ newest_species.first_detected_at }}
+                </span>
+            {% else %}
+                <strong>Not discovered yet</strong>
+            {% endif %}
+        </div>
+    </article>
+
+    <article class="collection-summary-card">
+        <span class="summary-symbol" aria-hidden="true">♪</span>
+
+        <div>
+            <span class="summary-label">Most frequent visitor</span>
+
+            {% if most_detected_species %}
+                <strong>
+                    {{ most_detected_species.common_name }}
+                </strong>
+
+                <span class="summary-date">
+                    {{ most_detected_species.total_detections }}
+                    detections
+                </span>
+            {% else %}
+                <strong>The yard is quiet</strong>
+            {% endif %}
+        </div>
+    </article>
+</section>
+
+<section class="section-block life-list-section">
+    <div class="life-list-toolbar">
+        <div>
+            <p class="section-kicker">Field guide</p>
+            <h2>Collected species</h2>
+        </div>
+
+        <nav
+            class="life-list-sort"
+            aria-label="Sort Life List"
+        >
+            <a
+                class="{% if sort_by == 'recent' %}active{% endif %}"
+                href="/life-list?sort=recent"
+            >
+                Recently seen
+            </a>
+
+            <a
+                class="{% if sort_by == 'name' %}active{% endif %}"
+                href="/life-list?sort=name"
+            >
+                A–Z
+            </a>
+
+            <a
+                class="{% if sort_by == 'detections' %}active{% endif %}"
+                href="/life-list?sort=detections"
+            >
+                Most heard
+            </a>
+
+            <a
+                class="{% if sort_by == 'confidence' %}active{% endif %}"
+                href="/life-list?sort=confidence"
+            >
+                Best match
+            </a>
+        </nav>
+    </div>
+
+    {% if species %}
+        <div class="life-list-grid">
+            {% for bird in species %}
+                {% set confidence = bird.highest_confidence or 0 %}
+
+                {% if confidence >= 90 %}
+                    {% set stamp_class = "stamp-high" %}
+                {% elif confidence >= 80 %}
+                    {% set stamp_class = "stamp-medium" %}
+                {% else %}
+                    {% set stamp_class = "stamp-low" %}
+                {% endif %}
+
+                {% set portrait_variant = loop.index0 % 6 %}
+
+                <article class="species-collection-card">
+                    <div class="collection-card-top">
+                        <span class="collection-number">
+                            No. {{ "%03d" | format(loop.index) }}
+                        </span>
+
+                        <span
+                            class="confidence-stamp {{ stamp_class }}"
+                            title="Highest confidence"
+                        >
+                            {{ "%.1f" | format(confidence) }}%
+                        </span>
+                    </div>
+
+                    <a
+                        class="species-card-link"
+                        href="{{ url_for('species_detail', common_name=bird.common_name) }}"
+                    >
+                        <div
+                            class="life-list-portrait portrait-{{ portrait_variant }}"
+                            aria-hidden="true"
+                        >
+                            {% if portrait_variant == 0 %}
+                                🐦
+                            {% elif portrait_variant == 1 %}
+                                🪶
+                            {% elif portrait_variant == 2 %}
+                                🌲
+                            {% elif portrait_variant == 3 %}
+                                🎵
+                            {% elif portrait_variant == 4 %}
+                                🍃
+                            {% else %}
+                                ☀
+                            {% endif %}
+                        </div>
+
+                        <div class="species-card-copy">
+                            <h3>{{ bird.common_name }}</h3>
+
+                            {% if bird.scientific_name %}
+                                <p class="scientific-name">
+                                    {{ bird.scientific_name }}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </a>
+
+                    <dl class="species-card-stats">
+                        <div>
+                            <dt>Detections</dt>
+                            <dd>{{ bird.total_detections }}</dd>
+                        </div>
+
+                        <div>
+                            <dt>Active days</dt>
+                            <dd>{{ bird.active_days }}</dd>
+                        </div>
+                    </dl>
+
+                    <div class="species-card-dates">
+                        <p>
+                            <span>First heard</span>
+
+                            <time
+                                class="local-time"
+                                data-timestamp="{{ bird.first_detected_at }}"
+                            >
+                                {{ bird.first_detected_at }}
+                            </time>
+                        </p>
+
+                        <p>
+                            <span>Last heard</span>
+
+                            <time
+                                class="local-time"
+                                data-timestamp="{{ bird.last_detected_at }}"
+                            >
+                                {{ bird.last_detected_at }}
+                            </time>
+                        </p>
+                    </div>
+
+                    <a
+                        class="species-card-button"
+                        href="{{ url_for('species_detail', common_name=bird.common_name) }}"
+                    >
+                        Open field notes →
+                    </a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-journal-card">
+            <span aria-hidden="true">🌙</span>
+
+            <div>
+                <h3>The collection is waiting to begin</h3>
+
+                <p>
+                    The first confirmed station visitor will appear
+                    here automatically.
+                </p>
+            </div>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script
+    defer
+    src="{{ url_for('static', filename='js/dashboard.js') }}"
+></script>
+{% endblock %}

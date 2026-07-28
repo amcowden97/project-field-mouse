@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>Project Field Mouse</title>
+
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script defer src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fieldmouse-theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-refinement.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/todays-visitors.css') }}">
+</head>
+
+<body>
+    <main class="page">
+        <header class="hero">
+            <div class="brand">
+                <div class="mascot">🐭</div>
+
+                <div>
+                    <h1>Project Field Mouse</h1>
+                    <p class="subtitle">
+                        Nature connected at Backyard Sanctuary
+                    </p>
+                </div>
+            </div>
+
+            <div class="online {% if not stats.recorder_recent %}offline{% endif %}" id="station-status">
+                <span class="online-dot"></span>
+                <span id="station-status-text">{% if stats.recorder_recent %}Station listening{% else %}Recorder not recently seen{% endif %}</span>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <div class="stat-label">Last 24 hours</div>
+
+                <div class="stat-value">
+                    <span id="detections-24h">{{ stats.detections_last_24_hours }}</span>
+                </div>
+
+                <div class="stat-detail">
+                    bird detections
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-label">Species observed</div>
+
+                <div class="stat-value">
+                    <span id="species-count">{{ stats.species_count }}</span>
+                </div>
+
+                <div class="stat-detail">
+                    across all detections
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-label">Recordings stored</div>
+
+                <div class="stat-value">
+                    <span id="recording-count">{{ stats.total_recordings }}</span>
+                </div>
+
+                <div class="stat-detail">
+                    <span id="recording-size">{{ stats.total_recording_bytes | filesize }}</span>
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-label">Disk usage</div>
+
+                <div class="stat-value">
+                    <span id="disk-percent">{{ stats.disk_percent }}</span>%
+                </div>
+
+                <div class="stat-detail">
+                    <span id="disk-free">{{ stats.disk_free | filesize }}</span> available
+                </div>
+
+                <div class="disk-track">
+                    <div
+                        class="disk-bar" id="disk-bar"
+                        style="width: {{ stats.disk_percent }}%"
+                    ></div>
+                </div>
+            </article>
+        </section>
+
+        <nav class="toolbar">
+            <div class="filters">
+                <a
+                    class="filter-button
+                    {% if minimum_confidence == 0 %}active{% endif %}"
+                    href="/?min_confidence=0&limit={{ limit }}"
+                >
+                    All
+                </a>
+
+                <a
+                    class="filter-button
+                    {% if minimum_confidence == 0.6 %}active{% endif %}"
+                    href="/?min_confidence=0.6&limit={{ limit }}"
+                >
+                    60%+
+                </a>
+
+                <a
+                    class="filter-button
+                    {% if minimum_confidence == 0.8 %}active{% endif %}"
+                    href="/?min_confidence=0.8&limit={{ limit }}"
+                >
+                    80%+
+                </a>
+
+                <a
+                    class="filter-button
+                    {% if minimum_confidence == 0.9 %}active{% endif %}"
+                    href="/?min_confidence=0.9&limit={{ limit }}"
+                >
+                    90%+
+                </a>
+            </div>
+
+            <div class="result-count">
+                Showing {{ detections | length }} recent detections
+            </div>
+        </nav>
+
+        <div class="section-title">
+            <h2>Recent activity</h2>
+
+            <span>
+                Average confidence:
+                {{ stats.average_confidence }}%
+            </span>
+        </div>
+
+        <section class="detection-list">
+            {% for detection in detections %}
+                {% set percentage = detection.confidence * 100 %}
+
+                {% if percentage >= 90 %}
+                    {% set confidence_class = "confidence-high" %}
+                {% elif percentage >= 80 %}
+                    {% set confidence_class = "confidence-medium" %}
+                {% else %}
+                    {% set confidence_class = "confidence-low" %}
+                {% endif %}
+
+                <article class="detection-card">
+                    <div>
+                        <div class="species-row">
+                            <div class="bird-icon">🐦</div>
+
+                            <div>
+                                <h3 class="species-name">
+                                    <a href="{{ url_for('species_detail', common_name=detection.common_name) }}">
+                                        {{ detection.common_name }}
+                                    </a>
+                                </h3>
+
+                                {% if detection.scientific_name %}
+                                    <div class="scientific-name">
+                                        {{ detection.scientific_name }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="metadata">
+                            <span>🕒 <span class="local-time" data-timestamp="{{ detection.recorded_at }}">{{ detection.recorded_at }}</span></span>
+
+                            {% if detection.duration_seconds %}
+                                <span>
+                                    🎙️ {{ detection.duration_seconds | round | int }}
+                                    seconds
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if detection.audio_available %}
+                            <audio controls preload="none">
+                                <source
+                                    src="/audio/{{ detection.recording_id }}"
+                                    type="audio/wav"
+                                >
+                                Your browser does not support audio playback.
+                            </audio>
+                        {% else %}
+                            <div class="audio-unavailable">
+                                Audio clip has been cleaned up
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="confidence {{ confidence_class }}">
+                        {{ "%.1f" | format(percentage) }}%
+                    </div>
+                </article>
+            {% else %}
+                <div class="empty-state">
+                    No detections match this confidence filter yet.
+                </div>
+            {% endfor %}
+        </section>
+
+        <footer class="footer">
+            Project Field Mouse · Nature Connected
+        </footer>
+    </main>
+    <script defer src="{{ url_for('static', filename='js/fieldmouse-theme.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/dashboard-refinement.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/todays-visitors.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>Device Status · Project Field Mouse</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/device/device.css"
+    >
+</head>
+
+<body>
+    <header class="device-header">
+        <a class="back-link" href="/">← Dashboard</a>
+
+        <div class="device-heading">
+            <div class="device-mascot" aria-hidden="true">🐭</div>
+
+            <div>
+                <p class="eyebrow">Project Field Mouse</p>
+                <h1>Device Status</h1>
+                <p class="subtitle">
+                    Live health information from Backyard Sanctuary
+                </p>
+            </div>
+        </div>
+
+        <div
+            id="overall-status"
+            class="overall-status checking"
+        >
+            Checking station…
+        </div>
+    </header>
+
+    <main>
+        <section class="status-grid">
+            <article class="status-card">
+                <span class="card-icon" aria-hidden="true">📡</span>
+                <p class="card-label">Connection</p>
+                <h2 id="connection-value">Checking…</h2>
+                <p id="connection-detail" class="card-detail">
+                    Contacting the station
+                </p>
+            </article>
+
+            <article class="status-card">
+                <span class="card-icon" aria-hidden="true">🖥️</span>
+                <p class="card-label">Hostname</p>
+                <h2 id="hostname-value">—</h2>
+                <p class="card-detail">
+                    Raspberry Pi station name
+                </p>
+            </article>
+
+            <article class="status-card">
+                <span class="card-icon" aria-hidden="true">🎙️</span>
+                <p class="card-label">Recorder</p>
+                <h2 id="recorder-value">Checking…</h2>
+                <p id="recorder-detail" class="card-detail">
+                    Waiting for health data
+                </p>
+            </article>
+
+            <article class="status-card">
+                <span class="card-icon" aria-hidden="true">🐦</span>
+                <p class="card-label">Latest Recording</p>
+                <h2 id="latest-value">—</h2>
+                <p id="latest-detail" class="card-detail">
+                    No recording time loaded
+                </p>
+            </article>
+        </section>
+
+        <section class="field-note">
+            <div class="field-note__illustration" aria-hidden="true">
+                🌿
+            </div>
+
+            <div>
+                <p class="eyebrow">Station field note</p>
+                <h2 id="field-note-title">
+                    Listening for the neighborhood
+                </h2>
+                <p id="field-note-text">
+                    Live station information will appear here once the
+                    health check finishes.
+                </p>
+            </div>
+        </section>
+
+        <section class="details-panel">
+            <div class="details-heading">
+                <div>
+                    <p class="eyebrow">Technical details</p>
+                    <h2>Health response</h2>
+                </div>
+
+                <button id="refresh-button" type="button">
+                    Refresh now
+                </button>
+            </div>
+
+            <dl class="details-list">
+                <div>
+                    <dt>Health endpoint</dt>
+                    <dd>/health</dd>
+                </div>
+
+                <div>
+                    <dt>Last checked</dt>
+                    <dd id="checked-value">Not yet checked</dd>
+                </div>
+
+                <div>
+                    <dt>Response time</dt>
+                    <dd id="response-time-value">—</dd>
+                </div>
+
+                <div>
+                    <dt>Auto refresh</dt>
+                    <dd>Every 30 seconds</dd>
+                </div>
+            </dl>
+
+            <details>
+                <summary>Raw health data</summary>
+                <pre id="raw-health-data">Waiting for response…</pre>
+            </details>
+        </section>
+    </main>
+
+    <footer>
+        <span>Project Field Mouse</span>
+        <span>Nature Connected</span>
+    </footer>
+
+    <script src="/static/device/device.js"></script>
+</body>
+</html>

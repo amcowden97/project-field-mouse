@@ -147,8 +147,8 @@
             <h2>Latest visitors</h2>
         </div>
 
-        <a class="text-link" href="/activity">
-            Open full activity log →
+        <a class="text-link" href="#recent-activity">
+            View activity ↓
         </a>
     </div>
 
@@ -213,7 +213,7 @@
     <div class="section-heading activity-heading">
         <div>
             <p class="section-kicker">Listening log</p>
-            <h2>Recent activity preview</h2>
+            <h2>Recent activity</h2>
         </div>
 
         <span class="journal-note">
@@ -221,17 +221,39 @@
         </span>
     </div>
 
-    
-
-    <div class="activity-preview-note">
-        <p class="result-count">
-            Showing the latest {{ detections | length }} detections
-        </p>
-
-        <a class="journal-button" href="/activity">
-            Browse all detections
+    <nav class="confidence-filter" aria-label="Confidence filters">
+        <a
+            class="{% if minimum_confidence == 0 %}active{% endif %}"
+            href="/?min_confidence=0&limit={{ limit }}#recent-activity"
+        >
+            All
         </a>
-    </div>
+
+        <a
+            class="{% if minimum_confidence == 0.6 %}active{% endif %}"
+            href="/?min_confidence=0.6&limit={{ limit }}#recent-activity"
+        >
+            60%+
+        </a>
+
+        <a
+            class="{% if minimum_confidence == 0.8 %}active{% endif %}"
+            href="/?min_confidence=0.8&limit={{ limit }}#recent-activity"
+        >
+            80%+
+        </a>
+
+        <a
+            class="{% if minimum_confidence == 0.9 %}active{% endif %}"
+            href="/?min_confidence=0.9&limit={{ limit }}#recent-activity"
+        >
+            90%+
+        </a>
+    </nav>
+
+    <p class="result-count">
+        Showing {{ detections | length }} recent detections
+    </p>
 
     <div class="detection-list">
         {% for detection in detections %}

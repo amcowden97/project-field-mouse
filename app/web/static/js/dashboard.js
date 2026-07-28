@@ -108,3 +108,21 @@ const refreshDashboard = async () => {
 renderTimes();
 setInterval(renderTimes, 30_000);
 setInterval(refreshDashboard, 5_000);
+
+const renderCalendarDates = () => {
+    document.querySelectorAll(".calendar-date").forEach((element) => {
+        const value = element.dataset.date;
+        if (!value) return;
+
+        const date = new Date(`${value}T12:00:00`);
+
+        if (!Number.isNaN(date.getTime())) {
+            element.textContent = date.toLocaleDateString([], {
+                month: "short",
+                day: "numeric",
+            });
+        }
+    });
+};
+
+renderCalendarDates();
