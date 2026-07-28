@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+usage() {
+cat <<HELP
+
+Project Field Mouse Developer Toolkit
+
+Usage:
+
+    ./scripts/pfm dashboard <milestone>
+
+Examples:
+
+    ./scripts/pfm dashboard 1
+    ./scripts/pfm dashboard 2
+    ./scripts/pfm dashboard 3
+    ./scripts/pfm dashboard 4
+
+HELP
+}
+
+if [[ $# -lt 2 ]]; then
+    usage
+    exit 1
+fi
+
+MODULE="$1"
+STEP="$2"
+
+case "$MODULE" in
+
+dashboard)
+
+    SCRIPT="$ROOT/scripts/dashboard/milestone${STEP}.sh"
+
+    if [[ ! -f "$SCRIPT" ]]; then
+        echo
+        echo "Milestone ${STEP} not found."
+        exit 1
+    fi
+
+    bash "$SCRIPT"
+    ;;
+
+*)
+
+    usage
+    exit 1
+    ;;
+
+esac
