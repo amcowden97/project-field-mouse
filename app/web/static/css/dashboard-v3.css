@@ -1,0 +1,143 @@
+/* ==========================================================================
+   PROJECT FIELD MOUSE DASHBOARD V3
+   ========================================================================== */
+
+:root {
+
+    --pfm-bg: #f6f1e7;
+    --pfm-card: #ffffff;
+
+    --pfm-text: #2f352f;
+
+    --shadow:
+        0 10px 24px rgba(0,0,0,.08);
+
+}
+
+* {
+
+    box-sizing: border-box;
+
+}
+
+body {
+
+    margin: 0;
+
+    background: var(--pfm-bg);
+
+    font-family:
+        Inter,
+        system-ui,
+        sans-serif;
+
+    color: var(--pfm-text);
+
+}
+
+.pfm-dashboard {
+
+    max-width: 1500px;
+
+    margin: auto;
+
+    padding: 32px;
+
+}
+
+.pfm-grid {
+
+    display: grid;
+
+    grid-template-columns: 2fr 1fr;
+
+    grid-template-areas:
+
+        "hero station"
+
+        "activity species"
+
+        "visitors patterns";
+
+    gap: 24px;
+
+}
+
+.hero {
+
+    grid-area: hero;
+
+}
+
+.station {
+
+    grid-area: station;
+
+}
+
+.activity {
+
+    grid-area: activity;
+
+}
+
+.species {
+
+    grid-area: species;
+
+}
+
+.visitors {
+
+    grid-area: visitors;
+
+}
+
+.patterns {
+
+    grid-area: patterns;
+
+}
+
+.hero,
+.station,
+.activity,
+.species,
+.visitors,
+.patterns {
+
+    background: var(--pfm-card);
+
+    border-radius: 18px;
+
+    padding: 24px;
+
+    min-height: 220px;
+
+    box-shadow: var(--shadow);
+
+}
+
+@media (max-width:900px) {
+
+    .pfm-grid {
+
+        grid-template-columns: 1fr;
+
+        grid-template-areas:
+
+            "hero"
+
+            "station"
+
+            "activity"
+
+            "species"
+
+            "visitors"
+
+            "patterns";
+
+    }
+
+}
