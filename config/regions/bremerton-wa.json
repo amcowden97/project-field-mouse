@@ -1,0 +1,33 @@
+{
+  "id": "bremerton-wa",
+  "name": "Bremerton, Washington",
+  "source": "Initial conservative station profile; replace with versioned eBird Status and Trends or checklist-frequency exports.",
+  "occurrences": {
+    "Poecile atricapillus": {"status": "common", "score": 0.90},
+    "Black-capped Chickadee": {"status": "common", "score": 0.90},
+    "Turdus migratorius": {"status": "common", "score": 0.88},
+    "American Robin": {"status": "common", "score": 0.88},
+    "Branta hutchinsii": {"status": "expected", "score": 0.72},
+    "Cackling Goose": {"status": "expected", "score": 0.72},
+    "Anser caerulescens": {"status": "rare", "score": 0.85},
+    "Snow Goose": {"status": "rare", "score": 0.85}
+  },
+  "seasonal_patterns": {
+    "Poecile atricapillus": {"expected_months": [1,2,3,4,5,6,7,8,9,10,11,12]},
+    "Black-capped Chickadee": {"expected_months": [1,2,3,4,5,6,7,8,9,10,11,12]},
+    "Turdus migratorius": {"expected_months": [1,2,3,4,5,6,7,8,9,10,11,12]},
+    "American Robin": {"expected_months": [1,2,3,4,5,6,7,8,9,10,11,12]},
+    "Anser caerulescens": {"expected_months": [10,11,12,1,2,3,4]},
+    "Snow Goose": {"expected_months": [10,11,12,1,2,3,4]},
+    "Bubo virginianus": {
+      "expected_months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "active_hours": [18, 7]
+    },
+    "Great Horned Owl": {
+      "expected_months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "active_hours": [18, 7]
+    },
+    "Catharus ustulatus": {"expected_months": [4,5,6,7,8,9]},
+    "Swainson's Thrush": {"expected_months": [4,5,6,7,8,9]}
+  }
+}

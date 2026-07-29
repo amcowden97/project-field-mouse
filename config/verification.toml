@@ -1,0 +1,20 @@
+[verification]
+enabled = true
+region_profile = "config/regions/bremerton-wa.json"
+
+[verification.rules]
+reject_below = 0.40
+verify_below = 0.95
+
+[verification.consensus]
+birdnet_weight = 1.0
+verified_threshold = 0.90
+probable_threshold = 0.70
+rejected_threshold = 0.35
+
+[verification.plugins]
+geographic = true
+seasonal = true
+audio_quality = true
+historical = true
+second_model = false
