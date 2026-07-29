@@ -1,0 +1,71 @@
+.pfm-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pfm-stack-gap, var(--pfm-space-6));
+}
+
+.pfm-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pfm-cluster-gap, var(--pfm-space-3));
+    align-items: center;
+}
+
+.pfm-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pfm-grid-gap, var(--pfm-space-5));
+}
+
+.pfm-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pfm-space-6);
+}
+
+.pfm-section {
+    min-width: 0;
+}
+
+.pfm-section + .pfm-section {
+    margin-top: var(--pfm-space-10);
+}
+
+.pfm-section-heading {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pfm-space-3) var(--pfm-space-6);
+    align-items: end;
+    justify-content: space-between;
+    margin-bottom: var(--pfm-space-5);
+}
+
+.pfm-section-heading > div {
+    display: grid;
+    gap: var(--pfm-space-2);
+}
+
+.pfm-reading-width {
+    max-width: var(--pfm-reading-width);
+}
+
+@media (min-width: 42rem) {
+    .pfm-grid--two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 64rem) {
+    .pfm-grid--three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .pfm-grid--four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .pfm-split {
+        grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.55fr);
+        align-items: start;
+    }
+}

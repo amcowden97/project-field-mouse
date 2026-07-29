@@ -1,0 +1,127 @@
+{% extends "v3/base.html" %}
+{% from "v3/macros/assets.html" import pixel_art %}
+{% from "v3/macros/species.html" import species_card %}
+{% from "v3/macros/time.html" import local_time %}
+
+{% set active_page = "life-list" %}
+
+{% block title %}Life List · Project Field Mouse{% endblock %}
+
+{% block page_styles %}
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/pages/life-list.css') }}"
+    >
+{% endblock %}
+
+{% block content %}
+    <div class="pfm-stack pfm-life-list-page">
+        <header class="pfm-collection-hero">
+            <div>
+                <p class="pfm-eyebrow">Backyard collection</p>
+                <h1>The {{ current_station_name }} Life List</h1>
+                <p class="pfm-lede">
+                    Every species adds a new page to this living field guide.
+                    Familiar neighbors count just as much as rare surprises.
+                </p>
+                <div class="pfm-collection-progress">
+                    <strong>{{ species | length }}</strong>
+                    <span>species discovered</span>
+                </div>
+            </div>
+            {{ pixel_art(
+                filename="field-kit/field-notebook.png",
+                alt="A pixel-art field notebook",
+                size="hero",
+                fallback="▤"
+            ) }}
+        </header>
+
+        <section
+            class="pfm-achievement-grid"
+            aria-label="Life List highlights"
+        >
+            <article>
+                <span aria-hidden="true">✦</span>
+                <div>
+                    <small>First discovery</small>
+                    <strong>{{ first_species.common_name | default("Waiting for a visitor") }}</strong>
+                    {% if first_species %}
+                        {{ local_time(first_species.first_detected_at) }}
+                    {% endif %}
+                </div>
+            </article>
+            <article>
+                <span aria-hidden="true">★</span>
+                <div>
+                    <small>Newest addition</small>
+                    <strong>{{ newest_species.common_name | default("The next surprise") }}</strong>
+                    {% if newest_species %}
+                        {{ local_time(newest_species.first_detected_at) }}
+                    {% endif %}
+                </div>
+            </article>
+            <article>
+                <span aria-hidden="true">♪</span>
+                <div>
+                    <small>Most frequent visitor</small>
+                    <strong>{{ most_detected_species.common_name | default("Still listening") }}</strong>
+                    {% if most_detected_species %}
+                        <span>{{ most_detected_species.total_detections }} detections</span>
+                    {% endif %}
+                </div>
+            </article>
+        </section>
+
+        <section aria-labelledby="collection-title">
+            <div class="pfm-life-list-toolbar">
+                <div>
+                    <p class="pfm-eyebrow">Field guide</p>
+                    <h2 id="collection-title">Collected species</h2>
+                </div>
+                <nav class="pfm-chip-row" aria-label="Sort Life List">
+                    {% for key, label in [
+                        ("recent", "Recent"),
+                        ("name", "Name"),
+                        ("detections", "Most heard"),
+                        ("confidence", "Confidence")
+                    ] %}
+                        <a
+                            class="pfm-chip{% if sort_by == key %} is-active{% endif %}"
+                            href="{{ url_for('life_list', sort=key) }}"
+                            {% if sort_by == key %}aria-current="page"{% endif %}
+                        >
+                            {{ label }}
+                        </a>
+                    {% endfor %}
+                </nav>
+            </div>
+
+            {% if species %}
+                <div class="pfm-life-list-grid">
+                    {% for bird in species %}
+                        {{ species_card(
+                            bird,
+                            artwork=bird.asset | default(none)
+                        ) }}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="pfm-empty-state" role="status">
+                    <span class="pfm-empty-state__symbol" aria-hidden="true">☾</span>
+                    <div>
+                        <h3>The collection is waiting to begin</h3>
+                        <p>The first confident observation will become card No. 001.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script
+        defer
+        src="{{ url_for('static', filename='js/dashboard-v3.js') }}"
+    ></script>
+{% endblock %}

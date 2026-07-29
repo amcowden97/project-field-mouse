@@ -1,0 +1,151 @@
+{% extends "v3/base.html" %}
+{% from "v3/macros/assets.html" import pixel_art %}
+{% from "v3/macros/detection.html" import detection_item %}
+
+{% set active_page = "activity" %}
+
+{% block title %}Activity · Project Field Mouse{% endblock %}
+
+{% block page_styles %}
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/pages/activity.css') }}"
+    >
+{% endblock %}
+
+{% block content %}
+    <div class="pfm-stack pfm-activity-page">
+        <header class="pfm-page-hero pfm-page-hero--activity">
+            <div>
+                <p class="pfm-eyebrow">Listening log</p>
+                <h1>Wildlife Activity</h1>
+                <p class="pfm-lede">
+                    Follow the station’s observations in the order they
+                    arrived, listen to available clips, and open a species’
+                    field notes.
+                </p>
+            </div>
+            {{ pixel_art(
+                filename="field-kit/feather.png",
+                size="large",
+                fallback="♪"
+            ) }}
+        </header>
+
+        <section class="pfm-filter-panel" aria-labelledby="activity-filter-title">
+            <div>
+                <p class="pfm-eyebrow">Narrow the journal</p>
+                <h2 id="activity-filter-title">Detection confidence</h2>
+            </div>
+            <nav class="pfm-chip-row" aria-label="Confidence filters">
+                {% for threshold, label in [
+                    (0, "All"),
+                    (0.6, "60%+"),
+                    (0.8, "80%+"),
+                    (0.9, "90%+")
+                ] %}
+                    <a
+                        class="pfm-chip{% if minimum_confidence == threshold %} is-active{% endif %}"
+                        href="{{ url_for(
+                            'activity',
+                            min_confidence=threshold,
+                            per_page=per_page
+                        ) }}"
+                        {% if minimum_confidence == threshold %}aria-current="page"{% endif %}
+                    >
+                        {{ label }}
+                    </a>
+                {% endfor %}
+            </nav>
+            <p class="pfm-result-count" aria-live="polite">
+                Showing {{ first_result }}–{{ last_result }} of
+                {{ total_results }} observations
+            </p>
+        </section>
+
+        <section aria-labelledby="activity-list-title">
+            <div class="pfm-section-heading">
+                <div>
+                    <p class="pfm-eyebrow">Newest first</p>
+                    <h2 id="activity-list-title">Recent observations</h2>
+                </div>
+            </div>
+
+            <div
+                class="pfm-activity-list"
+                data-activity-list
+                aria-live="polite"
+            >
+                {% for detection in detections %}
+                    {{ detection_item(detection) }}
+                {% else %}
+                    <div class="pfm-empty-state" role="status">
+                        <span class="pfm-empty-state__symbol" aria-hidden="true">☾</span>
+                        <div>
+                            <h3>No observations match this filter</h3>
+                            <p>Try a lower confidence threshold.</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if page < total_pages %}
+                <div class="pfm-load-more">
+                    <a
+                        class="pfm-button"
+                        data-load-more
+                        href="{{ url_for(
+                            'activity',
+                            page=page + 1,
+                            min_confidence=minimum_confidence,
+                            per_page=per_page
+                        ) }}"
+                    >
+                        Load more observations
+                    </a>
+                    <p data-load-status aria-live="polite"></p>
+                    <div data-load-sentinel aria-hidden="true"></div>
+                </div>
+            {% endif %}
+
+            <noscript>
+                <nav class="pfm-pagination" aria-label="Activity pages">
+                    {% if page > 1 %}
+                        <a
+                            class="pfm-button"
+                            href="{{ url_for(
+                                'activity',
+                                page=page - 1,
+                                min_confidence=minimum_confidence,
+                                per_page=per_page
+                            ) }}"
+                        >
+                            Previous
+                        </a>
+                    {% endif %}
+                    <span>Page {{ page }} of {{ total_pages }}</span>
+                    {% if page < total_pages %}
+                        <a
+                            class="pfm-button"
+                            href="{{ url_for(
+                                'activity',
+                                page=page + 1,
+                                min_confidence=minimum_confidence,
+                                per_page=per_page
+                            ) }}"
+                        >
+                            Next
+                        </a>
+                    {% endif %}
+                </nav>
+            </noscript>
+        </section>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script
+        defer
+        src="{{ url_for('static', filename='js/dashboard-v3.js') }}"
+    ></script>
+{% endblock %}

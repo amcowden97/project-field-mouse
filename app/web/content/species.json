@@ -1,0 +1,33 @@
+{
+  "_default": {
+    "asset": "wildlife/generic-bird.png",
+    "fact": "Field notes for this species are still being gathered.",
+    "seasonality": "Seasonal patterns will become clearer as the station collects more observations.",
+    "related": []
+  },
+  "American Robin": {
+    "asset": "wildlife/robin.png",
+    "fact": "Robins use a rich mix of songs, calls, and alarm notes throughout the day.",
+    "related": ["Black-capped Chickadee", "American Goldfinch"]
+  },
+  "Black-capped Chickadee": {
+    "asset": "wildlife/chickadee.png",
+    "fact": "Chickadees have several distinct calls, including the familiar chick-a-dee alarm call.",
+    "related": ["American Robin", "American Goldfinch"]
+  },
+  "American Goldfinch": {
+    "asset": "wildlife/goldfinch.png",
+    "fact": "Goldfinches often call while flying, creating a recognizable bouncing flight rhythm.",
+    "related": ["American Robin", "Black-capped Chickadee"]
+  },
+  "Anna's Hummingbird": {
+    "asset": "wildlife/hummingbird.png",
+    "fact": "A hummingbird soundscape can include vocal notes, wing hums, and display sounds.",
+    "related": ["American Goldfinch"]
+  },
+  "Great Horned Owl": {
+    "asset": "wildlife/owl.png",
+    "fact": "Deep paired hoots can carry a long distance through still evening air.",
+    "related": []
+  }
+}

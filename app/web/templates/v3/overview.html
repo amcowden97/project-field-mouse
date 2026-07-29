@@ -1,37 +1,345 @@
 {% extends "v3/base.html" %}
+{% from "v3/macros/assets.html" import pixel_art %}
+{% from "v3/macros/cards.html" import card %}
+{% from "v3/macros/detection.html" import detection_item %}
+{% from "v3/macros/meters.html" import meter %}
+{% from "v3/macros/time.html" import local_time %}
+
+{% set active_page = "home" %}
+{% set visitors = latest_visitors | default(detections | default([])) %}
+
+{% block title %}{{ current_station_name }} · Project Field Mouse{% endblock %}
+
+{% block page_styles %}
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/pages/overview.css') }}"
+    >
+{% endblock %}
 
 {% block content %}
+    <div class="pfm-stack pfm-overview">
+        <section class="pfm-overview-hero" aria-labelledby="station-title">
+            <div class="pfm-overview-hero__copy">
+                <p class="pfm-eyebrow">Field Site 001 · Listening post</p>
+                <h1 id="station-title">{{ current_station_name }}</h1>
+                <p class="pfm-lede">
+                    A quiet window into the birds, frogs, and other wild
+                    neighbors passing through.
+                </p>
+                <div class="pfm-hero-status">
+                    <span
+                        class="pfm-status-dot{% if stats is defined and not stats.recorder_recent %} is-offline{% endif %}"
+                        aria-hidden="true"
+                    ></span>
+                    <span>
+                        {% if stats is defined and stats.recorder_recent %}
+                            Station online and listening
+                        {% else %}
+                            Recording status needs a check
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
 
-<div class="pfm-dashboard">
+            <div class="pfm-overview-hero__scene" aria-hidden="true">
+                {{ pixel_art(
+                    filename="brand/station-hero-scene.png",
+                    size="hero",
+                    fallback="⌂"
+                ) }}
+                <span class="pfm-hero-note">Nature Connected</span>
+            </div>
+        </section>
 
-    <section class="pfm-grid">
+        <section class="pfm-section" aria-labelledby="today-title">
+            <div class="pfm-section-heading">
+                <div>
+                    <p class="pfm-eyebrow">Today’s field notes</p>
+                    <h2 id="today-title">Today’s Activity</h2>
+                </div>
+                <a class="pfm-text-link" href="{{ url_for('activity') }}">
+                    Open the listening log
+                </a>
+            </div>
 
-        <div class="hero">
-            Hero Banner
+            <div class="pfm-today-grid">
+                <article class="pfm-today-card pfm-today-card--primary">
+                    <span class="pfm-today-card__icon" aria-hidden="true">♪</span>
+                    <span>Detections today</span>
+                    <strong>{{ today.detection_count | default(stats.detections_last_24_hours | default(0)) }}</strong>
+                    <small>Calls and songs noticed by BirdNET</small>
+                </article>
+                <article class="pfm-today-card">
+                    <span class="pfm-today-card__icon" aria-hidden="true">✦</span>
+                    <span>Species today</span>
+                    <strong>{{ today.species_count | default(stats.species_last_24_hours | default(0)) }}</strong>
+                    <small>Distinct visitors heard at this station</small>
+                </article>
+                <article class="pfm-today-card">
+                    <span class="pfm-today-card__icon" aria-hidden="true">◎</span>
+                    <span>Average confidence</span>
+                    <strong>{{ today.average_confidence | default(stats.average_confidence | default(0)) }}%</strong>
+                    <small>BirdNET’s average match confidence</small>
+                </article>
+            </div>
+        </section>
+
+        <section class="pfm-section" aria-labelledby="visitors-title">
+            <div class="pfm-section-heading">
+                <div>
+                    <p class="pfm-eyebrow">Fresh from the microphone</p>
+                    <h2 id="visitors-title">Latest Visitors</h2>
+                </div>
+                <span class="pfm-journal-note">Newest observations first</span>
+            </div>
+
+            {% if visitors %}
+                <div class="pfm-visitor-grid">
+                    {% for visitor in visitors[:4] %}
+                        <article class="pfm-visitor-card">
+                            {{ pixel_art(
+                                size="large",
+                                fallback=["♩", "♪", "♫", "♬"][loop.index0]
+                            ) }}
+                            <div>
+                                <h3>
+                                    <a href="{{ url_for(
+                                        'species_detail',
+                                        common_name=visitor.common_name
+                                    ) }}">
+                                        {{ visitor.common_name }}
+                                    </a>
+                                </h3>
+                                {% if visitor.scientific_name %}
+                                    <p class="pfm-scientific-name">
+                                        {{ visitor.scientific_name }}
+                                    </p>
+                                {% endif %}
+                                <p>
+                                    {{ local_time(
+                                        visitor.recorded_at or visitor.created_at,
+                                        relative=true
+                                    ) }}
+                                </p>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="pfm-empty-state" role="status">
+                    <span class="pfm-empty-state__symbol" aria-hidden="true">☾</span>
+                    <div>
+                        <h3>The yard is quiet for now</h3>
+                        <p>New visitors will settle into the journal here.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+
+        <div class="pfm-overview-split">
+            {% call card(
+                title="Recent Discoveries",
+                eyebrow="New to the life list",
+                class_name="pfm-discoveries"
+            ) %}
+                {% if recent_discoveries | default([]) %}
+                    <ol class="pfm-discovery-list">
+                        {% for discovery in recent_discoveries %}
+                            <li>
+                                <span class="pfm-discovery-number">
+                                    {{ "%02d" | format(loop.index) }}
+                                </span>
+                                <div>
+                                    <a href="{{ url_for(
+                                        'species_detail',
+                                        common_name=discovery.common_name
+                                    ) }}">
+                                        <strong>{{ discovery.common_name }}</strong>
+                                    </a>
+                                    <span>
+                                        First heard
+                                        {{ local_time(discovery.first_detected_at) }}
+                                    </span>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                {% else %}
+                    <p class="pfm-text-muted">
+                        New additions to the station life list will appear here.
+                    </p>
+                {% endif %}
+            {% endcall %}
+
+            {% call card(
+                title="Species Streak",
+                eyebrow="Keep listening",
+                class_name="pfm-streak-card"
+            ) %}
+                <div class="pfm-streak">
+                    {{ pixel_art(
+                        filename="badges/species-streak.png",
+                        size="medium",
+                        fallback="✦"
+                    ) }}
+                    <div>
+                        <strong>{{ species_streak.days | default(0) }}</strong>
+                        <span>
+                            {% if species_streak.days | default(0) == 1 %}
+                                active day
+                            {% else %}
+                                consecutive active days
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <p class="pfm-text-muted">
+                    A day counts when the station hears at least one species.
+                </p>
+            {% endcall %}
         </div>
 
-        <div class="station">
-            Field Station
+        <section class="pfm-section" aria-labelledby="timeline-title">
+            <div class="pfm-section-heading">
+                <div>
+                    <p class="pfm-eyebrow">When the yard gets lively</p>
+                    <h2 id="timeline-title">Activity Timeline</h2>
+                </div>
+                <span class="pfm-journal-note">Station-local time</span>
+            </div>
+
+            <div
+                class="pfm-timeline"
+                role="img"
+                aria-label="Hourly wildlife detections today"
+            >
+                {% for hour in activity_timeline | default([]) %}
+                    <div
+                        class="pfm-timeline__hour"
+                        title="{{ hour.label }}: {{ hour.detection_count }} detections"
+                    >
+                        <span
+                            class="pfm-timeline__bar"
+                            data-chart-value="{{ hour.detection_count }}"
+                        ></span>
+                        {% if loop.index0 % 3 == 0 %}
+                            <small>{{ hour.label }}</small>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    {% for hour in range(0, 24) %}
+                        <div class="pfm-timeline__hour">
+                            <span class="pfm-timeline__bar"></span>
+                            {% if hour % 3 == 0 %}
+                                <small>{{ hour if hour <= 12 else hour - 12 }}{% if hour < 12 %}a{% else %}p{% endif %}</small>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </section>
+
+        <div class="pfm-overview-lower">
+            {% call card(
+                title="Recent Recordings",
+                eyebrow="From the listening archive"
+            ) %}
+                {% if recent_recordings | default([]) %}
+                    <ul class="pfm-recording-list">
+                        {% for recording in recent_recordings %}
+                            <li>
+                                <div>
+                                    <strong>
+                                        {{ local_time(recording.recorded_at) }}
+                                    </strong>
+                                    <span>
+                                        {{ recording.detection_count }} detections
+                                        · {{ recording.duration_seconds }} sec
+                                    </span>
+                                </div>
+                                {% if recording.audio_available %}
+                                    <audio controls preload="none">
+                                        <source
+                                            src="{{ url_for(
+                                                'audio',
+                                                recording_id=recording.recording_id
+                                            ) }}"
+                                            type="audio/wav"
+                                        >
+                                    </audio>
+                                {% else %}
+                                    <span class="pfm-audio-unavailable">Archived</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="pfm-text-muted">
+                        The newest stored recordings will appear here.
+                    </p>
+                {% endif %}
+            {% endcall %}
+
+            <div class="pfm-stack">
+                {% call card(
+                    title="Weather",
+                    eyebrow="Conditions"
+                ) %}
+                    <div class="pfm-weather-placeholder">
+                        {{ pixel_art(
+                            filename=weather.asset | default("weather/partly-cloudy.png"),
+                            alt="Partly cloudy weather placeholder",
+                            size="medium",
+                            fallback="☁"
+                        ) }}
+                        <div>
+                            <strong>{{ weather.label | default("Weather station coming soon") }}</strong>
+                            <p>{{ weather.summary | default("Local conditions will appear here in a future update.") }}</p>
+                        </div>
+                    </div>
+                {% endcall %}
+
+                {% call card(
+                    title="Station Health",
+                    eyebrow="Quick check"
+                ) %}
+                    {{ meter(
+                        "Disk used",
+                        stats.disk_percent | default(none),
+                        detail=(stats.disk_free | default(0) | filesize) ~ " free"
+                    ) }}
+                    <a class="pfm-text-link" href="{{ url_for('device') }}">
+                        See complete device details
+                    </a>
+                {% endcall %}
+            </div>
         </div>
 
-        <div class="activity">
-            Today's Activity
-        </div>
+        <aside class="pfm-nature-tip" aria-labelledby="nature-tip-title">
+            {{ pixel_art(
+                filename="field-kit/field-notebook.png",
+                size="medium",
+                fallback="▤"
+            ) }}
+            <div>
+                <p class="pfm-eyebrow">A note from the field journal</p>
+                <h2 id="nature-tip-title">
+                    {{ nature_tip.title | default("Listen before looking") }}
+                </h2>
+                <p>
+                    {{ nature_tip.text | default(
+                        "Pause for one quiet minute outside. Wildlife often announces itself before it comes into view."
+                    ) }}
+                </p>
+            </div>
+        </aside>
+    </div>
+{% endblock %}
 
-        <div class="species">
-            Species Today
-        </div>
-
-        <div class="visitors">
-            Recent Visitors
-        </div>
-
-        <div class="patterns">
-            Listening Patterns
-        </div>
-
-    </section>
-
-</div>
-
+{% block scripts %}
+    <script
+        defer
+        src="{{ url_for('static', filename='js/dashboard-v3.js') }}"
+    ></script>
 {% endblock %}

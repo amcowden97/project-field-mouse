@@ -1,0 +1,75 @@
+body {
+    color: var(--pfm-color-text);
+    font-family: var(--pfm-font-body);
+    font-size: var(--pfm-text-base);
+    line-height: var(--pfm-leading-normal);
+    text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+    color: var(--pfm-color-pine-950);
+    font-family: var(--pfm-font-display);
+    font-weight: 700;
+    line-height: var(--pfm-leading-tight);
+    text-wrap: balance;
+}
+
+h1 {
+    font-size: var(--pfm-text-3xl);
+}
+
+h2 {
+    font-size: var(--pfm-text-xl);
+}
+
+h3 {
+    font-size: var(--pfm-text-lg);
+}
+
+p {
+    text-wrap: pretty;
+}
+
+a {
+    color: var(--pfm-color-link);
+    text-decoration-thickness: 0.09em;
+    text-underline-offset: 0.18em;
+}
+
+a:hover {
+    color: var(--pfm-color-link-hover);
+}
+
+strong {
+    font-weight: 750;
+}
+
+small {
+    font-size: var(--pfm-text-xs);
+}
+
+code,
+kbd,
+samp {
+    font-family: var(--pfm-font-mono);
+}
+
+.pfm-eyebrow {
+    color: var(--pfm-color-rust-600);
+    font-family: var(--pfm-font-mono);
+    font-size: var(--pfm-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+.pfm-lede {
+    max-width: var(--pfm-reading-width);
+    color: var(--pfm-color-text-muted);
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-lg);
+    line-height: var(--pfm-leading-relaxed);
+}

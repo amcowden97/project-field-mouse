@@ -1,0 +1,253 @@
+.pfm-species-page {
+    --pfm-stack-gap: var(--pfm-space-10);
+}
+
+.pfm-species-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pfm-space-6);
+    align-items: center;
+    padding: var(--pfm-space-6);
+    border: var(--pfm-border-heavy) solid var(--pfm-color-pine-950);
+    border-radius: var(--pfm-radius-xl);
+    background:
+        linear-gradient(
+            130deg,
+            rgba(255, 248, 232, 0.98),
+            rgba(175, 194, 162, 0.4)
+        );
+    box-shadow: var(--pfm-shadow-lg);
+}
+
+.pfm-species-hero__art {
+    display: grid;
+    justify-items: center;
+}
+
+.pfm-species-hero__copy {
+    display: grid;
+    gap: var(--pfm-space-3);
+    min-width: 0;
+}
+
+.pfm-species-hero__scientific {
+    color: var(--pfm-color-bark-700);
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-xl);
+    font-style: italic;
+}
+
+.pfm-species-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pfm-space-3);
+    margin-top: var(--pfm-space-2);
+}
+
+.pfm-species-dates > span {
+    display: grid;
+    min-width: min(100%, 10rem);
+    padding: var(--pfm-space-3);
+    border: var(--pfm-border-thin) dashed var(--pfm-color-bark-600);
+    border-radius: var(--pfm-radius-sm);
+    background: rgba(255, 248, 232, 0.66);
+}
+
+.pfm-species-dates small {
+    color: var(--pfm-color-text-muted);
+}
+
+.pfm-species-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--pfm-space-4);
+}
+
+.pfm-species-summary article {
+    display: grid;
+    min-width: 0;
+    padding: var(--pfm-space-4);
+    border: var(--pfm-border-medium) solid var(--pfm-color-border);
+    border-radius: var(--pfm-radius-lg);
+    background: var(--pfm-color-surface);
+    box-shadow: var(--pfm-shadow-sm);
+}
+
+.pfm-species-summary article > span {
+    color: var(--pfm-color-moss-600);
+    font-family: var(--pfm-font-mono);
+}
+
+.pfm-species-summary small {
+    color: var(--pfm-color-text-muted);
+}
+
+.pfm-species-summary strong {
+    overflow-wrap: anywhere;
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-xl);
+}
+
+.pfm-species-editorial-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pfm-space-5);
+}
+
+.pfm-field-fact {
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-lg);
+    line-height: var(--pfm-leading-relaxed);
+}
+
+.pfm-content-placeholder {
+    margin-top: var(--pfm-space-4);
+    padding-top: var(--pfm-space-4);
+    border-top: var(--pfm-border-thin) dashed var(--pfm-color-border);
+    color: var(--pfm-color-text-muted);
+    font-size: var(--pfm-text-sm);
+}
+
+.pfm-season-wheel {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: var(--pfm-space-4);
+    overflow: hidden;
+    border: var(--pfm-border-medium) solid var(--pfm-color-pine-900);
+    border-radius: var(--pfm-radius-round);
+}
+
+.pfm-season-wheel span {
+    padding: var(--pfm-space-2);
+    color: var(--pfm-color-pine-950);
+    background: var(--pfm-color-sage-200);
+    font-family: var(--pfm-font-mono);
+    font-size: clamp(0.55rem, 1.5vw, 0.75rem);
+    text-align: center;
+}
+
+.pfm-season-wheel span:nth-child(2) {
+    background: var(--pfm-color-gold-300);
+}
+
+.pfm-season-wheel span:nth-child(3) {
+    background: #d9b68d;
+}
+
+.pfm-season-wheel span:nth-child(4) {
+    background: var(--pfm-color-sky);
+}
+
+.pfm-history-chart {
+    display: grid;
+    grid-template-columns: repeat(14, minmax(0, 1fr));
+    gap: var(--pfm-space-2);
+    min-height: 13rem;
+}
+
+.pfm-history-chart > div {
+    display: grid;
+    grid-template-rows: minmax(8rem, 1fr) auto;
+    gap: var(--pfm-space-2);
+    align-items: end;
+    min-width: 0;
+}
+
+.pfm-history-chart__bar {
+    width: 100%;
+    min-height: 0.25rem;
+    border-radius: var(--pfm-radius-sm) var(--pfm-radius-sm) 0 0;
+    background: var(--pfm-color-moss-600);
+}
+
+.pfm-history-chart time {
+    overflow: hidden;
+    color: var(--pfm-color-text-muted);
+    font-family: var(--pfm-font-mono);
+    font-size: clamp(0.45rem, 1vw, 0.65rem);
+    text-align: center;
+}
+
+.pfm-confidence-chart {
+    display: grid;
+    gap: var(--pfm-space-3);
+}
+
+.pfm-confidence-chart > div {
+    display: grid;
+    grid-template-columns: minmax(5rem, auto) minmax(0, 1fr) 2rem;
+    gap: var(--pfm-space-3);
+    align-items: center;
+}
+
+.pfm-confidence-chart > div > span {
+    font-family: var(--pfm-font-mono);
+    font-size: var(--pfm-text-sm);
+}
+
+.pfm-confidence-chart > div > div {
+    height: 0.9rem;
+    overflow: hidden;
+    border: var(--pfm-border-thin) solid var(--pfm-color-border-strong);
+    border-radius: var(--pfm-radius-round);
+    background: var(--pfm-color-surface-muted);
+}
+
+.pfm-confidence-chart > div > div > span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--pfm-color-gold-500);
+}
+
+.pfm-related-species {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pfm-space-3);
+}
+
+.pfm-related-species a {
+    display: flex;
+    gap: var(--pfm-space-3);
+    align-items: center;
+    min-height: var(--pfm-touch-target);
+    padding: var(--pfm-space-2);
+    border: var(--pfm-border-thin) solid var(--pfm-color-border);
+    border-radius: var(--pfm-radius-md);
+    text-decoration: none;
+}
+
+@media (min-width: 42rem) {
+    .pfm-species-hero {
+        grid-template-columns: auto minmax(0, 1fr);
+        padding: var(--pfm-space-8);
+    }
+
+    .pfm-species-summary {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .pfm-related-species {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 64rem) {
+    .pfm-species-editorial-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 25rem) {
+    .pfm-species-summary {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pfm-confidence-chart > div {
+        grid-template-columns: minmax(0, 1fr) 2rem;
+    }
+
+    .pfm-confidence-chart > div > span {
+        grid-column: 1 / -1;
+    }
+}

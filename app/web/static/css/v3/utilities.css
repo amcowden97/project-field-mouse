@@ -1,0 +1,34 @@
+.pfm-visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.pfm-text-muted {
+    color: var(--pfm-color-text-muted);
+}
+
+.pfm-font-mono {
+    font-family: var(--pfm-font-mono);
+}
+
+.pfm-nowrap {
+    white-space: nowrap;
+}
+
+.pfm-break-anywhere {
+    overflow-wrap: anywhere;
+}
+
+.pfm-full-width {
+    width: 100%;
+}
+
+.pfm-no-margin {
+    margin: 0;
+}

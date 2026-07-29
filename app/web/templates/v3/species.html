@@ -1,0 +1,260 @@
+{% extends "v3/base.html" %}
+{% from "v3/macros/assets.html" import pixel_art %}
+{% from "v3/macros/cards.html" import card %}
+{% from "v3/macros/detection.html" import detection_item %}
+{% from "v3/macros/time.html" import local_time %}
+
+{% set active_page = "life-list" %}
+
+{% block title %}{{ species.common_name }} · Project Field Mouse{% endblock %}
+
+{% block page_styles %}
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/pages/species.css') }}"
+    >
+{% endblock %}
+
+{% block content %}
+    <div class="pfm-stack pfm-species-page">
+        <a class="pfm-back-link" href="{{ url_for('life_list') }}">
+            ← Back to the Life List
+        </a>
+
+        <header class="pfm-species-hero">
+            <div class="pfm-species-hero__art">
+                {{ pixel_art(
+                    filename=species_content.asset | default(none),
+                    alt=species.common_name ~ " pixel artwork",
+                    size="hero",
+                    fallback="♪"
+                ) }}
+            </div>
+            <div class="pfm-species-hero__copy">
+                <p class="pfm-eyebrow">Species field notes</p>
+                <h1>{{ species.common_name }}</h1>
+                {% if species.scientific_name %}
+                    <p class="pfm-species-hero__scientific">
+                        {{ species.scientific_name }}
+                    </p>
+                {% endif %}
+                <div class="pfm-species-dates">
+                    <span>
+                        <small>First heard</small>
+                        <strong>{{ local_time(species.first_detected_at) }}</strong>
+                    </span>
+                    <span>
+                        <small>Last heard</small>
+                        <strong>{{ local_time(species.last_detected_at, relative=true) }}</strong>
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <section
+            class="pfm-species-summary"
+            aria-label="Species observation summary"
+        >
+            <article>
+                <span>♪</span>
+                <small>Total detections</small>
+                <strong>{{ species.total_detections }}</strong>
+            </article>
+            <article>
+                <span>☀</span>
+                <small>Active days</small>
+                <strong>{{ species.active_days }}</strong>
+            </article>
+            <article>
+                <span>◎</span>
+                <small>Average confidence</small>
+                <strong>{{ species.average_confidence }}%</strong>
+            </article>
+            <article>
+                <span>★</span>
+                <small>Best match</small>
+                <strong>{{ species.highest_confidence }}%</strong>
+            </article>
+        </section>
+
+        <div class="pfm-species-editorial-grid">
+            {% call card(
+                title="A note about this visitor",
+                eyebrow="Field guide"
+            ) %}
+                <p class="pfm-field-fact">
+                    {{ species_content.fact | default(
+                        "Field notes for this species are still being gathered."
+                    ) }}
+                </p>
+                <p class="pfm-content-placeholder">
+                    Community-written species notes can be added here without
+                    changing detection records.
+                </p>
+            {% endcall %}
+
+            {% call card(
+                title="Seasonality",
+                eyebrow="Patterns through the year"
+            ) %}
+                <div class="pfm-season-wheel" aria-hidden="true">
+                    <span>Spring</span>
+                    <span>Summer</span>
+                    <span>Autumn</span>
+                    <span>Winter</span>
+                </div>
+                <p class="pfm-text-muted">
+                    {{ species_content.seasonality | default(
+                        "Seasonal patterns will become clearer as the station collects more observations."
+                    ) }}
+                </p>
+            {% endcall %}
+        </div>
+
+        <section class="pfm-card" aria-labelledby="history-title">
+            <header class="pfm-card__header">
+                <div>
+                    <p class="pfm-eyebrow">Recent pattern</p>
+                    <h2 id="history-title">Detection History</h2>
+                </div>
+                <span class="pfm-journal-note">Last fourteen days</span>
+            </header>
+            <div class="pfm-card__body">
+                {% if daily_activity %}
+                    <div
+                        class="pfm-history-chart"
+                        role="img"
+                        aria-label="Detections during the last fourteen days"
+                    >
+                        {% for day in daily_activity %}
+                            <div>
+                                <span
+                                    class="pfm-history-chart__bar"
+                                    data-chart-value="{{ day.detection_count }}"
+                                    title="{{ day.detection_count }} detections"
+                                ></span>
+                                <time
+                                    class="calendar-date"
+                                    datetime="{{ day.activity_date }}"
+                                    data-date="{{ day.activity_date }}"
+                                >
+                                    {{ day.activity_date }}
+                                </time>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="pfm-text-muted">
+                        No observations were recorded during the last fourteen days.
+                    </p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="pfm-card" aria-labelledby="confidence-title">
+            <header class="pfm-card__header">
+                <div>
+                    <p class="pfm-eyebrow">How certain was BirdNET?</p>
+                    <h2 id="confidence-title">Confidence Distribution</h2>
+                </div>
+            </header>
+            <div class="pfm-card__body">
+                <div class="pfm-confidence-chart">
+                    {% for bucket in confidence_distribution | default([]) %}
+                        <div>
+                            <span>{{ bucket.label }}</span>
+                            <div>
+                                <span
+                                    data-meter-value="{{ bucket.percent }}"
+                                ></span>
+                            </div>
+                            <strong>{{ bucket.count }}</strong>
+                        </div>
+                    {% else %}
+                        <p class="pfm-text-muted">
+                            Confidence groups will appear after V3 activation.
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section aria-labelledby="audio-gallery-title">
+            <div class="pfm-section-heading">
+                <div>
+                    <p class="pfm-eyebrow">Listening archive</p>
+                    <h2 id="audio-gallery-title">Recent Clips</h2>
+                </div>
+                <nav class="pfm-chip-row" aria-label="Species confidence filters">
+                    {% for threshold, label in [
+                        (0, "All"),
+                        (0.6, "60%+"),
+                        (0.8, "80%+"),
+                        (0.9, "90%+")
+                    ] %}
+                        <a
+                            class="pfm-chip{% if minimum_confidence == threshold %} is-active{% endif %}"
+                            href="{{ url_for(
+                                'species_detail',
+                                common_name=species.common_name,
+                                min_confidence=threshold
+                            ) }}"
+                            {% if minimum_confidence == threshold %}aria-current="page"{% endif %}
+                        >
+                            {{ label }}
+                        </a>
+                    {% endfor %}
+                </nav>
+            </div>
+
+            <div class="pfm-activity-list">
+                {% for detection in detections[:12] %}
+                    {{ detection_item(detection) }}
+                {% else %}
+                    <div class="pfm-empty-state" role="status">
+                        <span class="pfm-empty-state__symbol" aria-hidden="true">☾</span>
+                        <div>
+                            <h3>No clips match this filter</h3>
+                            <p>Try a lower confidence threshold.</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="pfm-card" aria-labelledby="related-title">
+            <header class="pfm-card__header">
+                <div>
+                    <p class="pfm-eyebrow">Nearby in the field guide</p>
+                    <h2 id="related-title">Related Species</h2>
+                </div>
+            </header>
+            <div class="pfm-card__body">
+                {% if species_content.related | default([]) %}
+                    <div class="pfm-related-species">
+                        {% for related_name in species_content.related %}
+                            <a href="{{ url_for(
+                                'species_detail',
+                                common_name=related_name
+                            ) }}">
+                                {{ pixel_art(size="small", fallback="♪") }}
+                                <span>{{ related_name }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="pfm-text-muted">
+                        Related field-guide entries have not been curated yet.
+                    </p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script
+        defer
+        src="{{ url_for('static', filename='js/dashboard-v3.js') }}"
+    ></script>
+{% endblock %}
