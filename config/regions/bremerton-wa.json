@@ -1,7 +1,15 @@
 {
+  "schema_version": 1,
   "id": "bremerton-wa",
   "name": "Bremerton, Washington",
-  "source": "Initial conservative station profile; replace with versioned eBird Status and Trends or checklist-frequency exports.",
+  "profile_version": "bootstrap-curated-v1",
+  "generated_at": null,
+  "source": {
+    "name": "Initial conservative station profile",
+    "version": "bootstrap-curated-v1",
+    "license_review_required": false,
+    "note": "Replace by running the occurrence profile builder against a licensed checklist-frequency export."
+  },
   "occurrences": {
     "Poecile atricapillus": {"status": "common", "score": 0.90},
     "Black-capped Chickadee": {"status": "common", "score": 0.90},

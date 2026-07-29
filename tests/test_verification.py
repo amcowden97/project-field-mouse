@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 import tempfile
 import unittest
@@ -20,6 +21,7 @@ from app.verification.plugins.geographic import (
 )
 from app.verification.plugins.audio_quality import AudioQualityPlugin
 from app.verification.plugins.seasonal import SeasonalPattern, SeasonalPlugin
+from app.verification.plugins.second_model import PerchCommandAdapter
 from app.verification.repository import save_verification
 from app.verification.reviews import ReviewInput, record_review
 from app.verification.rules import RuleConfig, RuleEngine
@@ -34,6 +36,14 @@ class FixedPlugin(VerificationPlugin):
     def verify(self, context: DetectionContext) -> PluginResult:
         del context
         return self.result
+
+
+class FailingPlugin(VerificationPlugin):
+    name = "missing_dependency"
+
+    def verify(self, context: DetectionContext) -> PluginResult:
+        del context
+        raise RuntimeError("model unavailable")
 
 
 def context(
@@ -111,6 +121,37 @@ class ConsensusTests(unittest.TestCase):
         )
         decision = VerificationManager([plugin]).verify(context(0.75))
         self.assertLess(decision.score, 0.75)
+
+    def test_missing_plugin_is_explicit_neutral_evidence(self) -> None:
+        decision = VerificationManager([FailingPlugin()]).verify(context(0.75))
+        self.assertEqual("neutral", decision.plugin_results[0].verdict)
+        self.assertEqual(0.0, decision.plugin_results[0].weight)
+        self.assertIn("unavailable", decision.plugin_results[0].reason)
+
+    @patch("app.verification.plugins.second_model.subprocess.run")
+    def test_perch_adapter_uses_isolated_json_protocol(self, run) -> None:
+        run.return_value.stdout = json.dumps(
+            {
+                "scientific_name": "Poecile atricapillus",
+                "common_name": "Black-capped Chickadee",
+                "confidence": 0.91,
+                "model_version": "perch-2-test",
+            }
+        )
+        adapter = PerchCommandAdapter(
+            ["perch-runtime"], model_version="perch-2-test"
+        )
+        test_context = context(0.75)
+        test_context = DetectionContext(
+            **{
+                **test_context.__dict__,
+                "scientific_name": "Poecile atricapillus",
+            }
+        )
+        result = adapter.verify(test_context)
+        self.assertEqual("support", result.verdict)
+        request = json.loads(run.call_args.kwargs["input"])
+        self.assertEqual(str(test_context.audio_path), request["audio_path"])
 
 
 class ContextPluginTests(unittest.TestCase):

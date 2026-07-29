@@ -17,11 +17,13 @@ class ConsensusEngine:
         self,
         *,
         birdnet_weight: float = 1.0,
+        intercept: float = 0.0,
         verified_threshold: float = 0.90,
         probable_threshold: float = 0.70,
         rejected_threshold: float = 0.35,
     ) -> None:
         self.birdnet_weight = birdnet_weight
+        self.intercept = intercept
         self.verified_threshold = verified_threshold
         self.probable_threshold = probable_threshold
         self.rejected_threshold = rejected_threshold
@@ -52,7 +54,7 @@ class ConsensusEngine:
                 rule,
             )
 
-        evidence = self.birdnet_weight * self._logit(
+        evidence = self.intercept + self.birdnet_weight * self._logit(
             context.birdnet_confidence
         )
         for result in results:

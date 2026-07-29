@@ -1,6 +1,7 @@
 [verification]
 enabled = true
 region_profile = "config/regions/bremerton-wa.json"
+calibration_profile = "config/calibration/default.json"
 
 [verification.rules]
 reject_below = 0.40
@@ -18,3 +19,10 @@ seasonal = true
 audio_quality = true
 historical = true
 second_model = false
+
+# Optional process-isolated Perch runtime. The command must accept one JSON
+# request on stdin and emit one JSON prediction on stdout.
+[verification.perch]
+command = ["python", "-m", "fieldmouse_perch_runtime"]
+model_version = "perch-2.0-unconfigured"
+timeout_seconds = 60

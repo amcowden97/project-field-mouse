@@ -5,6 +5,7 @@ from app.verification.plugins.geographic import GeographicPlugin
 from app.verification.plugins.historical import HistoricalPlugin
 from app.verification.plugins.seasonal import SeasonalPlugin
 from app.verification.plugins.second_model import (
+    PerchCommandAdapter,
     SecondModelAdapter,
     SecondModelPrediction,
 )
@@ -14,6 +15,7 @@ __all__ = [
     "GeographicPlugin",
     "HistoricalPlugin",
     "SeasonalPlugin",
+    "PerchCommandAdapter",
     "SecondModelAdapter",
     "SecondModelPrediction",
 ]
