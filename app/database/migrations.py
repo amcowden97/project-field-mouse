@@ -6,7 +6,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-DEFAULT_MIGRATIONS_PATH = Path("data/database/migrations")
+DEFAULT_MIGRATIONS_PATH = (
+    Path(__file__).resolve().parents[2] / "data" / "database" / "migrations"
+)
 
 
 def apply_migrations(

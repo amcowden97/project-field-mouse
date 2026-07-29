@@ -7,7 +7,7 @@ from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
-from app.config import FieldMouseConfig
+from app.config import PROJECT_ROOT, FieldMouseConfig
 from app.database.migrations import apply_migrations
 from app.version import __version__
 
@@ -39,7 +39,7 @@ def connect_database(database_path: Path) -> sqlite3.Connection:
 
 def initialize_database(
     database_path: Path,
-    schema_path: Path = Path("data/database/schema.sql"),
+    schema_path: Path = PROJECT_ROOT / "data" / "database" / "schema.sql",
 ) -> None:
     if not schema_path.exists():
         raise DatabaseError(

@@ -6,12 +6,8 @@ import sqlite3
 import time
 from pathlib import Path
 
+from app.config import load_config
 from app.detectors.process_recording import (
-    DEFAULT_CONFIDENCE,
-    DEFAULT_DATABASE,
-    DEFAULT_LATITUDE,
-    DEFAULT_LONGITUDE,
-    DEFAULT_OCCURRENCE_THRESHOLD,
     connect_database,
     get_recording,
     resolve_audio_path,
@@ -157,39 +153,46 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="Station TOML path (defaults to PFM_CONFIG or config/station.toml).",
+    )
+
+    parser.add_argument(
         "--database",
         type=Path,
-        default=DEFAULT_DATABASE,
+        default=None,
     )
 
     parser.add_argument(
         "--minimum-confidence",
         type=float,
-        default=DEFAULT_CONFIDENCE,
+        default=None,
     )
 
     parser.add_argument(
         "--latitude",
         type=float,
-        default=DEFAULT_LATITUDE,
+        default=None,
     )
 
     parser.add_argument(
         "--longitude",
         type=float,
-        default=DEFAULT_LONGITUDE,
+        default=None,
     )
 
     parser.add_argument(
         "--occurrence-threshold",
         type=float,
-        default=DEFAULT_OCCURRENCE_THRESHOLD,
+        default=None,
     )
 
     parser.add_argument(
         "--poll-interval",
         type=float,
-        default=10.0,
+        default=None,
         help=(
             "Seconds to wait when no pending recording exists."
         ),
@@ -206,6 +209,36 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> int:
     arguments = parse_arguments()
+    config = load_config(arguments.config)
+    arguments.database = arguments.database or config.storage.database_path
+    arguments.minimum_confidence = (
+        arguments.minimum_confidence
+        if arguments.minimum_confidence is not None
+        else config.birdnet.minimum_confidence
+    )
+    arguments.latitude = (
+        arguments.latitude
+        if arguments.latitude is not None
+        else config.birdnet.latitude
+    )
+    arguments.longitude = (
+        arguments.longitude
+        if arguments.longitude is not None
+        else config.birdnet.longitude
+    )
+    arguments.occurrence_threshold = (
+        arguments.occurrence_threshold
+        if arguments.occurrence_threshold is not None
+        else config.birdnet.occurrence_threshold
+    )
+    arguments.poll_interval = (
+        arguments.poll_interval
+        if arguments.poll_interval is not None
+        else config.birdnet.poll_interval_seconds
+    )
+
+    if arguments.latitude is None or arguments.longitude is None:
+        raise ValueError("BirdNET latitude and longitude must be configured.")
 
     if not 0.0 <= arguments.minimum_confidence <= 1.0:
         raise ValueError(

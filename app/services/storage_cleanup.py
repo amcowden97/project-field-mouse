@@ -5,10 +5,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-
-DEFAULT_DATABASE = Path("data/database/fieldmouse.db")
-DEFAULT_EMPTY_RETENTION_DAYS = 3
-DEFAULT_DETECTION_RETENTION_DAYS = 30
+from app.config import load_config
 
 
 def table_columns(
@@ -236,15 +233,22 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="Station TOML path (defaults to PFM_CONFIG or config/station.toml).",
+    )
+
+    parser.add_argument(
         "--database",
         type=Path,
-        default=DEFAULT_DATABASE,
+        default=None,
     )
 
     parser.add_argument(
         "--empty-retention-days",
         type=int,
-        default=DEFAULT_EMPTY_RETENTION_DAYS,
+        default=None,
         help=(
             "Days to keep recordings with no detections."
         ),
@@ -253,7 +257,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--detection-retention-days",
         type=int,
-        default=DEFAULT_DETECTION_RETENTION_DAYS,
+        default=None,
         help=(
             "Days to keep recordings containing detections."
         ),
@@ -273,6 +277,18 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> int:
     arguments = parse_arguments()
+    config = load_config(arguments.config)
+    arguments.database = arguments.database or config.storage.database_path
+    arguments.empty_retention_days = (
+        arguments.empty_retention_days
+        if arguments.empty_retention_days is not None
+        else config.storage.empty_recording_retention_days
+    )
+    arguments.detection_retention_days = (
+        arguments.detection_retention_days
+        if arguments.detection_retention_days is not None
+        else config.storage.detection_recording_retention_days
+    )
 
     if arguments.empty_retention_days < 0:
         raise ValueError(
