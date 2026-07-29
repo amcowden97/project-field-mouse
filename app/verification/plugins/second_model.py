@@ -56,4 +56,3 @@ class SecondModelAdapter(VerificationPlugin, ABC):
                 "species_agreement": agrees,
             },
         )
-

@@ -58,4 +58,3 @@ class VerificationDecision:
     explanation: tuple[str, ...]
     plugin_results: tuple[PluginResult, ...]
     rule_outcome: RuleOutcome
-

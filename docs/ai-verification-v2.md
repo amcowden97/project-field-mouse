@@ -124,4 +124,3 @@ replaces its source results while preserving the review status.
 - Add reviewer identity/notes if multiple people will adjudicate detections.
 - Snapshot external occurrence data with provenance instead of doing network
   calls in the real-time pipeline.
-

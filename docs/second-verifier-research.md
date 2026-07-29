@@ -65,4 +65,3 @@ the deployable unit and license must be assessed submission by submission:
    fully statistically independent, even when their architectures differ.
 7. Enable it through configuration only after failure behavior and artifact
    updates are operationally documented.
-

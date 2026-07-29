@@ -40,4 +40,3 @@ class RuleEngine:
             f"BirdNET confidence {confidence:.0%} requires corroboration.",
             "birdnet_verification_band",
         )
-

@@ -68,4 +68,3 @@ class GeographicPlugin(VerificationPlugin):
                 "note": occurrence.note,
             },
         )
-

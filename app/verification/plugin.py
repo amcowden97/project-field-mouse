@@ -13,4 +13,3 @@ class VerificationPlugin(ABC):
     @abstractmethod
     def verify(self, context: DetectionContext) -> PluginResult:
         """Evaluate a detection without mutating it."""
-

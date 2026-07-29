@@ -100,4 +100,3 @@ class ConsensusEngine:
             tuple(results),
             rule,
         )
-

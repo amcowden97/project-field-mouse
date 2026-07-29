@@ -64,4 +64,3 @@ class HistoricalPlugin(VerificationPlugin):
             f"{count} previously verified recording(s) support station history.",
             {"verified_observation_count": count},
         )
-

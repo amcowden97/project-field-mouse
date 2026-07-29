@@ -82,4 +82,3 @@ class SeasonalPlugin(VerificationPlugin):
                 "note": pattern.note,
             },
         )
-
