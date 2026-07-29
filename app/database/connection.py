@@ -21,9 +21,12 @@ def connect_database(database_path: Path) -> sqlite3.Connection:
     database_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
-        connection = sqlite3.connect(database_path)
+        connection = sqlite3.connect(database_path, timeout=10)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA journal_mode = WAL")
+        connection.execute("PRAGMA synchronous = NORMAL")
+        connection.execute("PRAGMA busy_timeout = 10000")
         return connection
     except sqlite3.Error as error:
         raise DatabaseError(

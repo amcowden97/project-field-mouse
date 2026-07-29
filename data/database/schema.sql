@@ -30,3 +30,35 @@ ON recordings(recorded_at);
 
 CREATE INDEX IF NOT EXISTS idx_recordings_processing_status
 ON recordings(processing_status);
+
+CREATE INDEX IF NOT EXISTS idx_recordings_station_recorded
+ON recordings(station_id, recorded_at DESC);
+
+CREATE TABLE IF NOT EXISTS detections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    recording_id INTEGER NOT NULL,
+    station_id TEXT NOT NULL,
+    common_name TEXT NOT NULL,
+    scientific_name TEXT NOT NULL,
+    confidence REAL NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+    start_time REAL,
+    end_time REAL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (recording_id) REFERENCES recordings(id) ON DELETE CASCADE,
+    FOREIGN KEY (station_id) REFERENCES stations(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_detections_recording_id
+ON detections(recording_id);
+
+CREATE INDEX IF NOT EXISTS idx_detections_station_created
+ON detections(station_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_detections_species_created
+ON detections(common_name, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    applied_at TEXT NOT NULL
+);

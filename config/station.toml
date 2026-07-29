@@ -18,10 +18,15 @@ logs_directory = "logs"
 empty_recording_retention_days = 3
 detection_recording_retention_days = 30
 cleanup_interval_hours = 6
+backups_directory = "data/backups"
+minimum_free_gb = 2.0
+maximum_disk_percent = 90.0
 
 [detection]
 enabled = false
 minimum_confidence = 0.70
+species_include = []
+species_exclude = []
 
 [birdnet]
 enabled = true
@@ -35,6 +40,26 @@ minimum_confidence = 0.25
 occurrence_threshold = 0.03
 
 poll_interval_seconds = 10
+
+[dashboard]
+host = "0.0.0.0"
+port = 8000
+
+[logging]
+level = "INFO"
+max_bytes = 5000000
+backup_count = 5
+json = true
+
+[health]
+recording_stale_seconds = 1200
+disk_warning_percent = 85.0
+temperature_warning_c = 75.0
+services = [
+  "fieldmouse-recorder.service",
+  "fieldmouse-birdnet.service",
+  "fieldmouse-dashboard.service",
+]
 
 [adaptive_recording]
 enabled = true

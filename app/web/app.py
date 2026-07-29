@@ -11,6 +11,9 @@ from pathlib import Path
 
 from flask import Flask, abort, jsonify, render_template, request, send_file
 
+from app.config import load_config
+from app.system.health_check import collect_health
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATABASE_PATH = PROJECT_ROOT / "data" / "database" / "fieldmouse.db"
@@ -1026,35 +1029,8 @@ def dashboard_api():
 
 @app.route("/health")
 def health():
-    if not DATABASE_PATH.is_file():
-        return {
-            "status": "error",
-            "database": "missing",
-        }, 500
-
-    with get_database() as connection:
-        latest_recording = connection.execute(
-            """
-            SELECT MAX(recorded_at) AS recorded_at
-            FROM recordings
-            """
-        ).fetchone()
-
-    latest_recording_at = latest_recording["recorded_at"]
-    age_seconds = seconds_since(latest_recording_at)
-
-    recorder_recent = (
-        age_seconds is not None
-        and age_seconds <= 180
-    )
-
-    return {
-        "status": "ok",
-        "database": "available",
-        "hostname": socket.gethostname(),
-        "recorder_recent": recorder_recent,
-        "latest_recording_at": latest_recording_at,
-    }
+    result = collect_health(load_config())
+    return jsonify(result), (200 if result["status"] == "ok" else 503)
 
 
 if __name__ == "__main__":

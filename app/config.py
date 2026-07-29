@@ -1,46 +1,95 @@
+"""Central, validated configuration for every Field Mouse service."""
 from __future__ import annotations
 
+import os
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-
-DEFAULT_CONFIG_PATH = Path("config/station.toml")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config" / "station.toml"
 
 
 class ConfigurationError(RuntimeError):
-    """Raised when the Field Mouse configuration is invalid."""
+    """Raised when station configuration is invalid."""
 
 
 @dataclass(frozen=True)
 class StationConfig:
-    id: str
-    name: str
-    timezone: str
+    id: str = "field-mouse-001"
+    name: str = "Project Field Mouse"
+    timezone: str = "UTC"
+    latitude: float | None = None
+    longitude: float | None = None
 
 
 @dataclass(frozen=True)
 class AudioConfig:
-    device: str
-    sample_rate: int
-    channels: int
-    sample_format: str
-    recording_duration_seconds: int
-    recording_interval_seconds: int
+    device: str = "default"
+    sample_rate: int = 48_000
+    channels: int = 1
+    sample_format: str = "S16_LE"
+    recording_duration_seconds: int = 60
+    recording_interval_seconds: int = 900
 
 
 @dataclass(frozen=True)
 class StorageConfig:
-    recordings_directory: Path
-    database_path: Path
-    logs_directory: Path
+    recordings_directory: Path = PROJECT_ROOT / "data" / "recordings"
+    database_path: Path = PROJECT_ROOT / "data" / "database" / "fieldmouse.db"
+    logs_directory: Path = PROJECT_ROOT / "logs"
+    backups_directory: Path = PROJECT_ROOT / "data" / "backups"
+    empty_recording_retention_days: int = 3
+    detection_recording_retention_days: int = 30
+    cleanup_interval_hours: int = 6
+    minimum_free_gb: float = 2.0
+    maximum_disk_percent: float = 90.0
 
 
 @dataclass(frozen=True)
 class DetectionConfig:
-    enabled: bool
-    minimum_confidence: float
+    enabled: bool = True
+    minimum_confidence: float = 0.70
+    species_include: tuple[str, ...] = ()
+    species_exclude: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class BirdNETConfig:
+    enabled: bool = True
+    latitude: float | None = None
+    longitude: float | None = None
+    minimum_confidence: float = 0.25
+    occurrence_threshold: float = 0.03
+    poll_interval_seconds: int = 10
+
+
+@dataclass(frozen=True)
+class DashboardConfig:
+    host: str = "0.0.0.0"
+    port: int = 8000
+
+
+@dataclass(frozen=True)
+class LoggingConfig:
+    level: str = "INFO"
+    max_bytes: int = 5_000_000
+    backup_count: int = 5
+    json: bool = True
+
+
+@dataclass(frozen=True)
+class HealthConfig:
+    recording_stale_seconds: int = 1200
+    disk_warning_percent: float = 85.0
+    temperature_warning_c: float = 75.0
+    services: tuple[str, ...] = (
+        "fieldmouse-recorder.service",
+        "fieldmouse-birdnet.service",
+        "fieldmouse-dashboard.service",
+    )
 
 
 @dataclass(frozen=True)
@@ -49,192 +98,153 @@ class FieldMouseConfig:
     audio: AudioConfig
     storage: StorageConfig
     detection: DetectionConfig
+    birdnet: BirdNETConfig
+    dashboard: DashboardConfig
+    logging: LoggingConfig
+    health: HealthConfig
 
 
-def require_section(
-    config_data: dict[str, Any],
-    section_name: str,
-) -> dict[str, Any]:
-    section = config_data.get(section_name)
-
-    if not isinstance(section, dict):
-        raise ConfigurationError(
-            f"Missing or invalid configuration section: [{section_name}]"
-        )
-
-    return section
+DEFAULTS: dict[str, dict[str, Any]] = {
+    "station": {}, "audio": {}, "storage": {}, "detection": {},
+    "birdnet": {}, "dashboard": {}, "logging": {}, "health": {},
+}
 
 
-def require_string(
-    section: dict[str, Any],
-    key: str,
-    section_name: str,
-) -> str:
-    value = section.get(key)
-
-    if not isinstance(value, str) or not value.strip():
-        raise ConfigurationError(
-            f"[{section_name}].{key} must be a non-empty string."
-        )
-
-    return value.strip()
+def _merge(base: dict[str, Any], values: dict[str, Any]) -> dict[str, Any]:
+    merged = {key: dict(value) for key, value in base.items()}
+    for section, section_values in values.items():
+        if section in merged and isinstance(section_values, dict):
+            merged[section].update(section_values)
+    return merged
 
 
-def require_integer(
-    section: dict[str, Any],
-    key: str,
-    section_name: str,
-    minimum: int = 1,
-) -> int:
-    value = section.get(key)
-
-    if not isinstance(value, int) or isinstance(value, bool):
-        raise ConfigurationError(
-            f"[{section_name}].{key} must be an integer."
-        )
-
-    if value < minimum:
-        raise ConfigurationError(
-            f"[{section_name}].{key} must be at least {minimum}."
-        )
-
-    return value
-
-
-def require_boolean(
-    section: dict[str, Any],
-    key: str,
-    section_name: str,
-) -> bool:
-    value = section.get(key)
-
-    if not isinstance(value, bool):
-        raise ConfigurationError(
-            f"[{section_name}].{key} must be true or false."
-        )
-
-    return value
+def _environment(data: dict[str, Any], environ: dict[str, str]) -> None:
+    """Apply PFM_SECTION_KEY overrides, inferring the target value's type."""
+    for name, raw in environ.items():
+        if not name.startswith("PFM_") or name == "PFM_CONFIG":
+            continue
+        remainder = name[4:].lower()
+        matches = [
+            section for section in data if remainder.startswith(section + "_")
+        ]
+        if not matches:
+            continue
+        section = max(matches, key=len)
+        key = remainder[len(section) + 1 :]
+        current = data[section].get(key)
+        if isinstance(current, bool):
+            if raw.lower() not in {"true", "false", "1", "0", "yes", "no"}:
+                raise ConfigurationError(f"{name} must be true or false")
+            value: Any = raw.lower() in {"true", "1", "yes"}
+        elif isinstance(current, int):
+            value = int(raw)
+        elif isinstance(current, float):
+            value = float(raw)
+        elif isinstance(current, (list, tuple)):
+            value = [item.strip() for item in raw.split(",") if item.strip()]
+        else:
+            value = raw
+        data[section][key] = value
 
 
-def require_float(
-    section: dict[str, Any],
-    key: str,
-    section_name: str,
-    minimum: float,
-    maximum: float,
-) -> float:
-    value = section.get(key)
+def _path(value: Any, config_path: Path) -> Path:
+    path = Path(str(value)).expanduser()
+    if not path.is_absolute():
+        path = (config_path.parent.parent / path).resolve()
+    return path
 
-    if not isinstance(value, (int, float)) or isinstance(value, bool):
-        raise ConfigurationError(
-            f"[{section_name}].{key} must be a number."
-        )
 
-    numeric_value = float(value)
-
-    if not minimum <= numeric_value <= maximum:
-        raise ConfigurationError(
-            f"[{section_name}].{key} must be between "
-            f"{minimum} and {maximum}."
-        )
-
-    return numeric_value
+def _bounded(name: str, value: Any, low: float, high: float) -> float:
+    number = float(value)
+    if not low <= number <= high:
+        raise ConfigurationError(f"{name} must be between {low} and {high}")
+    return number
 
 
 def load_config(
-    config_path: Path = DEFAULT_CONFIG_PATH,
+    config_path: Path | None = None,
+    environ: dict[str, str] | None = None,
 ) -> FieldMouseConfig:
-    if not config_path.exists():
-        raise ConfigurationError(
-            f"Configuration file not found: {config_path}"
-        )
+    environ = dict(os.environ if environ is None else environ)
+    selected = Path(
+        config_path or environ.get("PFM_CONFIG", DEFAULT_CONFIG_PATH)
+    ).resolve()
+    values: dict[str, Any] = {}
+    if selected.exists():
+        try:
+            with selected.open("rb") as stream:
+                values = tomllib.load(stream)
+        except (OSError, tomllib.TOMLDecodeError) as error:
+            raise ConfigurationError(f"Cannot read {selected}: {error}") from error
+    elif config_path is not None or "PFM_CONFIG" in environ:
+        raise ConfigurationError(f"Configuration file not found: {selected}")
+
+    data = _merge(DEFAULTS, values)
+    # Dataclass defaults supply missing keys while still permitting env-only setup.
+    prototypes = {
+        "station": StationConfig(), "audio": AudioConfig(),
+        "storage": StorageConfig(), "detection": DetectionConfig(),
+        "birdnet": BirdNETConfig(), "dashboard": DashboardConfig(),
+        "logging": LoggingConfig(), "health": HealthConfig(),
+    }
+    for section, prototype in prototypes.items():
+        for key, value in prototype.__dict__.items():
+            data[section].setdefault(key, value)
+    _environment(data, environ)
 
     try:
-        with config_path.open("rb") as config_file:
-            config_data = tomllib.load(config_file)
-    except tomllib.TOMLDecodeError as error:
-        raise ConfigurationError(
-            f"Invalid TOML in {config_path}: {error}"
-        ) from error
-    except OSError as error:
-        raise ConfigurationError(
-            f"Could not read configuration file: {error}"
-        ) from error
-
-    station = require_section(config_data, "station")
-    audio = require_section(config_data, "audio")
-    storage = require_section(config_data, "storage")
-    detection = require_section(config_data, "detection")
-
-    return FieldMouseConfig(
-        station=StationConfig(
-            id=require_string(station, "id", "station"),
-            name=require_string(station, "name", "station"),
-            timezone=require_string(station, "timezone", "station"),
-        ),
-        audio=AudioConfig(
-            device=require_string(audio, "device", "audio"),
-            sample_rate=require_integer(
-                audio,
-                "sample_rate",
-                "audio",
-            ),
-            channels=require_integer(
-                audio,
-                "channels",
-                "audio",
-            ),
-            sample_format=require_string(
-                audio,
-                "sample_format",
-                "audio",
-            ),
-            recording_duration_seconds=require_integer(
-                audio,
-                "recording_duration_seconds",
-                "audio",
-            ),
-            recording_interval_seconds=require_integer(
-                audio,
-                "recording_interval_seconds",
-                "audio",
-            ),
-        ),
-        storage=StorageConfig(
-            recordings_directory=Path(
-                require_string(
-                    storage,
-                    "recordings_directory",
-                    "storage",
-                )
-            ),
-            database_path=Path(
-                require_string(
-                    storage,
-                    "database_path",
-                    "storage",
-                )
-            ),
-            logs_directory=Path(
-                require_string(
-                    storage,
-                    "logs_directory",
-                    "storage",
-                )
-            ),
-        ),
-        detection=DetectionConfig(
-            enabled=require_boolean(
-                detection,
-                "enabled",
-                "detection",
-            ),
-            minimum_confidence=require_float(
-                detection,
-                "minimum_confidence",
-                "detection",
-                minimum=0.0,
-                maximum=1.0,
-            ),
-        ),
-    )
+        ZoneInfo(str(data["station"]["timezone"]))
+        station_id = str(data["station"]["id"]).strip()
+        station_name = str(data["station"]["name"]).strip()
+        if not station_id or not station_name:
+            raise ConfigurationError("station id and name cannot be empty")
+        station = StationConfig(
+            id=station_id, name=station_name,
+            timezone=str(data["station"]["timezone"]),
+            latitude=(None if data["station"]["latitude"] is None else
+                      _bounded("station.latitude", data["station"]["latitude"], -90, 90)),
+            longitude=(None if data["station"]["longitude"] is None else
+                       _bounded("station.longitude", data["station"]["longitude"], -180, 180)),
+        )
+        audio = AudioConfig(**{
+            **data["audio"],
+            "sample_rate": int(data["audio"]["sample_rate"]),
+            "channels": int(data["audio"]["channels"]),
+            "recording_duration_seconds": int(data["audio"]["recording_duration_seconds"]),
+            "recording_interval_seconds": int(data["audio"]["recording_interval_seconds"]),
+        })
+        if min(audio.sample_rate, audio.channels, audio.recording_duration_seconds,
+               audio.recording_interval_seconds) < 1:
+            raise ConfigurationError("audio numeric values must be positive")
+        storage_values = dict(data["storage"])
+        for key in ("recordings_directory", "database_path", "logs_directory", "backups_directory"):
+            storage_values[key] = _path(storage_values[key], selected)
+        storage = StorageConfig(**storage_values)
+        detection = DetectionConfig(
+            **{**data["detection"],
+               "minimum_confidence": _bounded("detection.minimum_confidence",
+                                               data["detection"]["minimum_confidence"], 0, 1),
+               "species_include": tuple(data["detection"]["species_include"]),
+               "species_exclude": tuple(data["detection"]["species_exclude"])}
+        )
+        birdnet = BirdNETConfig(
+            **{**data["birdnet"],
+               "minimum_confidence": _bounded("birdnet.minimum_confidence",
+                                               data["birdnet"]["minimum_confidence"], 0, 1),
+               "occurrence_threshold": _bounded("birdnet.occurrence_threshold",
+                                                data["birdnet"]["occurrence_threshold"], 0, 1)}
+        )
+        dashboard = DashboardConfig(
+            host=str(data["dashboard"]["host"]),
+            port=int(data["dashboard"]["port"]),
+        )
+        if not 1 <= dashboard.port <= 65535:
+            raise ConfigurationError("dashboard.port must be between 1 and 65535")
+        logging = LoggingConfig(**data["logging"])
+        if logging.level.upper() not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
+            raise ConfigurationError("logging.level is invalid")
+        health = HealthConfig(**{**data["health"], "services": tuple(data["health"]["services"])})
+    except (TypeError, ValueError, ZoneInfoNotFoundError) as error:
+        raise ConfigurationError(f"Invalid configuration: {error}") from error
+    return FieldMouseConfig(station, audio, storage, detection, birdnet,
+                            dashboard, logging, health)
