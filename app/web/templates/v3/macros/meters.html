@@ -1,0 +1,27 @@
+{% macro meter(label, value, tone="moss", detail=none) -%}
+    {% set safe_value = value | float if value is not none else 0 %}
+    <div class="pfm-meter">
+        <div class="pfm-meter__copy">
+            <span>{{ label }}</span>
+            <strong>
+                {% if value is not none %}{{ safe_value | round(1) }}%{% else %}Unavailable{% endif %}
+            </strong>
+        </div>
+        <div
+            class="pfm-meter__track"
+            role="progressbar"
+            aria-label="{{ label }}"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            {% if value is not none %}aria-valuenow="{{ safe_value }}"{% endif %}
+        >
+            <span
+                class="pfm-meter__fill pfm-meter__fill--{{ tone }}"
+                data-meter-value="{{ safe_value }}"
+            ></span>
+        </div>
+        {% if detail %}
+            <small>{{ detail }}</small>
+        {% endif %}
+    </div>
+{%- endmacro %}

@@ -1,0 +1,66 @@
+<nav class="pfm-navigation" aria-label="Primary navigation">
+    <div class="pfm-navigation__track">
+        <a
+            class="pfm-navigation__item{% if current_page == 'home' %} is-active{% endif %}"
+            href="{{ url_for('index') }}"
+            {% if current_page == "home" %}aria-current="page"{% endif %}
+        >
+            <span class="pfm-navigation__icon" aria-hidden="true">⌂</span>
+            <span>Home</span>
+        </a>
+
+        <span
+            class="pfm-navigation__item is-future"
+            aria-disabled="true"
+        >
+            <span class="pfm-navigation__icon" aria-hidden="true">⌖</span>
+            <span>Stations</span>
+            <small>Soon</small>
+        </span>
+
+        <a
+            class="pfm-navigation__item{% if current_page == 'life-list' %} is-active{% endif %}"
+            href="{{ url_for('life_list') }}"
+            {% if current_page == "life-list" %}aria-current="page"{% endif %}
+        >
+            <span class="pfm-navigation__icon" aria-hidden="true">✦</span>
+            <span>Life List</span>
+        </a>
+
+        <a
+            class="pfm-navigation__item{% if current_page == 'activity' %} is-active{% endif %}"
+            href="{{ url_for('activity') }}"
+            {% if current_page == "activity" %}aria-current="page"{% endif %}
+        >
+            <span class="pfm-navigation__icon" aria-hidden="true">♪</span>
+            <span>Activity</span>
+        </a>
+
+        <span
+            class="pfm-navigation__item is-future"
+            aria-disabled="true"
+        >
+            <span class="pfm-navigation__icon" aria-hidden="true">◇</span>
+            <span>Maps</span>
+            <small>Soon</small>
+        </span>
+
+        <a
+            class="pfm-navigation__item{% if current_page == 'device' %} is-active{% endif %}"
+            href="{{ url_for('device') }}"
+            {% if current_page == "device" %}aria-current="page"{% endif %}
+        >
+            <span class="pfm-navigation__icon" aria-hidden="true">▣</span>
+            <span>Device</span>
+        </a>
+
+        <span
+            class="pfm-navigation__item is-future"
+            aria-disabled="true"
+        >
+            <span class="pfm-navigation__icon" aria-hidden="true">⚙</span>
+            <span>Settings</span>
+            <small>Soon</small>
+        </span>
+    </div>
+</nav>

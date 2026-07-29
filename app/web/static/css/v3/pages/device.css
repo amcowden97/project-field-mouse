@@ -1,0 +1,221 @@
+.pfm-device-page {
+    --pfm-stack-gap: var(--pfm-space-10);
+}
+
+.pfm-page-hero--device {
+    background:
+        linear-gradient(
+            125deg,
+            rgba(255, 248, 232, 0.98),
+            rgba(212, 169, 79, 0.22)
+        );
+}
+
+.pfm-device-vitals {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--pfm-space-4);
+}
+
+.pfm-device-vitals article {
+    display: grid;
+    min-width: 0;
+    padding: var(--pfm-space-4);
+    border: var(--pfm-border-medium) solid var(--pfm-color-border);
+    border-radius: var(--pfm-radius-lg);
+    background: var(--pfm-color-surface);
+    box-shadow: var(--pfm-shadow-sm);
+}
+
+.pfm-device-vitals article > span {
+    color: var(--pfm-color-moss-600);
+    font-family: var(--pfm-font-mono);
+}
+
+.pfm-device-vitals small {
+    color: var(--pfm-color-text-muted);
+}
+
+.pfm-device-vitals strong {
+    overflow-wrap: anywhere;
+    font-family: var(--pfm-font-mono);
+}
+
+.pfm-service-grid,
+.pfm-resource-grid,
+.pfm-device-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pfm-space-5);
+}
+
+.pfm-service-card {
+    display: grid;
+    gap: var(--pfm-space-4);
+    min-width: 0;
+    padding: var(--pfm-space-4);
+    border: var(--pfm-border-medium) solid var(--pfm-color-border);
+    border-radius: var(--pfm-radius-lg);
+    background: var(--pfm-color-surface);
+}
+
+.pfm-service-card > div:first-child {
+    display: flex;
+    gap: var(--pfm-space-3);
+    align-items: flex-start;
+}
+
+.pfm-service-card > div:first-child > div {
+    min-width: 0;
+}
+
+.pfm-service-card code {
+    display: block;
+    overflow-wrap: anywhere;
+    color: var(--pfm-color-text-muted);
+    font-size: var(--pfm-text-xs);
+}
+
+.pfm-service-dot {
+    width: 0.8rem;
+    height: 0.8rem;
+    flex: 0 0 auto;
+    margin-top: 0.35rem;
+    border: 2px solid var(--pfm-color-pine-950);
+    border-radius: 50%;
+    background: var(--pfm-color-sky);
+}
+
+.pfm-service-dot--healthy {
+    background: var(--pfm-color-success);
+}
+
+.pfm-service-dot--warning {
+    background: var(--pfm-color-gold-500);
+}
+
+.pfm-service-dot--offline {
+    background: var(--pfm-color-danger);
+}
+
+.pfm-service-state {
+    width: fit-content;
+    padding: var(--pfm-space-1) var(--pfm-space-3);
+    border: var(--pfm-border-thin) solid currentColor;
+    border-radius: var(--pfm-radius-round);
+    color: var(--pfm-color-text-muted);
+    font-family: var(--pfm-font-mono);
+    font-size: var(--pfm-text-xs);
+}
+
+.pfm-service-state--healthy {
+    color: var(--pfm-color-success);
+}
+
+.pfm-service-state--warning {
+    color: var(--pfm-color-warning);
+}
+
+.pfm-service-state--offline {
+    color: var(--pfm-color-danger);
+}
+
+.pfm-service-card dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--pfm-space-3);
+}
+
+.pfm-service-card dl > div {
+    min-width: 0;
+    padding: var(--pfm-space-2);
+    border-radius: var(--pfm-radius-sm);
+    background: var(--pfm-color-surface-muted);
+}
+
+.pfm-service-card dt {
+    color: var(--pfm-color-text-muted);
+    font-size: var(--pfm-text-xs);
+}
+
+.pfm-service-card dd {
+    overflow-wrap: anywhere;
+    font-weight: 700;
+}
+
+.pfm-health-message,
+.pfm-model-status {
+    display: flex;
+    gap: var(--pfm-space-4);
+    align-items: center;
+}
+
+.pfm-health-message > span {
+    display: grid;
+    width: 2.8rem;
+    height: 2.8rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: var(--pfm-border-medium) solid var(--pfm-color-pine-900);
+    border-radius: 50%;
+    color: var(--pfm-color-paper);
+    background: var(--pfm-color-success);
+    font-weight: 900;
+}
+
+.pfm-health-message.is-warning > span {
+    background: var(--pfm-color-danger);
+}
+
+.pfm-health-message > div,
+.pfm-model-status > div {
+    display: grid;
+    gap: var(--pfm-space-1);
+    min-width: 0;
+}
+
+.pfm-health-message p,
+.pfm-model-status p {
+    color: var(--pfm-color-text-muted);
+}
+
+.pfm-technical-details {
+    padding: var(--pfm-space-5);
+    border: var(--pfm-border-medium) solid var(--pfm-color-border);
+    border-radius: var(--pfm-radius-lg);
+    background: var(--pfm-color-surface);
+}
+
+.pfm-technical-details summary {
+    min-height: var(--pfm-touch-target);
+    cursor: pointer;
+    color: var(--pfm-color-pine-900);
+    font-family: var(--pfm-font-mono);
+    font-weight: 700;
+}
+
+@media (min-width: 42rem) {
+    .pfm-device-vitals,
+    .pfm-service-grid,
+    .pfm-resource-grid,
+    .pfm-device-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 68rem) {
+    .pfm-device-vitals {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .pfm-service-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 25rem) {
+    .pfm-device-vitals,
+    .pfm-service-card dl {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

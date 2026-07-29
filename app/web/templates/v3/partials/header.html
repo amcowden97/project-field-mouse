@@ -1,0 +1,24 @@
+<header class="pfm-header">
+    <div class="pfm-header__brand">
+        <a
+            class="pfm-brand"
+            href="{{ url_for('index') }}"
+            aria-label="Project Field Mouse home"
+        >
+            <span class="pfm-brand__mark" aria-hidden="true">
+                <span class="pfm-brand__moon"></span>
+                <span class="pfm-brand__mouse">M</span>
+            </span>
+
+            <span class="pfm-brand__copy">
+                <span class="pfm-eyebrow">Nature Connected</span>
+                <span class="pfm-brand__name">Project Field Mouse</span>
+                <span class="pfm-brand__tagline">
+                    A tiny window into the wildlife nearby
+                </span>
+            </span>
+        </a>
+    </div>
+
+    {% include "v3/partials/station_status.html" %}
+</header>

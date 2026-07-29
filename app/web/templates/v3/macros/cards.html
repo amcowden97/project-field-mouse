@@ -1,0 +1,33 @@
+{% macro card(
+    title=none,
+    eyebrow=none,
+    class_name="",
+    labelled_by=none
+) -%}
+    {% set heading_id = labelled_by or (
+        "card-" ~ title | lower | replace(" ", "-")
+        if title
+        else none
+    ) %}
+    <section
+        class="pfm-card{% if class_name %} {{ class_name }}{% endif %}"
+        {% if heading_id %}aria-labelledby="{{ heading_id }}"{% endif %}
+    >
+        {% if title or eyebrow %}
+            <header class="pfm-card__header">
+                <div>
+                    {% if eyebrow %}
+                        <p class="pfm-eyebrow">{{ eyebrow }}</p>
+                    {% endif %}
+                    {% if title %}
+                        <h2 id="{{ heading_id }}">{{ title }}</h2>
+                    {% endif %}
+                </div>
+            </header>
+        {% endif %}
+
+        <div class="pfm-card__body">
+            {{ caller() if caller is defined else "" }}
+        </div>
+    </section>
+{%- endmacro %}

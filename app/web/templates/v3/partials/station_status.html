@@ -1,0 +1,18 @@
+<div
+    class="pfm-station-status{% if station_is_listening is sameas false %} is-offline{% elif station_is_listening is none %} is-unknown{% endif %}"
+    aria-label="Station status"
+>
+    <span class="pfm-station-status__indicator" aria-hidden="true"></span>
+
+    <span class="pfm-station-status__copy">
+        <strong>{{ current_station_name }}</strong>
+
+        {% if station_is_listening is sameas true %}
+            <span>Listening now</span>
+        {% elif station_is_listening is sameas false %}
+            <span>Recorder needs attention</span>
+        {% else %}
+            <span>Status available at the station</span>
+        {% endif %}
+    </span>
+</div>
