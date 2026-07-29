@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import argparse
 import csv
+import logging
 import sqlite3
 import tempfile
 from datetime import datetime
+from logging.handlers import QueueHandler
 from pathlib import Path
 
 import birdnet
@@ -24,6 +26,42 @@ from app.verification.repository import save_verification
 
 DEFAULT_DATABASE = Path("data/database/fieldmouse.db")
 DEFAULT_CONFIDENCE = 0.25
+
+
+def close_birdnet_session_loggers() -> None:
+    """Release queues retained by completed BirdNET inference sessions.
+
+    birdnet 0.2.16 leaves each session's QueueHandler registered globally.
+    The attached multiprocessing queue holds two file descriptors, eventually
+    exhausting the long-running worker. Inference has joined its child
+    processes before returning, so the session queues are no longer in use.
+    """
+    manager = logging.Logger.manager
+    session_names = [
+        name
+        for name in manager.loggerDict
+        if name.startswith("birdnet.session_")
+    ]
+    closed_queues: set[int] = set()
+
+    for name in session_names:
+        logger = manager.loggerDict.get(name)
+        if not isinstance(logger, logging.Logger):
+            continue
+
+        for handler in list(logger.handlers):
+            if isinstance(handler, QueueHandler):
+                queue = handler.queue
+                logger.removeHandler(handler)
+                queue_id = id(queue)
+                if queue_id not in closed_queues:
+                    queue.close()
+                    queue.join_thread()
+                    closed_queues.add(queue_id)
+            handler.close()
+
+    for name in session_names:
+        manager.loggerDict.pop(name, None)
 
 
 def connect_database(database_path: Path) -> sqlite3.Connection:
@@ -194,6 +232,7 @@ def run_birdnet(
         finally:
             csv_path.unlink(missing_ok=True)
     finally:
+        close_birdnet_session_loggers()
         species_path.unlink(missing_ok=True)
 
 
