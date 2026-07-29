@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from app.config import FieldMouseConfig
+from app.database.migrations import apply_migrations
 
 
 class DatabaseError(RuntimeError):
@@ -50,6 +51,7 @@ def initialize_database(
     try:
         with closing(connect_database(database_path)) as connection:
             connection.executescript(schema_sql)
+            apply_migrations(connection)
             connection.commit()
     except sqlite3.Error as error:
         raise DatabaseError(

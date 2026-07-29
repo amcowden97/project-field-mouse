@@ -70,14 +70,20 @@ class AudioQualityPlugin(VerificationPlugin):
             )
         if snr_db < 3.0:
             return self._result(
-                "oppose", 0.75, "Audio has a poor estimated signal-to-noise ratio.", details
+                "oppose",
+                0.75,
+                "Audio has a poor estimated signal-to-noise ratio.",
+                details,
             )
         if snr_db >= 10.0 and clipping < 0.001:
             return self._result(
                 "support", 0.85, "Audio quality is excellent.", details
             )
         return self._result(
-            "neutral", 0.5, "Audio quality is usable but not strongly informative.", details
+            "neutral",
+            0.5,
+            "Audio quality is usable but not strongly informative.",
+            details,
         )
 
     def _result(

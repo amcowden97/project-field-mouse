@@ -30,3 +30,12 @@ ON recordings(recorded_at);
 
 CREATE INDEX IF NOT EXISTS idx_recordings_processing_status
 ON recordings(processing_status);
+
+-- Detection and verification tables are maintained by numbered migrations.
+-- Keeping this include list explicit makes fresh database initialization
+-- deterministic while preserving existing deployments.
+
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version TEXT PRIMARY KEY,
+    applied_at TEXT NOT NULL
+);
