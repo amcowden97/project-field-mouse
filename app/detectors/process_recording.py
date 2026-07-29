@@ -219,6 +219,11 @@ def save_detections(
         DELETE FROM detections
         WHERE recording_id = ?
           AND detector = 'birdnet'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM detection_reviews
+              WHERE detection_reviews.detection_id = detections.id
+          )
         """,
         (recording_id,),
     )
@@ -232,6 +237,33 @@ def save_detections(
         scientific_name, common_name = split_species_name(
             prediction["species_name"]
         )
+        reviewed_detection = connection.execute(
+            """
+            SELECT d.id
+            FROM detections AS d
+            WHERE d.recording_id = ?
+              AND d.detector = 'birdnet'
+              AND COALESCE(d.scientific_name, '') = COALESCE(?, '')
+              AND d.common_name = ?
+              AND d.start_time = ?
+              AND d.end_time = ?
+              AND EXISTS (
+                  SELECT 1 FROM detection_reviews AS review
+                  WHERE review.detection_id = d.id
+              )
+            LIMIT 1
+            """,
+            (
+                recording_id,
+                scientific_name,
+                common_name,
+                float(prediction["start_time"]),
+                float(prediction["end_time"]),
+            ),
+        ).fetchone()
+        if reviewed_detection is not None:
+            saved_count += 1
+            continue
 
         cursor = connection.execute(
             """

@@ -2,13 +2,18 @@ from __future__ import annotations
 
 import csv
 import json
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
 
 from app.evaluation.calibration import calibrate
-from app.evaluation.metrics import evaluate_predictions
+from app.evaluation.metrics import (
+    evaluate_predictions,
+    evidence_source_ablation,
+)
 from app.evaluation.occurrence import build_occurrence_profile
+from app.database.migrations import apply_migrations
 
 
 def record(
@@ -54,7 +59,18 @@ class MetricTests(unittest.TestCase):
             record(present=False, birdnet_score=0.9, verification_score=0.2),
             record(present=False, birdnet_score=0.2, verification_score=0.1),
         ]
+        records.append(
+            {
+                **record(
+                    present=False,
+                    birdnet_score=0.99,
+                    verification_score=0.99,
+                ),
+                "review": {"state": "pending_review"},
+            }
+        )
         metrics = evaluate_predictions(records, "birdnet", threshold=0.7)
+        self.assertEqual(4, metrics.samples)
         self.assertEqual(1, metrics.true_positive)
         self.assertEqual(1, metrics.true_negative)
         self.assertEqual(1, metrics.false_positive)
@@ -74,6 +90,19 @@ class MetricTests(unittest.TestCase):
         self.assertEqual(12, result.samples)
         self.assertIn("geographic", result.sources)
         self.assertGreaterEqual(result.training_f1, 0.5)
+
+    def test_ablation_attributes_helpful_evidence(self) -> None:
+        records = [
+            record(
+                present=index % 2 == 0,
+                birdnet_score=0.8,
+                verification_score=0.9 if index % 2 == 0 else 0.2,
+            )
+            for index in range(12)
+        ]
+        results = evidence_source_ablation(records, threshold=0.7)
+        self.assertIn("geographic", results)
+        self.assertGreaterEqual(results["geographic"]["f1_contribution"], 0.0)
 
 
 class OccurrenceProfileTests(unittest.TestCase):
@@ -119,6 +148,27 @@ class OccurrenceProfileTests(unittest.TestCase):
             )
             self.assertEqual(64, len(profile["source"]["sha256"]))
             json.dumps(profile)
+
+
+class MigrationTests(unittest.TestCase):
+    def test_failed_migration_rolls_back_atomically(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            migrations = Path(directory)
+            (migrations / "001_invalid.sql").write_text(
+                "CREATE TABLE should_rollback (id INTEGER); INVALID SQL;",
+                encoding="utf-8",
+            )
+            connection = sqlite3.connect(":memory:")
+            with self.assertRaises(sqlite3.Error):
+                apply_migrations(connection, migrations)
+            table = connection.execute(
+                """
+                SELECT 1 FROM sqlite_master
+                WHERE type = 'table' AND name = 'should_rollback'
+                """
+            ).fetchone()
+            self.assertIsNone(table)
+            connection.close()
 
 
 if __name__ == "__main__":

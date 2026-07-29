@@ -297,6 +297,31 @@ class PersistenceTests(unittest.TestCase):
             self.assertEqual("Test Bird", review["original_common_name"])
             self.assertEqual("Correct Bird", review["corrected_common_name"])
             self.assertEqual("corrected_species", review["review_state"])
+            with patch(
+                "app.detectors.process_recording.build_verification_manager",
+                return_value=None,
+            ):
+                from app.detectors.process_recording import save_detections
+
+                save_detections(
+                    connection,
+                    1,
+                    [
+                        {
+                            "species_name": "Test Bird",
+                            "confidence": "0.85",
+                            "start_time": "0",
+                            "end_time": "3",
+                        }
+                    ],
+                    0.25,
+                )
+            self.assertEqual(
+                1,
+                connection.execute(
+                    "SELECT COUNT(*) FROM detection_reviews"
+                ).fetchone()[0],
+            )
             connection.close()
 
 

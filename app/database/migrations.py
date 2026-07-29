@@ -32,11 +32,18 @@ def apply_migrations(
         if version in applied:
             continue
         sql = migration.read_text(encoding="utf-8")
-        connection.executescript(sql)
-        connection.execute(
-            "INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?)",
-            (version, datetime.now(timezone.utc).isoformat()),
-        )
+        try:
+            connection.executescript(f"BEGIN IMMEDIATE;\n{sql}")
+            connection.execute(
+                """
+                INSERT INTO schema_migrations (version, applied_at)
+                VALUES (?, ?)
+                """,
+                (version, datetime.now(timezone.utc).isoformat()),
+            )
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
         completed.append(version)
-    connection.commit()
     return completed

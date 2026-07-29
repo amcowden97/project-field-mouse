@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import math
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -15,6 +16,7 @@ class PerformanceReport:
     iterations: int
     startup_seconds: float
     mean_latency_seconds: float
+    p95_latency_seconds: float
     min_latency_seconds: float
     max_latency_seconds: float
     process_cpu_seconds: float
@@ -57,10 +59,15 @@ def profile_callable(
         cpu_samples.append(process.cpu_percent(interval=None))
         peak_rss = max(peak_rss, process.memory_info().rss)
     cpu_after = sum(process.cpu_times()[:2])
+    ordered = sorted(latencies)
+    p95_index = min(
+        len(ordered) - 1, math.ceil(0.95 * len(ordered)) - 1
+    )
     return PerformanceReport(
         iterations,
         startup_seconds,
         mean(latencies),
+        ordered[p95_index],
         min(latencies),
         max(latencies),
         cpu_after - cpu_before,

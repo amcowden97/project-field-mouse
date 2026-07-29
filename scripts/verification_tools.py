@@ -4,13 +4,14 @@ import argparse
 import json
 import sqlite3
 import time
+from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 
 from app.database.migrations import apply_migrations
 from app.evaluation.calibration import calibrate, write_calibration
 from app.evaluation.dataset import export_evaluation_dataset
-from app.evaluation.metrics import compare_systems
+from app.evaluation.metrics import compare_systems, evidence_source_ablation
 from app.evaluation.occurrence import (
     build_occurrence_profile,
     write_occurrence_profile,
@@ -34,7 +35,7 @@ def connect(path: Path) -> sqlite3.Connection:
 
 
 def review_command(arguments: argparse.Namespace) -> None:
-    with connect(arguments.database) as connection:
+    with closing(connect(arguments.database)) as connection:
         review_id = record_review(
             connection,
             ReviewInput(
@@ -47,11 +48,12 @@ def review_command(arguments: argparse.Namespace) -> None:
                 confidence_after=arguments.confidence_after,
             ),
         )
+        connection.commit()
     print(json.dumps({"review_id": review_id}))
 
 
 def export_command(arguments: argparse.Namespace) -> None:
-    with connect(arguments.database) as connection:
+    with closing(connect(arguments.database)) as connection:
         result = export_evaluation_dataset(
             connection, arguments.output, copy_mode=arguments.copy_mode
         )
@@ -66,6 +68,9 @@ def benchmark_command(arguments: argparse.Namespace) -> None:
         "second_model": arguments.second_model_threshold,
     }
     results = compare_systems(records, thresholds)
+    results["evidence_source_ablation"] = evidence_source_ablation(
+        records, threshold=arguments.verification_threshold
+    )
     write_benchmark_report(
         arguments.output, results, dataset_path=arguments.dataset
     )
