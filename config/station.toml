@@ -1,7 +1,12 @@
 [station]
 id = "project-field-mouse-001"
+uuid = ""
 name = "Backyard Sanctuary"
 timezone = "America/Los_Angeles"
+location_name = "Backyard Sanctuary"
+hardware_version = "Raspberry Pi 5"
+deployment_date = ""
+capabilities = ["audio", "birdnet"]
 
 [audio]
 device = "plughw:2,0"
@@ -21,6 +26,8 @@ cleanup_interval_hours = 6
 backups_directory = "data/backups"
 minimum_free_gb = 2.0
 maximum_disk_percent = 90.0
+backup_retention_days = 30
+maximum_backups = 20
 
 [detection]
 enabled = false

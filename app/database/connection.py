@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import sqlite3
+import json
 from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
 from app.config import FieldMouseConfig
+from app.version import __version__
 
 
 class DatabaseError(RuntimeError):
@@ -65,6 +67,40 @@ def upsert_station(
     config: FieldMouseConfig,
 ) -> None:
     try:
+        columns = {
+            row["name"]
+            for row in connection.execute("PRAGMA table_info(stations)").fetchall()
+        }
+        if "station_uuid" in columns:
+            connection.execute(
+                """
+                INSERT INTO stations (
+                    id, name, timezone, created_at, station_uuid, hardware_version,
+                    software_version, deployment_date, location_name, latitude,
+                    longitude, capabilities
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    name = excluded.name,
+                    timezone = excluded.timezone,
+                    station_uuid = excluded.station_uuid,
+                    hardware_version = excluded.hardware_version,
+                    software_version = excluded.software_version,
+                    deployment_date = excluded.deployment_date,
+                    location_name = excluded.location_name,
+                    latitude = excluded.latitude,
+                    longitude = excluded.longitude,
+                    capabilities = excluded.capabilities
+                """,
+                (
+                    config.station.id, config.station.name, config.station.timezone,
+                    utc_now_iso(), config.station.uuid or None,
+                    config.station.hardware_version, __version__,
+                    config.station.deployment_date or None,
+                    config.station.location_name or None, config.station.latitude,
+                    config.station.longitude, json.dumps(config.station.capabilities),
+                ),
+            )
+            return
         connection.execute(
             """
             INSERT INTO stations (

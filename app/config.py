@@ -19,10 +19,15 @@ class ConfigurationError(RuntimeError):
 @dataclass(frozen=True)
 class StationConfig:
     id: str = "field-mouse-001"
+    uuid: str = ""
     name: str = "Project Field Mouse"
     timezone: str = "UTC"
     latitude: float | None = None
     longitude: float | None = None
+    location_name: str = ""
+    hardware_version: str = "unknown"
+    deployment_date: str = ""
+    capabilities: tuple[str, ...] = ("audio", "birdnet")
 
 
 @dataclass(frozen=True)
@@ -46,6 +51,8 @@ class StorageConfig:
     cleanup_interval_hours: int = 6
     minimum_free_gb: float = 2.0
     maximum_disk_percent: float = 90.0
+    backup_retention_days: int = 30
+    maximum_backups: int = 20
 
 
 @dataclass(frozen=True)
@@ -199,12 +206,16 @@ def load_config(
         if not station_id or not station_name:
             raise ConfigurationError("station id and name cannot be empty")
         station = StationConfig(
-            id=station_id, name=station_name,
+            id=station_id, uuid=str(data["station"]["uuid"]), name=station_name,
             timezone=str(data["station"]["timezone"]),
             latitude=(None if data["station"]["latitude"] is None else
                       _bounded("station.latitude", data["station"]["latitude"], -90, 90)),
             longitude=(None if data["station"]["longitude"] is None else
                        _bounded("station.longitude", data["station"]["longitude"], -180, 180)),
+            location_name=str(data["station"]["location_name"]),
+            hardware_version=str(data["station"]["hardware_version"]),
+            deployment_date=str(data["station"]["deployment_date"]),
+            capabilities=tuple(data["station"]["capabilities"]),
         )
         audio = AudioConfig(**{
             **data["audio"],
