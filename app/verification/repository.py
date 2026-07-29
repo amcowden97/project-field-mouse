@@ -17,9 +17,10 @@ def save_verification(
         """
         INSERT INTO verifications (
             detection_id, consensus_score, status, reason,
-            explanation_json, rule_action, rule_name, created_at, updated_at
+            explanation_json, rule_action, rule_name, evidence_json,
+            review_priority, review_flags_json, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(detection_id) DO UPDATE SET
             consensus_score = excluded.consensus_score,
             status = excluded.status,
@@ -27,6 +28,9 @@ def save_verification(
             explanation_json = excluded.explanation_json,
             rule_action = excluded.rule_action,
             rule_name = excluded.rule_name,
+            evidence_json = excluded.evidence_json,
+            review_priority = excluded.review_priority,
+            review_flags_json = excluded.review_flags_json,
             updated_at = excluded.updated_at
         """,
         (
@@ -37,6 +41,9 @@ def save_verification(
             json.dumps(decision.explanation),
             decision.rule_outcome.action,
             decision.rule_outcome.rule,
+            json.dumps(decision.evidence, sort_keys=True),
+            decision.review_priority,
+            json.dumps(decision.review_flags),
             now,
             now,
         ),

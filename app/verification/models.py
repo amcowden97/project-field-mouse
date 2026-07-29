@@ -58,3 +58,6 @@ class VerificationDecision:
     explanation: tuple[str, ...]
     plugin_results: tuple[PluginResult, ...]
     rule_outcome: RuleOutcome
+    evidence: tuple[dict[str, Any], ...] = ()
+    review_priority: int = 0
+    review_flags: tuple[str, ...] = ()

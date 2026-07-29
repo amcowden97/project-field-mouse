@@ -21,6 +21,7 @@ from app.verification.plugins.geographic import (
 from app.verification.plugins.audio_quality import AudioQualityPlugin
 from app.verification.plugins.seasonal import SeasonalPattern, SeasonalPlugin
 from app.verification.repository import save_verification
+from app.verification.reviews import ReviewInput, record_review
 from app.verification.rules import RuleConfig, RuleEngine
 
 
@@ -90,6 +91,7 @@ class ConsensusTests(unittest.TestCase):
         self.assertEqual("verified", decision.status)
         self.assertGreater(decision.score, 0.84)
         self.assertIn("Model agrees.", decision.explanation)
+        self.assertEqual("birdnet", decision.evidence[0]["source"])
 
     def test_conflicting_model_can_prevent_verification(self) -> None:
         plugin = FixedPlugin(
@@ -129,6 +131,17 @@ class ContextPluginTests(unittest.TestCase):
         )
         result = plugin.verify(context(0.80, species="Snow Goose"))
         self.assertEqual("oppose", result.verdict)
+
+    def test_rare_species_increases_review_priority(self) -> None:
+        plugin = GeographicPlugin(
+            {"Snow Goose": GeographicOccurrence("rare", 0.85)},
+            region_name="Test Region",
+        )
+        decision = VerificationManager([plugin]).verify(
+            context(0.80, species="Snow Goose")
+        )
+        self.assertIn("regional_rare", decision.review_flags)
+        self.assertGreater(decision.review_priority, 0)
 
     def test_migration_species_is_supported_in_expected_month(self) -> None:
         plugin = SeasonalPlugin(
@@ -225,6 +238,24 @@ class PersistenceTests(unittest.TestCase):
             self.assertIsNotNone(verification)
             self.assertEqual("fixed", output["plugin_name"])
             self.assertEqual("unreviewed", verification["review_status"])
+            review_id = record_review(
+                connection,
+                ReviewInput(
+                    int(cursor.lastrowid),
+                    "corrected_species",
+                    "field-reviewer",
+                    notes="Call belongs to another species.",
+                    corrected_common_name="Correct Bird",
+                    confidence_after=0.99,
+                ),
+            )
+            review = connection.execute(
+                "SELECT * FROM latest_detection_reviews"
+            ).fetchone()
+            self.assertGreater(review_id, 0)
+            self.assertEqual("Test Bird", review["original_common_name"])
+            self.assertEqual("Correct Bird", review["corrected_common_name"])
+            self.assertEqual("corrected_species", review["review_state"])
             connection.close()
 
 

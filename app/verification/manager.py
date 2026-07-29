@@ -9,6 +9,7 @@ from app.verification.models import (
     VerificationDecision,
 )
 from app.verification.plugin import VerificationPlugin
+from app.verification.priority import apply_review_priority
 from app.verification.rules import RuleEngine
 
 
@@ -44,4 +45,5 @@ class VerificationManager:
                             details={"error": type(error).__name__},
                         )
                     )
-        return self.consensus.decide(context, results, rule)
+        decision = self.consensus.decide(context, results, rule)
+        return apply_review_priority(context, decision)
