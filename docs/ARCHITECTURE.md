@@ -7,7 +7,7 @@ microphone -> recorder -> WAV storage -> BirdNET -> SQLite -> Flask dashboard
 maintenance timer -> online backup + retention cleanup      -> health API
 ```
 
-Every record belongs to a stable station ID. Services share validated TOML
+Every detection belongs to a station through its recording's stable station ID. Services share validated TOML
 configuration with optional `PFM_SECTION_KEY` environment overrides. SQLite stays the
 default; foreign keys, WAL, busy timeout, integrity checks, backups, and station/time
 indexes support reliable concurrent use.
