@@ -246,7 +246,10 @@ class PersistenceTests(unittest.TestCase):
                 Path(__file__).parents[1] / "data" / "database" / "migrations",
             )
             connection.execute(
-                "INSERT INTO stations VALUES ('s', 'S', 'UTC', 'now')"
+                """
+                INSERT INTO stations (id, name, timezone, created_at)
+                VALUES ('s', 'S', 'UTC', 'now')
+                """
             )
             connection.execute(
                 """

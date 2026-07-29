@@ -13,7 +13,10 @@ def test_database_pragmas_and_backup(tmp_path: Path) -> None:
     with connect_database(database) as connection:
         assert connection.execute("PRAGMA foreign_keys").fetchone()[0] == 1
         connection.execute(
-            "INSERT INTO stations VALUES ('one', 'Station', 'UTC', 'now')"
+            """
+            INSERT INTO stations (id, name, timezone, created_at)
+            VALUES ('one', 'Station', 'UTC', 'now')
+            """
         )
         connection.commit()
     backup = backup_database(database, tmp_path / "backups")
