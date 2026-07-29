@@ -1,13 +1,10 @@
-# Dashboard V3 activation TODO
+# Dashboard V3 activation
 
-Dashboard V3 is implemented but intentionally not active.
-
-Final activation should happen only after a Python/Flask environment and a
-temporary test database are available.
+Dashboard V3 is active in `3.0.0-rc1`.
 
 ## Route wiring
 
-Keep the existing URLs and change only their render targets and context:
+The existing URLs are retained:
 
 - `/` → `v3/overview.html`
 - `/activity` → `v3/activity.html`
@@ -15,7 +12,7 @@ Keep the existing URLs and change only their render targets and context:
 - `/species/<common_name>` → `v3/species.html`
 - `/device` → `v3/device.html`
 
-Use the read-only helpers in `app/web/v3.py`:
+The routes use the read-only helpers in `app/web/v3.py`:
 
 - `build_overview_context`
 - `enrich_life_list`
@@ -26,7 +23,7 @@ The Activity page uses the existing paginated route for its no-JavaScript
 fallback and progressively loads subsequent HTML pages. No new API route is
 required.
 
-## Activation checks
+## Release validation
 
 1. Compile every Jinja template.
 2. Run Flask route tests against a temporary SQLite fixture.
@@ -37,5 +34,5 @@ required.
 7. Test empty, sparse, and populated station data.
 8. Confirm no station database writes and no service-control calls occur.
 
-Do not remove V2 templates or `dashboard-v2.css` until the browser comparison
-and route activation have been accepted.
+V2 templates and `dashboard-v2.css` remain as a rollback aid until browser and
+Raspberry Pi acceptance testing is complete.
