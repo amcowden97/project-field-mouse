@@ -1,0 +1,250 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+readonly OPT_ROOT="/opt/project-field-mouse"
+readonly RELEASES="$OPT_ROOT/releases"
+readonly CURRENT="$OPT_ROOT/current"
+readonly PREVIOUS="$OPT_ROOT/previous"
+readonly STATE_ROOT="/var/lib/fieldmouse"
+readonly LOG_ROOT="/var/log/fieldmouse"
+readonly CONFIG="/etc/fieldmouse/station.toml"
+readonly LOCK="/run/lock/project-field-mouse-deploy.lock"
+readonly LEGACY_ROLLBACK="$OPT_ROOT/legacy-rollback"
+readonly SERVICES=(
+    fieldmouse-recorder.service
+    fieldmouse-birdnet.service
+    fieldmouse-dashboard.service
+)
+readonly TIMERS=(
+    fieldmouse-backup.timer
+    fieldmouse-cleanup.timer
+)
+
+SOURCE=""
+RELEASE_ID=""
+LEGACY_ROOT="/home/amcowden97/Project-Field-Mouse"
+PREVIOUS_TARGET=""
+DATABASE_BACKUP=""
+NEW_RELEASE=""
+SWITCHED=0
+UNITS_INSTALLED=0
+UNIT_BACKUP=""
+
+usage() {
+    echo "Usage: pfm-deploy --source DIRECTORY [--release-id SAFE_ID] [--legacy-root DIRECTORY]"
+}
+
+while (($#)); do
+    case "$1" in
+        --source) SOURCE="${2:-}"; shift 2 ;;
+        --release-id) RELEASE_ID="${2:-}"; shift 2 ;;
+        --legacy-root) LEGACY_ROOT="${2:-}"; shift 2 ;;
+        -h|--help) usage; exit 0 ;;
+        *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
+    esac
+done
+
+[[ $EUID -eq 0 ]] || { echo "pfm-deploy must run as root." >&2; exit 1; }
+[[ -n "$SOURCE" && -d "$SOURCE" ]] || { echo "--source must be a directory." >&2; exit 2; }
+SOURCE="$(realpath "$SOURCE")"
+[[ -f "$SOURCE/requirements-production.txt" ]] || {
+    echo "Source is missing requirements-production.txt." >&2; exit 2;
+}
+[[ -d "$SOURCE/deploy/systemd" && -f "$SOURCE/app/__init__.py" ]] || {
+    echo "Source is not a Project Field Mouse release." >&2; exit 2;
+}
+
+if [[ -z "$RELEASE_ID" ]]; then
+    REVISION="$(git -C "$SOURCE" rev-parse --short=12 HEAD 2>/dev/null || echo source)"
+    RELEASE_ID="$(date -u +%Y%m%dT%H%M%SZ)-$REVISION"
+fi
+[[ "$RELEASE_ID" =~ ^[A-Za-z0-9._-]+$ ]] || {
+    echo "Release ID contains unsafe characters." >&2; exit 2;
+}
+NEW_RELEASE="$RELEASES/$RELEASE_ID"
+[[ ! -e "$NEW_RELEASE" ]] || { echo "Release already exists: $NEW_RELEASE" >&2; exit 2; }
+
+exec 9>"$LOCK"
+flock -n 9 || { echo "Another deployment is running." >&2; exit 1; }
+
+restore_database() {
+    [[ -n "$DATABASE_BACKUP" && -f "$DATABASE_BACKUP" ]] || return 0
+    "$NEW_RELEASE/.venv/bin/python" -m app.cli --config "$CONFIG" \
+        restore "$DATABASE_BACKUP"
+}
+
+rollback_on_error() {
+    local exit_code=$?
+    trap - ERR
+    echo "Deployment failed; starting automatic rollback." >&2
+    if ((SWITCHED)); then
+        systemctl disable --now fieldmouse-backup.timer fieldmouse-cleanup.timer \
+            2>/dev/null || true
+    fi
+    if ((UNITS_INSTALLED)) && [[ -n "$UNIT_BACKUP" && -d "$UNIT_BACKUP" ]]; then
+        cp -a "$UNIT_BACKUP/." /etc/systemd/system/
+    fi
+    if ((SWITCHED)) && [[ -n "$PREVIOUS_TARGET" && -d "$PREVIOUS_TARGET" ]]; then
+        ln -sfn "$PREVIOUS_TARGET" "$CURRENT"
+        restore_database || echo "WARNING: automatic database restore failed." >&2
+        systemctl daemon-reload
+        systemctl enable --now "${TIMERS[@]}" || true
+        systemctl restart "${SERVICES[@]}" || true
+        echo "Rolled back to $PREVIOUS_TARGET." >&2
+    elif ((SWITCHED)) && [[ -d "$LEGACY_ROLLBACK/units" ]]; then
+        unlink "$CURRENT"
+        systemctl daemon-reload
+        systemctl enable --now fieldmouse-cleanup.timer \
+            fieldmouse-storage-manager.timer || true
+        systemctl restart "${SERVICES[@]}" || true
+        echo "Restored the legacy service installation." >&2
+    else
+        echo "No prior release was switched; current installation is unchanged." >&2
+    fi
+    echo "Failed release retained for diagnosis: $NEW_RELEASE" >&2
+    exit "$exit_code"
+}
+trap rollback_on_error ERR
+
+install -d -o root -g root -m 0755 "$OPT_ROOT" "$RELEASES"
+install -d -o fieldmouse -g fieldmouse -m 0750 \
+    "$STATE_ROOT" "$STATE_ROOT/database" "$STATE_ROOT/recordings" "$STATE_ROOT/backups" \
+    "$LOG_ROOT"
+install -d -o root -g fieldmouse -m 0750 /etc/fieldmouse
+if [[ ! -f /etc/default/fieldmouse ]]; then
+    install -o root -g fieldmouse -m 0640 \
+        "$SOURCE/deploy/production/fieldmouse.environment" /etc/default/fieldmouse
+fi
+
+if [[ ! -f "$CONFIG" ]]; then
+    if [[ -f "$LEGACY_ROOT/config/station.toml" ]]; then
+        install -o root -g fieldmouse -m 0640 \
+            "$LEGACY_ROOT/config/station.toml" "$CONFIG"
+    else
+        install -o root -g fieldmouse -m 0640 \
+            "$SOURCE/deploy/production/station.production.toml" "$CONFIG"
+    fi
+    STATION_UUID="$(cat /proc/sys/kernel/random/uuid)"
+    DEPLOYMENT_DATE="$(date -u +%Y-%m-%d)"
+    sed -i "s/^uuid = \"\"/uuid = \"$STATION_UUID\"/" "$CONFIG"
+    sed -i "s/^deployment_date = \"\"/deployment_date = \"$DEPLOYMENT_DATE\"/" "$CONFIG"
+    sed -i 's|^recordings_directory = .*|recordings_directory = "/var/lib/fieldmouse/recordings"|' "$CONFIG"
+    sed -i 's|^database_path = .*|database_path = "/var/lib/fieldmouse/database/fieldmouse.db"|' "$CONFIG"
+    sed -i 's|^logs_directory = .*|logs_directory = "/var/log/fieldmouse"|' "$CONFIG"
+    sed -i 's|^backups_directory = .*|backups_directory = "/var/lib/fieldmouse/backups"|' "$CONFIG"
+fi
+
+if [[ -L "$CURRENT" ]]; then
+    PREVIOUS_TARGET="$(readlink -f "$CURRENT")"
+fi
+
+UNIT_BACKUP="$STATE_ROOT/backups/units-$RELEASE_ID"
+install -d -o root -g root -m 0700 "$UNIT_BACKUP"
+for unit in /etc/systemd/system/fieldmouse*.service /etc/systemd/system/fieldmouse*.timer; do
+    [[ -f "$unit" ]] && cp -a "$unit" "$UNIT_BACKUP/"
+done
+
+if [[ -z "$PREVIOUS_TARGET" && -f "$LEGACY_ROOT/data/database/fieldmouse.db" ]]; then
+    install -d -o root -g root -m 0700 "$LEGACY_ROLLBACK"
+    install -d -o root -g root -m 0700 "$LEGACY_ROLLBACK/units"
+    cp -a "$UNIT_BACKUP/." "$LEGACY_ROLLBACK/units/"
+    printf '%s\n' "$LEGACY_ROOT" >"$LEGACY_ROLLBACK/root"
+    python3 - "$LEGACY_ROOT/data/database/fieldmouse.db" \
+        "$STATE_ROOT/database/fieldmouse.db" \
+        "$LEGACY_ROOT/data/recordings" "$STATE_ROOT/recordings" <<'PY'
+import sqlite3
+import sys
+with sqlite3.connect(sys.argv[1]) as source, sqlite3.connect(sys.argv[2]) as target:
+    source.backup(target)
+    target.execute(
+        "UPDATE recordings SET file_path = replace(file_path, ?, ?) "
+        "WHERE file_path = ? OR file_path LIKE ?",
+        (sys.argv[3], sys.argv[4], sys.argv[3], sys.argv[3] + "/%"),
+    )
+    if target.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+        raise RuntimeError("Imported database failed integrity validation")
+    target.commit()
+PY
+    if [[ -d "$LEGACY_ROOT/data/recordings" ]]; then
+        rsync -a "$LEGACY_ROOT/data/recordings/" "$STATE_ROOT/recordings/"
+    fi
+    cp -a "$STATE_ROOT/database/fieldmouse.db" \
+        "$STATE_ROOT/backups/legacy-predeploy-$RELEASE_ID.db"
+    chown -R fieldmouse:fieldmouse "$STATE_ROOT"
+fi
+
+if [[ -n "$PREVIOUS_TARGET" && -x "$PREVIOUS_TARGET/.venv/bin/python" ]]; then
+    DATABASE_BACKUP="$STATE_ROOT/backups/predeploy-$RELEASE_ID.zip"
+    runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" \
+        "$PREVIOUS_TARGET/.venv/bin/python" -m app.cli backup --output "$DATABASE_BACKUP"
+    cp -a "$CONFIG" "$STATE_ROOT/backups/station-$RELEASE_ID.toml"
+fi
+
+install -d -o root -g root -m 0755 "$NEW_RELEASE"
+rsync -a --delete \
+    --exclude=.git --exclude=.venv --exclude=logs \
+    --exclude=/data/recordings --exclude=/data/backups \
+    --exclude='/data/database/*.db' --exclude='/data/database/*.db-*' \
+    "$SOURCE/" "$NEW_RELEASE/"
+install -d -o fieldmouse -g fieldmouse -m 0755 "$NEW_RELEASE/.venv"
+runuser -u fieldmouse -- python3 -m venv "$NEW_RELEASE/.venv"
+runuser -u fieldmouse -- "$NEW_RELEASE/.venv/bin/pip" install --disable-pip-version-check \
+    --requirement "$NEW_RELEASE/requirements-production.txt"
+chown -R root:root "$NEW_RELEASE"
+ln -s "$LOG_ROOT" "$NEW_RELEASE/logs"
+
+runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" \
+    "$NEW_RELEASE/.venv/bin/python" -m app.cli migrate
+
+for unit in "$NEW_RELEASE"/deploy/systemd/*; do
+    install -o root -g root -m 0644 "$unit" "/etc/systemd/system/$(basename "$unit")"
+done
+UNITS_INSTALLED=1
+install -o root -g root -m 0755 \
+    "$NEW_RELEASE/deploy/production/pfm-deploy" /usr/local/sbin/pfm-deploy
+install -o root -g root -m 0755 \
+    "$NEW_RELEASE/deploy/production/pfm-rollback" /usr/local/sbin/pfm-rollback
+
+for legacy in fieldmouse-maintenance.timer app-cleanup.timer app-cleanup.service \
+    fieldmouse-storage-manager.timer fieldmouse-storage-manager.service; do
+    systemctl disable --now "$legacy" 2>/dev/null || true
+done
+install -d -o root -g root -m 0700 "$LEGACY_ROLLBACK/disabled-units"
+for legacy_path in \
+    /etc/systemd/system/fieldmouse-maintenance.timer \
+    /etc/systemd/system/fieldmouse-maintenance.service \
+    /etc/systemd/system/fieldmouse-storage-manager.timer \
+    /etc/systemd/system/fieldmouse-storage-manager.service \
+    /etc/systemd/system/app-cleanup.timer \
+    /etc/systemd/system/app-cleanup.service; do
+    [[ ! -f "$legacy_path" ]] ||
+        mv "$legacy_path" "$LEGACY_ROLLBACK/disabled-units/"
+done
+
+[[ -z "$PREVIOUS_TARGET" ]] || ln -sfn "$PREVIOUS_TARGET" "$PREVIOUS"
+ln -sfn "$NEW_RELEASE" "$CURRENT"
+SWITCHED=1
+systemctl daemon-reload
+systemctl enable --now "${SERVICES[@]}" "${TIMERS[@]}"
+systemctl restart "${SERVICES[@]}"
+
+for unit in "${SERVICES[@]}" "${TIMERS[@]}"; do
+    systemctl is-enabled --quiet "$unit"
+    systemctl is-active --quiet "$unit"
+done
+
+HEALTH_OK=0
+for _ in {1..10}; do
+    if curl --fail --silent --show-error http://127.0.0.1:8000/health >/dev/null; then
+        HEALTH_OK=1
+        break
+    fi
+    sleep 2
+done
+((HEALTH_OK == 1))
+
+trap - ERR
+echo "Deployed $RELEASE_ID successfully."
+echo "Current:  $NEW_RELEASE"
+echo "Previous: ${PREVIOUS_TARGET:-none}"
+echo "Backup:   ${DATABASE_BACKUP:-new installation}"

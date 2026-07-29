@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
-set -euo pipefail
-cd /opt/project-field-mouse
-export PFM_CONFIG=/etc/fieldmouse/station.toml
-sudo -u fieldmouse .venv/bin/python -m app.cli backup
-sudo -u fieldmouse git pull --ff-only
-sudo -u fieldmouse .venv/bin/pip install -r requirements.txt
-sudo -u fieldmouse .venv/bin/python -m app.cli migrate
-sudo cp deploy/systemd/* /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl restart fieldmouse-recorder fieldmouse-birdnet fieldmouse-dashboard
-scripts/verify.sh
+set -Eeuo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REVISION="$(git -C "$ROOT" rev-parse --short=12 HEAD)"
+RELEASE_ID="${PFM_RELEASE_ID:-update-$(date -u +%Y%m%dT%H%M%SZ)-$REVISION}"
+
+sudo -n /usr/local/sbin/pfm-deploy --source "$ROOT" --release-id "$RELEASE_ID"

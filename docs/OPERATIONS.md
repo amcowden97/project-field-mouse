@@ -10,7 +10,7 @@ systemctl status fieldmouse-recorder fieldmouse-birdnet fieldmouse-dashboard
 journalctl -u fieldmouse-recorder --since today
 python -m app.database.maintenance check
 arecord -l
-systemctl list-timers fieldmouse-maintenance.timer
+systemctl list-timers fieldmouse-backup.timer fieldmouse-cleanup.timer
 ```
 
 Application logs are JSON lines under `logs/`, rotate at 5 MB by default, and retain
