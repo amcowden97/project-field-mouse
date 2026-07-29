@@ -12,12 +12,14 @@ from pathlib import Path
 from flask import Flask, abort, jsonify, render_template, request, send_file
 
 from app.config import load_config
+from app.metrics import metrics_snapshot
 from app.system.health_check import collect_health
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATABASE_PATH = PROJECT_ROOT / "data" / "database" / "fieldmouse.db"
-RECORDINGS_ROOT = (PROJECT_ROOT / "data" / "recordings").resolve()
+CONFIG = load_config()
+DATABASE_PATH = CONFIG.storage.database_path
+RECORDINGS_ROOT = CONFIG.storage.recordings_directory.resolve()
 
 app = Flask(__name__)
 
@@ -1027,15 +1029,29 @@ def dashboard_api():
     })
 
 
+@app.route("/api/metrics")
+def metrics_api():
+    if not DATABASE_PATH.is_file():
+        return jsonify({"status": "error", "database": "missing"}), 503
+    with get_database() as connection:
+        snapshot = metrics_snapshot(connection)
+    return jsonify({
+        "status": "ok",
+        "station_id": CONFIG.station.id,
+        "collected_at": datetime.now(timezone.utc).isoformat(),
+        "metrics": snapshot,
+    })
+
+
 @app.route("/health")
 def health():
-    result = collect_health(load_config())
+    result = collect_health(CONFIG)
     return jsonify(result), (200 if result["status"] == "ok" else 503)
 
 
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
-        port=8000,
+        port=CONFIG.dashboard.port,
         debug=False,
     )

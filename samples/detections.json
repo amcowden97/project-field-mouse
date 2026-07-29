@@ -1,0 +1,6 @@
+[
+  {"common_name": "American Robin", "scientific_name": "Turdus migratorius", "confidence": [0.72, 0.98]},
+  {"common_name": "Black-capped Chickadee", "scientific_name": "Poecile atricapillus", "confidence": [0.68, 0.96]},
+  {"common_name": "Song Sparrow", "scientific_name": "Melospiza melodia", "confidence": [0.65, 0.94]},
+  {"common_name": "Steller's Jay", "scientific_name": "Cyanocitta stelleri", "confidence": [0.70, 0.97]}
+]
