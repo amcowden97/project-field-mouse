@@ -14,6 +14,12 @@ from flask import Flask, abort, jsonify, render_template, request, send_file
 from app.config import load_config
 from app.metrics import metrics_snapshot
 from app.system.health_check import collect_health
+from app.web.v3 import (
+    build_overview_context,
+    enrich_life_list,
+    get_confidence_distribution,
+    get_species_content,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -22,6 +28,17 @@ DATABASE_PATH = CONFIG.storage.database_path
 RECORDINGS_ROOT = CONFIG.storage.recordings_directory.resolve()
 
 app = Flask(__name__)
+
+
+def dashboard_station() -> dict:
+    """Expose centralized station configuration to presentation templates."""
+    return {
+        "id": CONFIG.station.id,
+        "name": CONFIG.station.name,
+        "hostname": socket.gethostname(),
+        "timezone": CONFIG.station.timezone,
+        "dashboard_port": CONFIG.dashboard.port,
+    }
 
 
 def get_database() -> sqlite3.Connection:
@@ -627,10 +644,18 @@ def index():
                 and latest_path.is_file()
             )
 
+        context = build_overview_context(
+            connection,
+            stats=stats,
+            latest_visitors=detections,
+            resolve_path=resolve_recording_path,
+            station=dashboard_station(),
+        )
+
     return render_template(
-        "index.html",
+        "v3/overview.html",
+        **context,
         detections=detections,
-        stats=stats,
         top_species=top_species,
         latest_detection=latest_detection,
         minimum_confidence=minimum_confidence,
@@ -703,7 +728,8 @@ def activity():
     last_result = min(offset + len(detections), total_results)
 
     return render_template(
-        "activity.html",
+        "v3/activity.html",
+        station=dashboard_station(),
         detections=detections,
         stats=stats,
         minimum_confidence=minimum_confidence,
@@ -732,9 +758,8 @@ def life_list():
         sort_by = "recent"
 
     with get_database() as connection:
-        species = get_life_list_species(
-            connection,
-            sort_by=sort_by,
+        species = enrich_life_list(
+            get_life_list_species(connection, sort_by=sort_by)
         )
 
         stats = get_dashboard_stats(connection)
@@ -781,7 +806,8 @@ def life_list():
         ).fetchone()
 
     return render_template(
-        "life_list.html",
+        "v3/life_list.html",
+        station=dashboard_station(),
         species=species,
         stats=stats,
         sort_by=sort_by,
@@ -906,10 +932,13 @@ def species_detail(common_name: str):
         ).fetchall()
 
     return render_template(
-        "species.html",
+        "v3/species.html",
+        station=dashboard_station(),
         species=species_stats,
         detections=detections,
         daily_activity=daily_activity,
+        species_content=get_species_content(common_name),
+        confidence_distribution=get_confidence_distribution(detections),
         minimum_confidence=minimum_confidence,
     )
 
@@ -950,7 +979,8 @@ def device():
     device_info = get_device_information()
 
     return render_template(
-        "device.html",
+        "v3/device.html",
+        station=dashboard_station(),
         stats=stats,
         device=device_info,
         database_stats=dict(database_stats),
@@ -1051,7 +1081,7 @@ def health():
 
 if __name__ == "__main__":
     app.run(
-        host="0.0.0.0",
+        host=CONFIG.dashboard.host,
         port=CONFIG.dashboard.port,
         debug=False,
     )

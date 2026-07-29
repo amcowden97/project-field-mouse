@@ -18,10 +18,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONTENT_ROOT = Path(__file__).resolve().parent / "content"
 
 DEFAULT_STATION = {
-    "id": "project-field-mouse-001",
-    "name": "Backyard Sanctuary",
-    "hostname": "project-field-mouse-001",
-    "timezone": "America/Los_Angeles",
+    "id": "field-mouse-001",
+    "name": "Project Field Mouse",
+    "hostname": "field-mouse",
+    "timezone": "UTC",
     "dashboard_port": 8000,
 }
 
