@@ -65,3 +65,28 @@ the deployable unit and license must be assessed submission by submission:
    fully statistically independent, even when their architectures differ.
 7. Enable it through configuration only after failure behavior and artifact
    updates are operationally documented.
+
+## Milestone 2 decision
+
+Perch remains optional and disabled. The repository license is Apache-2.0 and
+the project points to a current Kaggle model plus Perch-Hoplite for practical
+inference, but this session could not establish artifact-specific redistribution
+terms or measure Pi 5 performance. Bundling or enabling an unmeasured artifact
+would not meet the milestone's evidence standard.
+
+`PerchCommandAdapter` completes the Field Mouse boundary without coupling the
+station environment to Perch's research dependencies. A separately pinned
+runtime accepts a JSON clip request on standard input and returns species,
+confidence, and model version on standard output. Isolation makes startup,
+memory, CPU, thermal, failure, and accuracy measurements attributable and lets
+the model environment be updated independently.
+
+Before enabling it:
+
+- record the exact artifact URL, license, checksum, labels, and taxonomy;
+- implement and test the isolated runtime against that artifact;
+- export second-model predictions into the same evaluation manifest;
+- compare on the identical held-out set;
+- run the Pi profiler with and without the plugin;
+- require a measurable precision/F1 gain without unacceptable recall or
+  operational regressions.
