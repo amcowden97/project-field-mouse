@@ -4,10 +4,12 @@ import argparse
 import csv
 import sqlite3
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 import birdnet
 
+from app.database.migrations import apply_migrations
 from app.detectors.local_species import (
     DEFAULT_LATITUDE,
     DEFAULT_LONGITUDE,
@@ -15,6 +17,9 @@ from app.detectors.local_species import (
     create_local_species_list,
     get_week_for_recording,
 )
+from app.verification.factory import build_verification_manager
+from app.verification.models import DetectionContext
+from app.verification.repository import save_verification
 
 
 DEFAULT_DATABASE = Path("data/database/fieldmouse.db")
@@ -25,6 +30,7 @@ def connect_database(database_path: Path) -> sqlite3.Connection:
     connection = sqlite3.connect(database_path)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
+    apply_migrations(connection)
     return connection
 
 
@@ -70,7 +76,7 @@ def get_recording(
 
     if recording_id is not None:
         query = f"""
-            SELECT id, {path_column} AS audio_path
+            SELECT id, {path_column} AS audio_path, station_id, recorded_at
             FROM recordings
             WHERE id = ?
         """
@@ -82,7 +88,7 @@ def get_recording(
 
     elif "processing_status" in columns:
         query = f"""
-            SELECT id, {path_column} AS audio_path
+            SELECT id, {path_column} AS audio_path, station_id, recorded_at
             FROM recordings
             WHERE processing_status = 'pending'
             ORDER BY id ASC
@@ -93,7 +99,7 @@ def get_recording(
 
     elif "status" in columns:
         query = f"""
-            SELECT id, {path_column} AS audio_path
+            SELECT id, {path_column} AS audio_path, station_id, recorded_at
             FROM recordings
             WHERE status = 'pending'
             ORDER BY id ASC
@@ -104,7 +110,7 @@ def get_recording(
 
     else:
         query = f"""
-            SELECT id, {path_column} AS audio_path
+            SELECT id, {path_column} AS audio_path, station_id, recorded_at
             FROM recordings
             ORDER BY id DESC
             LIMIT 1
@@ -198,12 +204,26 @@ def save_detections(
     minimum_confidence: float,
 ) -> int:
     saved_count = 0
+    path_column = get_recording_path_column(connection)
+    recording = connection.execute(
+        f"""
+        SELECT station_id, {path_column} AS audio_path, recorded_at
+        FROM recordings WHERE id = ?
+        """,
+        (recording_id,),
+    ).fetchone()
+    manager = build_verification_manager(connection)
 
     connection.execute(
         """
         DELETE FROM detections
         WHERE recording_id = ?
           AND detector = 'birdnet'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM detection_reviews
+              WHERE detection_reviews.detection_id = detections.id
+          )
         """,
         (recording_id,),
     )
@@ -217,8 +237,35 @@ def save_detections(
         scientific_name, common_name = split_species_name(
             prediction["species_name"]
         )
+        reviewed_detection = connection.execute(
+            """
+            SELECT d.id
+            FROM detections AS d
+            WHERE d.recording_id = ?
+              AND d.detector = 'birdnet'
+              AND COALESCE(d.scientific_name, '') = COALESCE(?, '')
+              AND d.common_name = ?
+              AND d.start_time = ?
+              AND d.end_time = ?
+              AND EXISTS (
+                  SELECT 1 FROM detection_reviews AS review
+                  WHERE review.detection_id = d.id
+              )
+            LIMIT 1
+            """,
+            (
+                recording_id,
+                scientific_name,
+                common_name,
+                float(prediction["start_time"]),
+                float(prediction["end_time"]),
+            ),
+        ).fetchone()
+        if reviewed_detection is not None:
+            saved_count += 1
+            continue
 
-        connection.execute(
+        cursor = connection.execute(
             """
             INSERT INTO detections (
                 recording_id,
@@ -241,6 +288,30 @@ def save_detections(
                 prediction["end_time"],
             ),
         )
+
+        detection_id = cursor.lastrowid
+        if (
+            manager is not None
+            and detection_id is not None
+            and recording is not None
+        ):
+            decision = manager.verify(
+                DetectionContext(
+                    detection_id=int(detection_id),
+                    recording_id=recording_id,
+                    station_id=str(recording["station_id"]),
+                    scientific_name=scientific_name,
+                    common_name=common_name,
+                    birdnet_confidence=confidence,
+                    recorded_at=datetime.fromisoformat(
+                        str(recording["recorded_at"]).replace("Z", "+00:00")
+                    ),
+                    audio_path=resolve_audio_path(str(recording["audio_path"])),
+                    start_time=float(prediction["start_time"]),
+                    end_time=float(prediction["end_time"]),
+                )
+            )
+            save_verification(connection, int(detection_id), decision)
 
         saved_count += 1
 

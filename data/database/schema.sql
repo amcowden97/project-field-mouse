@@ -56,5 +56,6 @@ ON detections(common_name, created_at DESC);
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
+    checksum TEXT NOT NULL DEFAULT '',
     applied_at TEXT NOT NULL
 );
