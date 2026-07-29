@@ -264,7 +264,9 @@ class PersistenceTests(unittest.TestCase):
                 INSERT INTO detections (
                     recording_id, detector, scientific_name, common_name,
                     confidence, start_time, end_time
-                ) VALUES (1, 'birdnet', NULL, 'Test Bird', .8, 0, 3)
+                ) VALUES (
+                    1, 'birdnet', 'Testus birdus', 'Test Bird', .8, 0, 3
+                )
                 """
             )
             decision = ConsensusEngine().decide(
