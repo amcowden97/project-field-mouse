@@ -313,7 +313,7 @@ class PersistenceTests(unittest.TestCase):
                     1,
                     [
                         {
-                            "species_name": "Test Bird",
+                            "species_name": "Testus birdus_Test Bird",
                             "confidence": "0.85",
                             "start_time": "0",
                             "end_time": "3",
