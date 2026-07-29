@@ -71,22 +71,25 @@ def prune_backups(
 
 
 def verify_backup(archive: Path) -> dict:
-    with tempfile.TemporaryDirectory() as temporary:
-        root = Path(temporary)
-        with zipfile.ZipFile(archive) as source:
-            allowed = {"database.db", "station.toml", "manifest.json"}
-            if set(source.namelist()) != allowed:
-                raise RuntimeError("Backup contains unexpected or missing files")
-            source.extractall(root)
-        manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
-        for name, expected in manifest["files"].items():
-            if _sha256(root / name) != expected:
-                raise RuntimeError(f"Backup checksum failed for {name}")
-        with sqlite3.connect(f"file:{root / 'database.db'}?mode=ro", uri=True) as connection:
-            integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
-            if integrity != "ok":
-                raise RuntimeError(f"Backup database is corrupt: {integrity}")
-    return manifest
+    try:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            with zipfile.ZipFile(archive) as source:
+                allowed = {"database.db", "station.toml", "manifest.json"}
+                if set(source.namelist()) != allowed:
+                    raise RuntimeError("Backup contains unexpected or missing files")
+                source.extractall(root)
+            manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+            for name, expected in manifest["files"].items():
+                if _sha256(root / name) != expected:
+                    raise RuntimeError(f"Backup checksum failed for {name}")
+            with sqlite3.connect(f"file:{root / 'database.db'}?mode=ro", uri=True) as connection:
+                integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
+                if integrity != "ok":
+                    raise RuntimeError(f"Backup database is corrupt: {integrity}")
+        return manifest
+    except (zipfile.BadZipFile, json.JSONDecodeError, KeyError) as error:
+        raise RuntimeError(f"Invalid backup archive: {error}") from error
 
 
 def restore_backup(

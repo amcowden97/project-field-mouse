@@ -7,6 +7,7 @@ import os
 import platform
 import shutil
 import socket
+import sqlite3
 import subprocess
 import sys
 import uuid
@@ -201,7 +202,10 @@ def main(argv: list[str] | None = None) -> int:
                     "recordings": str(config.storage.recordings_directory),
                 }, indent=2, default=str))
         return 0
-    except (ConfigurationError, FileNotFoundError, RuntimeError, ValueError, OSError) as error:
+    except (
+        ConfigurationError, FileNotFoundError, RuntimeError, ValueError, OSError,
+        sqlite3.Error, subprocess.SubprocessError,
+    ) as error:
         print(f"pfm: {error}", file=sys.stderr)
         return 1
 
