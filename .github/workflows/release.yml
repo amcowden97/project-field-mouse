@@ -1,0 +1,28 @@
+name: Release validation
+on:
+  push:
+    tags: ["v*.*.*"]
+permissions:
+  contents: read
+jobs:
+  release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate tag matches version
+        run: |
+          VERSION="$(python -c 'from app.version import __version__; print(__version__)')"
+          test "v$VERSION" = "${GITHUB_REF_NAME}"
+      - name: Generate changelog
+        run: |
+          PREVIOUS="$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)"
+          python scripts/changelog.py "${GITHUB_REF_NAME#v}" --since "$PREVIOUS" > release-notes.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md

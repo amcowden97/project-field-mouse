@@ -18,6 +18,7 @@ from app.detectors.process_recording import (
     run_birdnet,
     save_detections,
 )
+from app.metrics import measure, record_metric
 
 
 _stop_requested = False
@@ -102,12 +103,19 @@ def process_next_recording(
         print(f"Processing recording ID: {recording_id}")
         print(f"Audio: {audio_path}")
 
-        predictions = run_birdnet(
-            audio_path,
-            latitude=latitude,
-            longitude=longitude,
-            occurrence_threshold=occurrence_threshold,
-        )
+        station_row = connection.execute(
+            "SELECT station_id FROM recordings WHERE id = ?",
+            (recording_id,),
+        ).fetchone()
+        station_id = str(station_row["station_id"])
+
+        with measure(connection, station_id, "birdnet_execution"):
+            predictions = run_birdnet(
+                audio_path,
+                latitude=latitude,
+                longitude=longitude,
+                occurrence_threshold=occurrence_threshold,
+            )
 
         saved_count = save_detections(
             connection,
@@ -122,8 +130,19 @@ def process_next_recording(
         )
 
         return True
-    except Exception:
+    except Exception as error:
         connection.rollback()
+        if "recording_id" in locals():
+            connection.execute(
+                "UPDATE recordings SET processing_status = 'failed' WHERE id = ?",
+                (recording_id,),
+            )
+            if "station_id" in locals():
+                record_metric(
+                    connection, station_id, "failed_detection", 1, "count",
+                    {"error": type(error).__name__},
+                )
+            connection.commit()
         raise
     finally:
         connection.close()
