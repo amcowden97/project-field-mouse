@@ -1,11 +1,12 @@
 [Unit]
-Description=Run Field Mouse maintenance every six hours
+Description=Schedule Project Field Mouse storage cleanup
 
 [Timer]
-OnBootSec=15min
+OnBootSec=20min
 OnUnitActiveSec=6h
 RandomizedDelaySec=10min
 Persistent=true
+Unit=fieldmouse-cleanup.service
 
 [Install]
 WantedBy=timers.target

@@ -1,0 +1,32 @@
+# Install as /etc/sudoers.d/project-field-mouse with owner root:root and mode 0440.
+# Membership in pfm-operators grants only Project Field Mouse operations.
+Cmnd_Alias PFM_NOOP = /usr/bin/true
+Cmnd_Alias PFM_DEPLOY = /usr/local/sbin/pfm-deploy *, /usr/local/sbin/pfm-rollback *
+Cmnd_Alias PFM_RELOAD = /usr/bin/systemctl daemon-reload
+Cmnd_Alias PFM_START = /usr/bin/systemctl start fieldmouse-recorder.service, \
+    /usr/bin/systemctl start fieldmouse-birdnet.service, \
+    /usr/bin/systemctl start fieldmouse-dashboard.service, \
+    /usr/bin/systemctl start fieldmouse-backup.service, \
+    /usr/bin/systemctl start fieldmouse-cleanup.service
+Cmnd_Alias PFM_STOP = /usr/bin/systemctl stop fieldmouse-recorder.service, \
+    /usr/bin/systemctl stop fieldmouse-birdnet.service, \
+    /usr/bin/systemctl stop fieldmouse-dashboard.service, \
+    /usr/bin/systemctl stop fieldmouse-backup.service, \
+    /usr/bin/systemctl stop fieldmouse-cleanup.service
+Cmnd_Alias PFM_RESTART = /usr/bin/systemctl restart fieldmouse-recorder.service, \
+    /usr/bin/systemctl restart fieldmouse-birdnet.service, \
+    /usr/bin/systemctl restart fieldmouse-dashboard.service
+Cmnd_Alias PFM_STATUS = /usr/bin/systemctl status fieldmouse-recorder.service, \
+    /usr/bin/systemctl status fieldmouse-birdnet.service, \
+    /usr/bin/systemctl status fieldmouse-dashboard.service, \
+    /usr/bin/systemctl status fieldmouse-backup.timer, \
+    /usr/bin/systemctl status fieldmouse-cleanup.timer
+Cmnd_Alias PFM_JOURNAL = /usr/bin/journalctl --no-pager -n 200 -u fieldmouse-recorder.service, \
+    /usr/bin/journalctl --no-pager -n 200 -u fieldmouse-birdnet.service, \
+    /usr/bin/journalctl --no-pager -n 200 -u fieldmouse-dashboard.service, \
+    /usr/bin/journalctl --no-pager -n 200 -u fieldmouse-backup.service, \
+    /usr/bin/journalctl --no-pager -n 200 -u fieldmouse-cleanup.service
+Cmnd_Alias PFM_REBOOT = /usr/sbin/reboot
+
+%pfm-operators ALL=(root) NOPASSWD: PFM_NOOP, PFM_DEPLOY, PFM_RELOAD, \
+    PFM_START, PFM_STOP, PFM_RESTART, PFM_STATUS, PFM_JOURNAL, PFM_REBOOT
