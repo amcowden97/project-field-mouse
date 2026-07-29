@@ -186,6 +186,8 @@ rsync -a --delete \
     --exclude=/data/recordings --exclude=/data/backups \
     --exclude='/data/database/*.db' --exclude='/data/database/*.db-*' \
     "$SOURCE/" "$NEW_RELEASE/"
+chown root:root "$NEW_RELEASE"
+chmod 0755 "$NEW_RELEASE"
 install -d -o fieldmouse -g fieldmouse -m 0755 "$NEW_RELEASE/.venv"
 runuser -u fieldmouse -- python3 -m venv "$NEW_RELEASE/.venv"
 runuser -u fieldmouse -- "$NEW_RELEASE/.venv/bin/pip" install --disable-pip-version-check \
