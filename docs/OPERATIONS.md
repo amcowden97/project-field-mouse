@@ -19,4 +19,5 @@ apply. Never delete a live SQLite WAL or SHM file.
 
 Other endpoints are `GET /api/dashboard` and range-capable
 `GET /audio/<recording_id>`. The audio endpoint is confined to the recordings tree.
-There is no write API.
+`GET /api/metrics` exposes database size, queue depth, recording/detection/failure
+counts, daily detections, and collected execution timings. There is no write API.

@@ -7,5 +7,6 @@ User=fieldmouse
 Group=fieldmouse
 WorkingDirectory=/opt/project-field-mouse
 Environment=PFM_CONFIG=/etc/fieldmouse/station.toml
-ExecStart=/opt/project-field-mouse/.venv/bin/python -m app.database.maintenance backup
+Environment=PFM_CONFIG=/etc/fieldmouse/station.toml
+ExecStart=/opt/project-field-mouse/.venv/bin/python -m app.cli backup
 ExecStart=/opt/project-field-mouse/.venv/bin/python -m app.services.storage_cleanup --database /opt/project-field-mouse/data/database/fieldmouse.db --apply
