@@ -10,6 +10,7 @@ readonly LOG_ROOT="/var/log/fieldmouse"
 readonly CONFIG="/etc/fieldmouse/station.toml"
 readonly LOCK="/run/lock/project-field-mouse-deploy.lock"
 readonly LEGACY_ROLLBACK="$OPT_ROOT/legacy-rollback"
+readonly PIP_CACHE="/var/cache/fieldmouse/pip"
 readonly SERVICES=(
     fieldmouse-recorder.service
     fieldmouse-birdnet.service
@@ -26,6 +27,7 @@ LEGACY_ROOT="/home/amcowden97/Project-Field-Mouse"
 PREVIOUS_TARGET=""
 DATABASE_BACKUP=""
 NEW_RELEASE=""
+PIP_TEMP=""
 SWITCHED=0
 UNITS_INSTALLED=0
 UNIT_BACKUP=""
@@ -102,6 +104,9 @@ rollback_on_error() {
         echo "No prior release was switched; current installation is unchanged." >&2
     fi
     echo "Failed release retained for diagnosis: $NEW_RELEASE" >&2
+    if [[ -n "$PIP_TEMP" && -d "$PIP_TEMP" ]]; then
+        rm -rf -- "$PIP_TEMP"
+    fi
     exit "$exit_code"
 }
 trap rollback_on_error ERR
@@ -111,6 +116,7 @@ install -d -o fieldmouse -g fieldmouse -m 0750 \
     "$STATE_ROOT" "$STATE_ROOT/database" "$STATE_ROOT/recordings" "$STATE_ROOT/backups" \
     "$LOG_ROOT"
 install -d -o root -g fieldmouse -m 0750 /etc/fieldmouse
+install -d -o fieldmouse -g fieldmouse -m 0750 "$PIP_CACHE"
 if [[ ! -f /etc/default/fieldmouse ]]; then
     install -o root -g fieldmouse -m 0640 \
         "$SOURCE/deploy/production/fieldmouse.environment" /etc/default/fieldmouse
@@ -190,8 +196,13 @@ chown root:root "$NEW_RELEASE"
 chmod 0755 "$NEW_RELEASE"
 install -d -o fieldmouse -g fieldmouse -m 0755 "$NEW_RELEASE/.venv"
 runuser -u fieldmouse -- python3 -m venv "$NEW_RELEASE/.venv"
-runuser -u fieldmouse -- "$NEW_RELEASE/.venv/bin/pip" install --disable-pip-version-check \
+PIP_TEMP="/var/tmp/fieldmouse-pip-$RELEASE_ID"
+install -d -o fieldmouse -g fieldmouse -m 0700 "$PIP_TEMP"
+runuser -u fieldmouse -- env TMPDIR="$PIP_TEMP" PIP_CACHE_DIR="$PIP_CACHE" \
+    "$NEW_RELEASE/.venv/bin/pip" install --disable-pip-version-check \
     --requirement "$NEW_RELEASE/requirements-production.txt"
+rm -rf -- "$PIP_TEMP"
+PIP_TEMP=""
 chown -R root:root "$NEW_RELEASE"
 ln -s "$LOG_ROOT" "$NEW_RELEASE/logs"
 
