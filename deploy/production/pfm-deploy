@@ -59,6 +59,13 @@ SOURCE="$(realpath "$SOURCE")"
 [[ -d "$SOURCE/deploy/systemd" && -f "$SOURCE/app/__init__.py" ]] || {
     echo "Source is not a Project Field Mouse release." >&2; exit 2;
 }
+(
+    cd "$SOURCE"
+    PYTHONDONTWRITEBYTECODE=1 python3 -c 'import app'
+) || {
+    echo "Source preflight failed: app is not importable from the release root." >&2
+    exit 2
+}
 
 if [[ -z "$RELEASE_ID" ]]; then
     REVISION="$(git -C "$SOURCE" rev-parse --short=12 HEAD 2>/dev/null || echo source)"
@@ -75,8 +82,11 @@ flock -n 9 || { echo "Another deployment is running." >&2; exit 1; }
 
 restore_database() {
     [[ -n "$DATABASE_BACKUP" && -f "$DATABASE_BACKUP" ]] || return 0
-    "$NEW_RELEASE/.venv/bin/python" -m app.cli --config "$CONFIG" \
-        restore "$DATABASE_BACKUP"
+    (
+        cd "$NEW_RELEASE"
+        "$NEW_RELEASE/.venv/bin/python" -m app.cli --config "$CONFIG" \
+            restore "$DATABASE_BACKUP"
+    )
 }
 
 rollback_on_error() {
@@ -211,8 +221,12 @@ fi
 
 if [[ -n "$PREVIOUS_TARGET" && -x "$PREVIOUS_TARGET/.venv/bin/python" ]]; then
     DATABASE_BACKUP="$STATE_ROOT/backups/predeploy-$RELEASE_ID.zip"
-    runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" \
-        "$PREVIOUS_TARGET/.venv/bin/python" -m app.cli backup --output "$DATABASE_BACKUP"
+    (
+        cd "$PREVIOUS_TARGET"
+        runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" \
+            "$PREVIOUS_TARGET/.venv/bin/python" -m app.cli backup \
+            --output "$DATABASE_BACKUP"
+    )
     cp -a "$CONFIG" "$STATE_ROOT/backups/station-$RELEASE_ID.toml"
 fi
 
@@ -244,8 +258,19 @@ VENV_STAGING=""
 chown -R root:root "$NEW_RELEASE"
 ln -s "$LOG_ROOT" "$NEW_RELEASE/logs"
 
-runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" \
-    "$NEW_RELEASE/.venv/bin/python" -m app.cli migrate
+(
+    cd "$NEW_RELEASE"
+    runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" PYTHONDONTWRITEBYTECODE=1 \
+        "$NEW_RELEASE/.venv/bin/python" -c 'import app'
+) || {
+    echo "Candidate preflight failed: app is not importable from $NEW_RELEASE." >&2
+    false
+}
+(
+    cd "$NEW_RELEASE"
+    runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" \
+        "$NEW_RELEASE/.venv/bin/python" -m app.cli migrate
+)
 
 for unit in "$NEW_RELEASE"/deploy/systemd/*; do
     install -o root -g root -m 0644 "$unit" "/etc/systemd/system/$(basename "$unit")"
