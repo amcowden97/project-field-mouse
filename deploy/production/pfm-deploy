@@ -11,6 +11,7 @@ readonly CONFIG="/etc/fieldmouse/station.toml"
 readonly LOCK="/run/lock/project-field-mouse-deploy.lock"
 readonly LEGACY_ROLLBACK="$OPT_ROOT/legacy-rollback"
 readonly PIP_CACHE="/var/cache/fieldmouse/pip"
+readonly MIN_INSTALL_DISK_KIB=2097152
 readonly SERVICES=(
     fieldmouse-recorder.service
     fieldmouse-birdnet.service
@@ -28,6 +29,9 @@ PREVIOUS_TARGET=""
 DATABASE_BACKUP=""
 NEW_RELEASE=""
 PIP_TEMP=""
+PIP_LOG=""
+VENV_STAGING=""
+INSTALLING_DEPENDENCIES=0
 SWITCHED=0
 UNITS_INSTALLED=0
 UNIT_BACKUP=""
@@ -79,6 +83,11 @@ rollback_on_error() {
     local exit_code=$?
     trap - ERR
     echo "Deployment failed; starting automatic rollback." >&2
+    if ((INSTALLING_DEPENDENCIES)) && [[ -n "$PIP_LOG" && -f "$PIP_LOG" ]]; then
+        echo "Dependency installation failed. Persistent pip log: $PIP_LOG" >&2
+        echo "Last 30 pip log lines:" >&2
+        tail -n 30 "$PIP_LOG" >&2 || true
+    fi
     if ((SWITCHED)); then
         systemctl disable --now fieldmouse-backup.timer fieldmouse-cleanup.timer \
             2>/dev/null || true
@@ -107,6 +116,9 @@ rollback_on_error() {
     if [[ -n "$PIP_TEMP" && -d "$PIP_TEMP" ]]; then
         rm -rf -- "$PIP_TEMP"
     fi
+    if [[ -n "$VENV_STAGING" && -d "$VENV_STAGING" ]]; then
+        rm -rf -- "$VENV_STAGING"
+    fi
     exit "$exit_code"
 }
 trap rollback_on_error ERR
@@ -114,9 +126,27 @@ trap rollback_on_error ERR
 install -d -o root -g root -m 0755 "$OPT_ROOT" "$RELEASES"
 install -d -o fieldmouse -g fieldmouse -m 0750 \
     "$STATE_ROOT" "$STATE_ROOT/database" "$STATE_ROOT/recordings" "$STATE_ROOT/backups" \
-    "$LOG_ROOT"
+    "$LOG_ROOT" "$LOG_ROOT/deployments"
 install -d -o root -g fieldmouse -m 0750 /etc/fieldmouse
 install -d -o fieldmouse -g fieldmouse -m 0750 "$PIP_CACHE"
+
+AVAILABLE_INSTALL_KIB="$(df --output=avail /var/tmp | tail -n 1 | tr -d ' ')"
+[[ "$AVAILABLE_INSTALL_KIB" =~ ^[0-9]+$ ]] || {
+    echo "Unable to determine free space for dependency installation." >&2
+    exit 2
+}
+if ((AVAILABLE_INSTALL_KIB < MIN_INSTALL_DISK_KIB)); then
+    echo "Dependency preflight failed: /var/tmp has ${AVAILABLE_INSTALL_KIB} KiB free; at least ${MIN_INSTALL_DISK_KIB} KiB is required." >&2
+    exit 2
+fi
+[[ "$(uname -m)" == "aarch64" ]] || {
+    echo "Dependency preflight failed: production deployment requires aarch64, found $(uname -m)." >&2
+    exit 2
+}
+python3 -m venv --help >/dev/null || {
+    echo "Dependency preflight failed: python3 venv support is unavailable." >&2
+    exit 2
+}
 if [[ ! -f /etc/default/fieldmouse ]]; then
     install -o root -g fieldmouse -m 0640 \
         "$SOURCE/deploy/production/fieldmouse.environment" /etc/default/fieldmouse
@@ -194,15 +224,23 @@ rsync -a --delete \
     "$SOURCE/" "$NEW_RELEASE/"
 chown root:root "$NEW_RELEASE"
 chmod 0755 "$NEW_RELEASE"
-install -d -o fieldmouse -g fieldmouse -m 0755 "$NEW_RELEASE/.venv"
-runuser -u fieldmouse -- python3 -m venv "$NEW_RELEASE/.venv"
+VENV_STAGING="$NEW_RELEASE/.venv"
+install -d -o fieldmouse -g fieldmouse -m 0755 "$VENV_STAGING"
+runuser -u fieldmouse -- python3 -m venv "$VENV_STAGING"
 PIP_TEMP="/var/tmp/fieldmouse-pip-$RELEASE_ID"
+PIP_LOG="$LOG_ROOT/deployments/$RELEASE_ID-pip.log"
 install -d -o fieldmouse -g fieldmouse -m 0700 "$PIP_TEMP"
+install -o fieldmouse -g fieldmouse -m 0640 /dev/null "$PIP_LOG"
+INSTALLING_DEPENDENCIES=1
 runuser -u fieldmouse -- env TMPDIR="$PIP_TEMP" PIP_CACHE_DIR="$PIP_CACHE" \
-    "$NEW_RELEASE/.venv/bin/pip" install --disable-pip-version-check \
+    "$VENV_STAGING/bin/pip" install --disable-pip-version-check \
+    --progress-bar off --retries 10 --resume-retries 10 --timeout 120 \
+    --log "$PIP_LOG" \
     --requirement "$NEW_RELEASE/requirements-production.txt"
+INSTALLING_DEPENDENCIES=0
 rm -rf -- "$PIP_TEMP"
 PIP_TEMP=""
+VENV_STAGING=""
 chown -R root:root "$NEW_RELEASE"
 ln -s "$LOG_ROOT" "$NEW_RELEASE/logs"
 
