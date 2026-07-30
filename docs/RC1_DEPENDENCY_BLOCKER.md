@@ -56,6 +56,31 @@ These changes affect deployment reliability and diagnostics only. They do not
 change the selected packages, application code, database, service behavior, or
 production runtime.
 
+## Corrective-action validation
+
+The isolated installation was repeated with the production installer's new
+network settings. The run started at 2026-07-29 17:13:20 PDT and completed at
+18:35:20 PDT (82 minutes). It encountered repeated connection resets, TLS EOF
+errors, DNS failures, and socket timeouts.
+
+The TensorFlow wheel timed out four times. Pip retained the bytes already
+received and resumed at 1.6 MB, 59.5 MB, 72.9 MB, and 80.1 MB rather than
+restarting the 282.2 MB download. The complete pinned environment then
+installed successfully, including `tensorflow==2.21.0`, `birdnet==0.2.16`,
+and `gunicorn==23.0.0`.
+
+Post-install validation returned:
+
+```text
+No broken requirements found.
+gunicorn (version 23.0.0)
+TensorFlow 2.21.0
+```
+
+Imports of TensorFlow, BirdNET, Flask, psutil, NumPy, and soundfile all
+succeeded. This validates the corrective network behavior without invoking the
+production deployer or changing production.
+
 ## Requirements audit
 
 The production input is a fully pinned runtime closure. Direct dependencies
@@ -104,3 +129,9 @@ The prior transactional deployment failure likewise ran automatic rollback
 before cutover and retained its failed release for diagnosis. The new failure
 path preserves those semantics while keeping its pip log outside the candidate
 release.
+
+After the successful corrective-action validation, the legacy recorder,
+BirdNET, and dashboard services remained enabled and active. Production still
+had no `/opt/project-field-mouse/current` link, and SQLite integrity remained
+`ok`. The test therefore resolved the dependency blocker without causing a
+cutover.
