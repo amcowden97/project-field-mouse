@@ -2,22 +2,25 @@
 Description=Project Field Mouse recorder
 After=sound.target local-fs.target
 Wants=sound.target
+RequiresMountsFor=/var/lib/fieldmouse
 
 [Service]
 Type=simple
 User=fieldmouse
 Group=fieldmouse
-WorkingDirectory=/opt/project-field-mouse
+WorkingDirectory=/opt/project-field-mouse/current
 Environment=PYTHONUNBUFFERED=1
 Environment=PFM_CONFIG=/etc/fieldmouse/station.toml
-ExecStart=/opt/project-field-mouse/.venv/bin/python -m app.services.scheduler
+EnvironmentFile=-/etc/default/fieldmouse
+ExecStart=/opt/project-field-mouse/current/.venv/bin/python -m app.services.adaptive_scheduler --config /etc/fieldmouse/station.toml
 Restart=on-failure
 RestartSec=10
 TimeoutStopSec=30
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
-ReadWritePaths=/opt/project-field-mouse/data /opt/project-field-mouse/logs
+ReadWritePaths=/var/lib/fieldmouse /var/log/fieldmouse
+UMask=0027
 
 [Install]
 WantedBy=multi-user.target

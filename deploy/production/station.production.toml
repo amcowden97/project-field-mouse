@@ -1,0 +1,79 @@
+[station]
+id = "project-field-mouse-001"
+uuid = ""
+name = "Backyard Sanctuary"
+timezone = "America/Los_Angeles"
+location_name = "Backyard Sanctuary"
+hardware_version = "Raspberry Pi 5"
+deployment_date = ""
+capabilities = ["audio", "birdnet"]
+
+[audio]
+device = "default"
+sample_rate = 48000
+channels = 1
+sample_format = "S16_LE"
+recording_duration_seconds = 60
+recording_interval_seconds = 900
+
+[storage]
+recordings_directory = "/var/lib/fieldmouse/recordings"
+database_path = "/var/lib/fieldmouse/database/fieldmouse.db"
+logs_directory = "/var/log/fieldmouse"
+backups_directory = "/var/lib/fieldmouse/backups"
+empty_recording_retention_days = 3
+detection_recording_retention_days = 30
+cleanup_interval_hours = 6
+minimum_free_gb = 2.0
+maximum_disk_percent = 90.0
+backup_retention_days = 30
+maximum_backups = 20
+
+[detection]
+enabled = true
+minimum_confidence = 0.70
+species_include = []
+species_exclude = []
+
+[birdnet]
+enabled = true
+latitude = 47.5673
+longitude = -122.6326
+minimum_confidence = 0.25
+occurrence_threshold = 0.03
+poll_interval_seconds = 10
+
+[dashboard]
+host = "0.0.0.0"
+port = 8000
+
+[logging]
+level = "INFO"
+max_bytes = 5000000
+backup_count = 5
+json = true
+
+[health]
+recording_stale_seconds = 1200
+disk_warning_percent = 85.0
+temperature_warning_c = 75.0
+services = [
+  "fieldmouse-recorder.service",
+  "fieldmouse-birdnet.service",
+  "fieldmouse-dashboard.service",
+]
+
+[adaptive_recording]
+enabled = true
+dawn_start = "05:00"
+dawn_end = "09:00"
+evening_start = "17:00"
+evening_end = "21:00"
+dawn_interval_seconds = 60
+day_interval_seconds = 60
+evening_interval_seconds = 60
+night_interval_seconds = 60
+burst_enabled = true
+burst_interval_seconds = 60
+burst_duration_minutes = 20
+burst_minimum_confidence = 0.50

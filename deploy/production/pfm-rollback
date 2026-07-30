@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+readonly OPT_ROOT="/opt/project-field-mouse"
+readonly CURRENT="$OPT_ROOT/current"
+readonly PREVIOUS="$OPT_ROOT/previous"
+readonly CONFIG="/etc/fieldmouse/station.toml"
+readonly LEGACY_ROLLBACK="$OPT_ROOT/legacy-rollback"
+readonly SERVICES=(
+    fieldmouse-recorder.service
+    fieldmouse-birdnet.service
+    fieldmouse-dashboard.service
+)
+
+BACKUP=""
+while (($#)); do
+    case "$1" in
+        --backup) BACKUP="${2:-}"; shift 2 ;;
+        -h|--help)
+            echo "Usage: pfm-rollback [--backup VERIFIED_BACKUP.zip]"
+            exit 0
+            ;;
+        *) echo "Unknown argument: $1" >&2; exit 2 ;;
+    esac
+done
+
+[[ $EUID -eq 0 ]] || { echo "pfm-rollback must run as root." >&2; exit 1; }
+if [[ ! -L "$PREVIOUS" && -d "$LEGACY_ROLLBACK/units" ]]; then
+    systemctl stop "${SERVICES[@]}"
+    systemctl disable --now fieldmouse-backup.timer fieldmouse-cleanup.timer \
+        2>/dev/null || true
+    cp -a "$LEGACY_ROLLBACK/units/." /etc/systemd/system/
+    [[ ! -L "$CURRENT" ]] || unlink "$CURRENT"
+    systemctl daemon-reload
+    systemctl enable --now fieldmouse-cleanup.timer fieldmouse-storage-manager.timer
+    systemctl restart "${SERVICES[@]}"
+    echo "Rolled back to the preserved legacy installation."
+    exit 0
+fi
+[[ -L "$PREVIOUS" ]] || { echo "No previous release is available." >&2; exit 1; }
+TARGET="$(readlink -f "$PREVIOUS")"
+[[ -d "$TARGET" && -x "$TARGET/.venv/bin/python" ]] || {
+    echo "Previous release is incomplete: $TARGET" >&2; exit 1;
+}
+if [[ -n "$BACKUP" ]]; then
+    BACKUP="$(realpath "$BACKUP")"
+    [[ -f "$BACKUP" ]] || { echo "Backup does not exist." >&2; exit 2; }
+fi
+
+OLD_CURRENT="$(readlink -f "$CURRENT")"
+systemctl stop "${SERVICES[@]}"
+ln -sfn "$TARGET" "$CURRENT"
+if [[ -n "$BACKUP" ]]; then
+    runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" \
+        "$TARGET/.venv/bin/python" -m app.cli verify-backup "$BACKUP"
+    runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" \
+        "$TARGET/.venv/bin/python" -m app.cli restore "$BACKUP"
+fi
+ln -sfn "$OLD_CURRENT" "$PREVIOUS"
+systemctl daemon-reload
+systemctl restart "${SERVICES[@]}"
+for unit in "${SERVICES[@]}"; do
+    systemctl is-active --quiet "$unit"
+done
+curl --fail --silent --show-error http://127.0.0.1:8000/health >/dev/null
+echo "Rolled back to $TARGET successfully."
