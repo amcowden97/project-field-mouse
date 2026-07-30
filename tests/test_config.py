@@ -41,6 +41,44 @@ def test_environment_override(tmp_path: Path) -> None:
     assert config.detection.enabled is False
 
 
+def test_legacy_birdnet_poll_interval_is_migrated(tmp_path: Path) -> None:
+    config_file = tmp_path / "station.toml"
+    config_file.write_text(
+        '[station]\nid="x"\nname="X"\ntimezone="UTC"\n'
+        "[birdnet]\npoll_interval=17\n",
+        encoding="utf-8",
+    )
+
+    config = load_config(config_file, {})
+
+    assert config.birdnet.poll_interval_seconds == 17
+
+
+def test_legacy_birdnet_environment_override_is_migrated(
+    tmp_path: Path,
+) -> None:
+    config_file = tmp_path / "station.toml"
+    write_config(config_file)
+
+    config = load_config(config_file, {"PFM_BIRDNET_POLL_INTERVAL": "23"})
+
+    assert config.birdnet.poll_interval_seconds == 23
+
+
+def test_conflicting_birdnet_poll_intervals_are_rejected(
+    tmp_path: Path,
+) -> None:
+    config_file = tmp_path / "station.toml"
+    config_file.write_text(
+        '[station]\nid="x"\nname="X"\ntimezone="UTC"\n'
+        "[birdnet]\npoll_interval=17\npoll_interval_seconds=10\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ConfigurationError, match="Conflicting configuration"):
+        load_config(config_file, {})
+
+
 def test_invalid_timezone_is_rejected(tmp_path: Path) -> None:
     config_file = tmp_path / "station.toml"
     config_file.write_text(

@@ -1,6 +1,6 @@
 absl-py==2.5.0
 astunparse==1.6.3
-birdnet==0.2.16
+birdnet @ https://files.pythonhosted.org/packages/c5/91/085f79bd6df29378cf8ef628aea42d7651a3a195fbe80f9e674298a4aa98/birdnet-0.2.16-py3-none-any.whl#sha256=e26ee0419446d3cf634a8f5fb65182626590063f2c0a1ed7cb72659a9ce1ce69
 blinker==1.9.0
 certifi==2026.6.17
 cffi==2.1.0
