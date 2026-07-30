@@ -16,6 +16,7 @@ from pathlib import Path
 from app.backups import create_backup, restore_backup, verify_backup
 from app.config import DEFAULT_CONFIG_PATH, ConfigurationError, load_config
 from app.migrations import migrate, migration_history
+from app.preflight import run_preflight
 from app.simulator import MODES, simulate
 from app.system.health_check import collect_health
 from app.version import __version__
@@ -106,6 +107,7 @@ def build_parser() -> argparse.ArgumentParser:
     logs.add_argument("--service", default="fieldmouse")
     logs.add_argument("--lines", type=int, default=50)
     commands.add_parser("doctor")
+    commands.add_parser("preflight")
     backup = commands.add_parser("backup")
     backup.add_argument("--output", type=Path)
     restore = commands.add_parser("restore")
@@ -138,6 +140,12 @@ def main(argv: list[str] | None = None) -> int:
             _write_config(path, arguments.name, arguments.station_id, arguments.timezone)
             print(f"Created {path}")
             return 0
+        if arguments.command in {"migrate", "preflight"}:
+            preflight_status = run_preflight()
+            if preflight_status:
+                return preflight_status
+            if arguments.command == "preflight":
+                return 0
         config = load_config(path)
         if arguments.command == "status":
             print(json.dumps({"version": __version__, "station": config.station.id,
