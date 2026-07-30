@@ -12,6 +12,7 @@ readonly LOCK="/run/lock/project-field-mouse-deploy.lock"
 readonly LEGACY_ROLLBACK="$OPT_ROOT/legacy-rollback"
 readonly PIP_CACHE="/var/cache/fieldmouse/pip"
 readonly MIN_INSTALL_DISK_KIB=2097152
+readonly BIRDNET_WHEEL_SHA256="e26ee0419446d3cf634a8f5fb65182626590063f2c0a1ed7cb72659a9ce1ce69"
 readonly SERVICES=(
     fieldmouse-recorder.service
     fieldmouse-birdnet.service
@@ -55,6 +56,12 @@ done
 SOURCE="$(realpath "$SOURCE")"
 [[ -f "$SOURCE/requirements-production.txt" ]] || {
     echo "Source is missing requirements-production.txt." >&2; exit 2;
+}
+grep -Fq \
+    "birdnet-0.2.16-py3-none-any.whl#sha256=$BIRDNET_WHEEL_SHA256" \
+    "$SOURCE/requirements.txt" || {
+    echo "Source does not pin the approved BirdNET wheel SHA-256." >&2
+    exit 2
 }
 [[ -d "$SOURCE/deploy/systemd" && -f "$SOURCE/app/__init__.py" ]] || {
     echo "Source is not a Project Field Mouse release." >&2; exit 2;
@@ -261,9 +268,9 @@ ln -s "$LOG_ROOT" "$NEW_RELEASE/logs"
 (
     cd "$NEW_RELEASE"
     runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" PYTHONDONTWRITEBYTECODE=1 \
-        "$NEW_RELEASE/.venv/bin/python" -c 'import app'
+        "$NEW_RELEASE/.venv/bin/python" -m app.preflight
 ) || {
-    echo "Candidate preflight failed: app is not importable from $NEW_RELEASE." >&2
+    echo "Candidate runtime preflight failed in $NEW_RELEASE." >&2
     false
 }
 (
