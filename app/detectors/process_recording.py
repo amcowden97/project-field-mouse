@@ -19,6 +19,7 @@ from app.detectors.local_species import (
     create_local_species_list,
     get_week_for_recording,
 )
+from app.detectors.timestamps import parse_birdnet_timestamp
 from app.verification.factory import build_verification_manager
 from app.verification.models import DetectionContext
 from app.verification.repository import save_verification
@@ -276,6 +277,19 @@ def save_detections(
         scientific_name, common_name = split_species_name(
             prediction["species_name"]
         )
+        start_time = parse_birdnet_timestamp(
+            prediction["start_time"],
+            field_name="start_time",
+        )
+        end_time = parse_birdnet_timestamp(
+            prediction["end_time"],
+            field_name="end_time",
+        )
+        if end_time < start_time:
+            raise ValueError(
+                "Invalid BirdNET timestamp range: "
+                f"end_time {end_time} precedes start_time {start_time}."
+            )
         reviewed_detection = connection.execute(
             """
             SELECT d.id
@@ -296,8 +310,8 @@ def save_detections(
                 recording_id,
                 scientific_name,
                 common_name,
-                float(prediction["start_time"]),
-                float(prediction["end_time"]),
+                start_time,
+                end_time,
             ),
         ).fetchone()
         if reviewed_detection is not None:
@@ -323,8 +337,8 @@ def save_detections(
                 scientific_name,
                 common_name,
                 confidence,
-                prediction["start_time"],
-                prediction["end_time"],
+                start_time,
+                end_time,
             ),
         )
 
@@ -346,8 +360,8 @@ def save_detections(
                         str(recording["recorded_at"]).replace("Z", "+00:00")
                     ),
                     audio_path=resolve_audio_path(str(recording["audio_path"])),
-                    start_time=float(prediction["start_time"]),
-                    end_time=float(prediction["end_time"]),
+                    start_time=start_time,
+                    end_time=end_time,
                 )
             )
             save_verification(connection, int(detection_id), decision)
@@ -404,8 +418,8 @@ def parse_arguments() -> argparse.Namespace:
         "--recording-id",
         type=int,
         help=(
-            "Recording to process. Defaults to the oldest "
-            "pending recording."
+            "Recording to process, including a failed recording selected for "
+            "administrative retry. Defaults to the oldest pending recording."
         ),
     )
 
