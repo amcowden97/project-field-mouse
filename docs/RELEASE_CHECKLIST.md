@@ -6,14 +6,14 @@ required item fails.
 - [ ] Fresh install completes on a Raspberry Pi 5.
 - [x] Database backup verifies and migrations complete.
 - [x] Recorder creates a valid WAV file using the configured device.
-- [ ] BirdNET processes the WAV and stores at least one detection.
+- [x] BirdNET processes the WAV and stores at least one detection.
 - [x] Overview, Activity, Life List, Species, and Device pages return HTTP 200.
 - [x] Audio playback supports seeking and returns the expected WAV.
 - [x] `/health` returns HTTP 200 and `/api/metrics` returns current metrics.
 - [x] Recorder, BirdNET, and dashboard services are enabled and active.
 - [x] Failed service processes restart without entering a crash loop.
 - [x] Maintenance timer is enabled; a dry run and an applied cleanup behave correctly.
-- [ ] SIGTERM produces graceful shutdown and clean logs.
+- [x] SIGTERM produces graceful shutdown and clean logs.
 - [x] SQLite `PRAGMA integrity_check` returns `ok`.
 - [ ] Reboot restores all services and recording/detection processing.
 - [ ] Mobile and desktop browser checks show no broken links or missing assets.
@@ -61,3 +61,39 @@ required item fails.
   Flask's development server, while RC1 deployment files target `/opt` and
   Gunicorn. Gunicorn is not installed in the active virtual environment.
 - Complete a 12–24 hour soak of the FD fix and review resource/log trends.
+
+## 2026-08-04 final production deployment evidence
+
+- Transactional deployment of commit `54c995065189` completed successfully as
+  release `rc1-final-54c995065189`. Runtime preflights passed twice, the
+  database was current, and the deployer retained both the previous release
+  (`rc1-final-898778c258f1-b`) and verified backup
+  `predeploy-rc1-final-54c995065189.zip`.
+- Recorder, BirdNET, and dashboard are enabled and active with zero restarts.
+  No systemd units are failed. The cleanup timer is enabled and waiting; its
+  most recent applied run completed successfully.
+- Production health is HTTP 200 with SQLite integrity `ok` and no warnings.
+  Metrics is HTTP 200. Overview, Activity, Life List, Species, and Device pages
+  all return HTTP 200.
+- Audio recording `18270` returns HTTP 200; a bytes 0–1023 seek returns HTTP
+  206 with the correct `Content-Range`.
+- The previously failed recording `18270` was reprocessed twice. Each run
+  reported one saved detection, while SQLite retained exactly one detection
+  with normalized offsets `18.0`–`21.0`, confirming idempotency.
+- During the post-deployment observation, recording count advanced from 2,855
+  to 2,858 and detection count advanced from 1,037 to 1,038. Recordings 18384
+  and 18385 completed, and BirdNET stored one new detection for 18385 without
+  a timestamp error or worker restart.
+- Resource snapshot: BirdNET 218 MB RSS, dashboard workers 64 MB combined RSS,
+  recorder/adaptive scheduler approximately 36 MB RSS, system memory 68.7%,
+  load average 0.12/1.24/1.08, temperature 58.4 C, and 17 GB free (70% used).
+  Metrics reports mean BirdNET execution of 4,589 ms over 1,250 samples and a
+  4.94 MB SQLite database.
+
+## Remaining acceptance work after final deployment
+
+- Complete the planned 12–24 hour production soak and review restart counters,
+  resource trends, disk growth, and timestamp-related logs.
+- Complete the outstanding mobile/desktop visual and JavaScript-console review.
+- Obtain release-owner acceptance of the documented known issues before tagging.
+- Perform the final reboot recovery check before promoting or tagging RC1.
