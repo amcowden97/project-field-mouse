@@ -46,8 +46,9 @@ class StorageConfig:
     database_path: Path = PROJECT_ROOT / "data" / "database" / "fieldmouse.db"
     logs_directory: Path = PROJECT_ROOT / "logs"
     backups_directory: Path = PROJECT_ROOT / "data" / "backups"
-    empty_recording_retention_days: int = 3
-    detection_recording_retention_days: int = 30
+    empty_recording_retention_days: int = 1
+    detection_recording_retention_days: int = 3
+    rare_species: tuple[str, ...] = ()
     cleanup_interval_hours: int = 6
     minimum_free_gb: float = 2.0
     maximum_disk_percent: float = 90.0
@@ -253,6 +254,9 @@ def load_config(
         storage_values = dict(data["storage"])
         for key in ("recordings_directory", "database_path", "logs_directory", "backups_directory"):
             storage_values[key] = _path(storage_values[key], selected)
+        storage_values["rare_species"] = tuple(
+            storage_values["rare_species"]
+        )
         storage = StorageConfig(**storage_values)
         detection = DetectionConfig(
             **{**data["detection"],
