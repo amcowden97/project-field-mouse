@@ -56,6 +56,17 @@ def resolve_recording_path(file_path: str) -> Path | None:
     return path
 
 
+def display_storage_path(
+    path: Path,
+    project_root: Path = PROJECT_ROOT,
+) -> str:
+    """Display project paths relatively and deployed state paths absolutely."""
+    try:
+        return str(path.relative_to(project_root))
+    except ValueError:
+        return str(path)
+
+
 def seconds_since(timestamp: str | None) -> float | None:
     if not timestamp:
         return None
@@ -985,12 +996,8 @@ def device():
         device=device_info,
         database_stats=dict(database_stats),
         database_size=database_size,
-        database_path=str(
-            DATABASE_PATH.relative_to(PROJECT_ROOT)
-        ),
-        recordings_path=str(
-            RECORDINGS_ROOT.relative_to(PROJECT_ROOT)
-        ),
+        database_path=display_storage_path(DATABASE_PATH),
+        recordings_path=display_storage_path(RECORDINGS_ROOT),
     )
 
 
