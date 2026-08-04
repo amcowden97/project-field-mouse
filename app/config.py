@@ -46,8 +46,9 @@ class StorageConfig:
     database_path: Path = PROJECT_ROOT / "data" / "database" / "fieldmouse.db"
     logs_directory: Path = PROJECT_ROOT / "logs"
     backups_directory: Path = PROJECT_ROOT / "data" / "backups"
-    empty_recording_retention_days: int = 3
-    detection_recording_retention_days: int = 30
+    empty_recording_retention_days: int = 1
+    detection_recording_retention_days: int = 3
+    rare_species: tuple[str, ...] = ()
     cleanup_interval_hours: int = 6
     minimum_free_gb: float = 2.0
     maximum_disk_percent: float = 90.0
@@ -116,6 +117,12 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "birdnet": {}, "dashboard": {}, "logging": {}, "health": {},
 }
 
+CONFIG_ALIASES: dict[str, dict[str, str]] = {
+    # Production configurations created before the shared RC1 configuration
+    # schema used this shorter name.
+    "birdnet": {"poll_interval": "poll_interval_seconds"},
+}
+
 
 def _merge(base: dict[str, Any], values: dict[str, Any]) -> dict[str, Any]:
     merged = {key: dict(value) for key, value in base.items()}
@@ -123,6 +130,21 @@ def _merge(base: dict[str, Any], values: dict[str, Any]) -> dict[str, Any]:
         if section in merged and isinstance(section_values, dict):
             merged[section].update(section_values)
     return merged
+
+
+def _migrate_compatibility_fields(data: dict[str, dict[str, Any]]) -> None:
+    """Translate supported legacy fields without hiding ambiguous values."""
+    for section, aliases in CONFIG_ALIASES.items():
+        values = data[section]
+        for legacy, current in aliases.items():
+            if legacy not in values:
+                continue
+            if current in values and values[current] != values[legacy]:
+                raise ConfigurationError(
+                    f"Conflicting configuration fields: {section}.{legacy} "
+                    f"and {section}.{current}"
+                )
+            values[current] = values.pop(legacy)
 
 
 def _environment(data: dict[str, Any], environ: dict[str, str]) -> None:
@@ -138,6 +160,7 @@ def _environment(data: dict[str, Any], environ: dict[str, str]) -> None:
             continue
         section = max(matches, key=len)
         key = remainder[len(section) + 1 :]
+        key = CONFIG_ALIASES.get(section, {}).get(key, key)
         current = data[section].get(key)
         if isinstance(current, bool):
             if raw.lower() not in {"true", "false", "1", "0", "yes", "no"}:
@@ -187,6 +210,7 @@ def load_config(
         raise ConfigurationError(f"Configuration file not found: {selected}")
 
     data = _merge(DEFAULTS, values)
+    _migrate_compatibility_fields(data)
     # Dataclass defaults supply missing keys while still permitting env-only setup.
     prototypes = {
         "station": StationConfig(), "audio": AudioConfig(),
@@ -230,6 +254,9 @@ def load_config(
         storage_values = dict(data["storage"])
         for key in ("recordings_directory", "database_path", "logs_directory", "backups_directory"):
             storage_values[key] = _path(storage_values[key], selected)
+        storage_values["rare_species"] = tuple(
+            storage_values["rare_species"]
+        )
         storage = StorageConfig(**storage_values)
         detection = DetectionConfig(
             **{**data["detection"],
