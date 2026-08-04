@@ -1,0 +1,572 @@
+{
+  "generated_at": "2026-08-04T20:05:44.431690+00:00",
+  "database": "/home/amcowden97/Project-Field-Mouse/data/database/fieldmouse.db",
+  "recordings_root": "/home/amcowden97/Project-Field-Mouse/data/recordings",
+  "summary": {
+    "total_wav_files": 2020,
+    "referenced_wav_files": 1988,
+    "orphaned_wav_files": 31,
+    "unsettled_wav_files": 1,
+    "database_rows": 2726,
+    "database_rows_missing_files": 738,
+    "orphaned_size_bytes": 120122028,
+    "safe_to_delete_files": 0,
+    "safe_to_delete_bytes": 0,
+    "preserved_files": 31,
+    "preserved_bytes": 120122028
+  },
+  "categories": {
+    "Duplicate recordings": {
+      "count": 0,
+      "size_bytes": 0
+    },
+    "Legacy recordings": {
+      "count": 1,
+      "size_bytes": 1440044
+    },
+    "Missing DB rows": {
+      "count": 0,
+      "size_bytes": 0
+    },
+    "Ingestion failures": {
+      "count": 30,
+      "size_bytes": 118681984
+    },
+    "Unknown": {
+      "count": 0,
+      "size_bytes": 0
+    }
+  },
+  "orphans": [
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/2026-07-21/2026-07-21T15-50-53.wav",
+      "size_bytes": 1440044,
+      "creation_time": "2026-07-21T22:51:08.475449+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-21T22:51:08.475449+00:00",
+      "sha256": "c4f9f031526ef52fe6edbf1bdb53e32c657e6f1d1ad22ba67b82f33fa5be802f",
+      "category": "Legacy recordings",
+      "classification_evidence": "Pre-station directory layout: <date>/<file>",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 4,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-21/2026-07-21T16-15-55-0700.wav",
+        "recorded_at": "2026-07-21T16:15:55.596954-07:00",
+        "delta_seconds": 26702.597
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-21/2026-07-21T15-55-48.wav",
+      "size_bytes": 480044,
+      "creation_time": "2026-07-21T22:55:53.229858+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-21T22:55:53.229858+00:00",
+      "sha256": "94f6a7d82e6979f41a91216e38940e994354047d6209856115a69f7a1d864e3a",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 4,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-21/2026-07-21T16-15-55-0700.wav",
+        "recorded_at": "2026-07-21T16:15:55.596954-07:00",
+        "delta_seconds": 26407.597
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-21/2026-07-21T15-56-34.wav",
+      "size_bytes": 480044,
+      "creation_time": "2026-07-21T22:56:39.725590+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-21T22:56:39.725590+00:00",
+      "sha256": "e46897a44c6d52e0782037bbf3729ec39912a20567d50e2886615e4bb49f000a",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 4,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-21/2026-07-21T16-15-55-0700.wav",
+        "recorded_at": "2026-07-21T16:15:55.596954-07:00",
+        "delta_seconds": 26361.597
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-22/2026-07-22T13-34-08-0700.wav",
+      "size_bytes": 4908068,
+      "creation_time": "2026-07-22T20:35:00.395957+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-22T20:35:00.395957+00:00",
+      "sha256": "7e5b4e4e76428aacd5d69762390c0e0d7fd727d431f303a91be83fcf9c1b1b17",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 40,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-22/2026-07-22T14-24-23-0700.wav",
+        "recorded_at": "2026-07-22T14:24:23.705875-07:00",
+        "delta_seconds": 3015.706
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-22/2026-07-22T14-08-57-0700.wav",
+      "size_bytes": 660080,
+      "creation_time": "2026-07-22T21:09:04.386347+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-22T21:09:04.386347+00:00",
+      "sha256": "45d23e5cd42d8abd032e56fa4bb887334d1456573d7fa3cc8ca2b597afa6d6e9",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 40,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-22/2026-07-22T14-24-23-0700.wav",
+        "recorded_at": "2026-07-22T14:24:23.705875-07:00",
+        "delta_seconds": 926.706
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T20-35-13-0700.wav",
+      "size_bytes": 1992136,
+      "creation_time": "2026-07-25T03:35:34.522582+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T03:35:34.522582+00:00",
+      "sha256": "6967aa6cdad8bc4062d40017b15c5b7f35ec4ccd8c1dfe969a4f0728ff3cdbbf",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3198,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T20-07-40-0700.wav",
+        "recorded_at": "2026-07-24T20:07:40.486270-07:00",
+        "delta_seconds": 1652.514
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-21-49-0700.wav",
+      "size_bytes": 408114,
+      "creation_time": "2026-07-25T04:21:53.508778+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:21:53.508778+00:00",
+      "sha256": "47874a722115e78b1dc5b6404e70973bf00b544f52e16a2db2a611aa27bf0056",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 3209.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-25-59-0700.wav",
+      "size_bytes": 2196074,
+      "creation_time": "2026-07-25T04:26:22.825393+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:26:22.825393+00:00",
+      "sha256": "51d56787b48a69733d1c2923a03b8fc7058fc33934c35ac92bc1a9ec6ab9a31f",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2959.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-26-23-0700.wav",
+      "size_bytes": 3936066,
+      "creation_time": "2026-07-25T04:27:04.273446+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:27:04.273446+00:00",
+      "sha256": "a4375e947a7efaeea1af5b3a0222d00515240ab88a3add55e037dd02c699fe98",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2935.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-28-05-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:29:05.936519+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:29:05.936519+00:00",
+      "sha256": "fad37b02fb8ed4f1a8508afe1a8ffd21de08ec1f00d07c7ac069462989bf35d0",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2833.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-29-07-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:30:07.919582+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:30:07.919582+00:00",
+      "sha256": "93b0e3a7a2090b6aa2e87573081c485cfcaf0168a656f02b5cf19f28926f7d7f",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2771.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-30-09-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:31:09.206434+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:31:09.206434+00:00",
+      "sha256": "e341c72529d82459a9de94913f499699858f778005fca4d2cc60c68b2e69e213",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2709.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-31-10-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:32:10.525110+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:32:10.525110+00:00",
+      "sha256": "39e4fe6030b1def36b9526ec8853028aa6fa0109240823584ecd7d50f42d07ae",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2648.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-32-11-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:33:11.799651+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:33:11.799651+00:00",
+      "sha256": "e4c69f348ac6957693ac27563b9da88ea0ad104342f29fed58790463053f18be",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2587.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-35-02-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:36:02.235096+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:36:02.235096+00:00",
+      "sha256": "8c410e6664eb9f97b8d7152e850b0407bd2efafe735e3e9d08260836067bacf3",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2416.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-36-03-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:37:03.512698+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:37:03.512698+00:00",
+      "sha256": "ffb8bd3af3d0c6b092f7aa41daf2e35f2badd1f08758b9a3e82ab1fe4fc6bc97",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2355.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-37-04-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:38:04.806093+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:38:04.806093+00:00",
+      "sha256": "dd13387e4865d59df49ac75fad009754a6cd055a1ab0c13c618ac6d9dec94cdb",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2294.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-38-05-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:39:06.083158+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:39:06.083158+00:00",
+      "sha256": "ee66dd63a66af1ef05c941f39e16bbc2e04046dc71f58578787d71fc6bc7b344",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2233.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-39-07-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:40:07.359930+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:40:07.359930+00:00",
+      "sha256": "b210a8b4bf6c14209a44af4d48dc4dd316074e60dc678129f40055408c01fea2",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2171.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-40-08-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:41:08.640442+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:41:08.640442+00:00",
+      "sha256": "1fb5784f778a285cfc729cf2a644d2eb0b447691413709c00c2c1d1f5b044cf2",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2110.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-41-09-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:42:09.920724+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:42:09.920724+00:00",
+      "sha256": "cd3a86c6405a34c3e6ed17ad19261a54135258d3829767049bfd3f782a52650b",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 2049.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-42-11-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:43:11.196801+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:43:11.196801+00:00",
+      "sha256": "b4b7a4f3de67464351924fa1db277a944514cdded1bfbd5b4c850490603f2fb5",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 1987.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-43-12-0700.wav",
+      "size_bytes": 2496064,
+      "creation_time": "2026-07-25T04:43:38.500776+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:43:38.500776+00:00",
+      "sha256": "36a630c326aa0b39ce5eab22a7acb10ecbf31bbdf0c6f70f839fcc5a5de1013f",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 1926.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T21-43-38-0700.wav",
+      "size_bytes": 5760044,
+      "creation_time": "2026-07-25T04:44:38.872601+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T04:44:38.872601+00:00",
+      "sha256": "786e745f1924715004e0d2067fa021cc5aaa8c38753272cdb33baefd885c5b80",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3305,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-24/2026-07-24T22-15-18-0700.wav",
+        "recorded_at": "2026-07-24T22:15:18.325118-07:00",
+        "delta_seconds": 1900.325
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-25/2026-07-25T00-07-38-0700.wav",
+      "size_bytes": 2868044,
+      "creation_time": "2026-07-25T07:08:34.187737+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-25T07:08:34.187737+00:00",
+      "sha256": "f9b533c63fd5c118c3a3cfda946f6665f724bbf828ec826595cdd0cbf2712b0b",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 3414,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-25/2026-07-25T00-06-37-0700.wav",
+        "recorded_at": "2026-07-25T00:06:37.642686-07:00",
+        "delta_seconds": 60.357
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-28/2026-07-28T18-23-33-0700.wav",
+      "size_bytes": 2664044,
+      "creation_time": "2026-07-29T01:24:58.384348+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-29T01:24:58.384348+00:00",
+      "sha256": "8697a0f39b383c27f1a0186fd27f67f8ea979c00fe82e2c893865471a93e7373",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 8728,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-28/2026-07-28T18-35-26-0700.wav",
+        "recorded_at": "2026-07-28T18:35:26.680347-07:00",
+        "delta_seconds": 713.68
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-28/2026-07-28T20-37-05-0700.wav",
+      "size_bytes": 672044,
+      "creation_time": "2026-07-29T03:38:34.626107+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-29T03:38:34.626107+00:00",
+      "sha256": "241df4f5082f1e4a984412b3b1d235502513f75f17104bfc6c979bd83fc8ba99",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 8846,
+        "file_path": "data/recordings/project-field-mouse-001/2026-07-28/2026-07-28T20-36-03-0700.wav",
+        "recorded_at": "2026-07-28T20:36:03.838058-07:00",
+        "delta_seconds": 61.162
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-30/2026-07-30T11-47-40-0700.wav",
+      "size_bytes": 2916352,
+      "creation_time": "2026-07-30T18:48:14.692040+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-30T18:48:14.692040+00:00",
+      "sha256": "5a5a558d1807fca8484470b7cc67b769fd770ecd8165e47ba08d40ea2cbfdd73",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 9779,
+        "file_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-29/2026-07-29T12-30-18-0700.wav",
+        "recorded_at": "2026-07-29T12:30:18.414972-07:00",
+        "delta_seconds": 83841.585
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-30/2026-07-30T12-51-05-0700.wav",
+      "size_bytes": 5664044,
+      "creation_time": "2026-07-30T19:52:05.763674+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-30T19:52:05.763674+00:00",
+      "sha256": "d39d12498b86b8a8fb965f406428d7a7dce287a08d0ee4768a686d776c3812d7",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 9779,
+        "file_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-29/2026-07-29T12-30-18-0700.wav",
+        "recorded_at": "2026-07-29T12:30:18.414972-07:00",
+        "delta_seconds": 87646.585
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-30/2026-07-30T13-16-48-0700.wav",
+      "size_bytes": 4236094,
+      "creation_time": "2026-07-30T20:17:36.116951+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-30T20:17:36.116951+00:00",
+      "sha256": "a70afb7b60d7218bab380cae70962a7d6f3f8a53ee30ffb707639ce966af6afa",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 9779,
+        "file_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-29/2026-07-29T12-30-18-0700.wav",
+        "recorded_at": "2026-07-29T12:30:18.414972-07:00",
+        "delta_seconds": 89189.585
+      }
+    },
+    {
+      "absolute_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-30/2026-07-30T15-05-59-0700.wav",
+      "size_bytes": 1464056,
+      "creation_time": "2026-07-30T22:06:15.202970+00:00",
+      "creation_time_source": "ctime_metadata_change_time",
+      "modification_time": "2026-07-30T22:06:15.202970+00:00",
+      "sha256": "2aabad135427aed8c826e5daf1fe8a57cc35be3f442a02d1be1110ad21166126",
+      "category": "Ingestion failures",
+      "classification_evidence": "Valid current-layout recording has no database row",
+      "safe_to_delete": false,
+      "nearest_database_row": {
+        "id": 9779,
+        "file_path": "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-29/2026-07-29T12-30-18-0700.wav",
+        "recorded_at": "2026-07-29T12:30:18.414972-07:00",
+        "delta_seconds": 95740.585
+      }
+    }
+  ],
+  "unsettled_files": [
+    "/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-08-04/2026-08-04T13-03-11-0700.wav"
+  ]
+}
