@@ -83,7 +83,10 @@ and detection counts did not decrease. Seven focused storage tests and the full
 ## Production validation
 
 - Recorder: active and committing new 5,760,044-byte WAVs and SQLite rows.
-- BirdNET: active and processing newly recorded audio after cleanup.
+- BirdNET: processed zero-detection recordings after cleanup, but later failed
+  when a detection contained `start_time = "00:00:12.00"`. The existing parser
+  attempted `float(...)`, exited with status 1, and entered systemd auto-restart.
+  This pre-existing runtime-compatibility defect is outside the storage change.
 - Dashboard: root, Activity, Life List, actual species page, and metrics return
   HTTP 200.
 - Playback: recording 9779 returned HTTP 206 and a valid mono, 48 kHz, 16-bit
@@ -109,3 +112,6 @@ exhaustion, but detection audio can still grow without bound.
 RC1 storage is operationally safe in the short term, but long-term unattended
 operation remains blocked until the wildlife/release owner supplies the station
 rare-species list (or explicitly authorizes an empty list as authoritative).
+
+Overall RC1 validation is also blocked by the existing BirdNET timestamp parser
+failure described above. Storage cleanup did not modify BirdNET code or data.
