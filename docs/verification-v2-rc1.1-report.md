@@ -87,9 +87,9 @@ contributions, high-confidence independent review, persistence, reviewed-history
 preservation, and both verification-execution and verification-persistence
 failure isolation.
 
-The portable Windows interpreter used for this work does not include the
-optional BirdNET runtime, so pipeline tests use an import-only stub while
-inference is mocked. The same interpreter also lacks `tzdata`; the otherwise
-compatible repository suite reaches eight pre-existing configuration failures
-and one collection error for that dependency. Production/CI validation should
-run the complete suite from the pinned dependency set.
+Subsequent integration-readiness validation used an isolated Python 3.13
+environment with the pinned production and development dependencies, real
+BirdNET 0.2.16 imports, and the corrected `tzdata` dependency. All 71 tests,
+Ruff, compile checks, and dependency compatibility checks passed. Calibration
+and production Raspberry Pi gates remain open; see
+`verification-v2-validation-report.md`.
