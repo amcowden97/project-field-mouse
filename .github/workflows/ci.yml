@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install pytest ruff psutil flask
+      - run: python -m pip install -r requirements-dev.txt
       - run: ruff check app tests
       - run: pytest
       - run: python -m compileall -q app
