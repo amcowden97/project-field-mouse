@@ -182,6 +182,7 @@ Documentation includes:
 - Troubleshooting
 - FAQ
 - Contributor Guide
+- [Repository Maintenance Policy](docs/REPOSITORY_MAINTENANCE_POLICY.md)
 
 ---
 
@@ -195,7 +196,7 @@ Please review **CONTRIBUTING.md** before opening an issue or pull request.
 
 # License
 
-Distributed under the MIT License.
+Distributed under the [Apache License 2.0](LICENSE).
 
 ---
 

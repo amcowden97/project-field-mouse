@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.egg-info/
+build/
+dist/
 
 # Virtual environments
 .venv/
@@ -13,6 +16,8 @@ venv/
 *.swp
 *~
 .DS_Store
+Thumbs.db
+desktop.ini
 
 # Runtime data
 data/recordings/
@@ -33,6 +38,10 @@ data/logs/
 
 # Test and coverage output
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.nox/
 .coverage
 htmlcov/
 
@@ -40,12 +49,8 @@ htmlcov/
 data/database/*.db
 data/database/*.db-shm
 data/database/*.db-wal
-data/recordings/
 data/processed/
 logs/
 
 # Local configuration secrets
 .env
-
-# Runtime SQLite databases
-data/database/*.db
