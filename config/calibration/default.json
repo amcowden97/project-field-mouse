@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "method": "uncalibrated_defaults",
+  "generated_at": null,
+  "samples": 0,
+  "intercept": 0.0,
+  "decision_threshold": 0.9,
+  "sources": {
+    "birdnet": 1.0,
+    "second_model": 1.25,
+    "geographic": 0.65,
+    "seasonal": 0.55,
+    "audio_quality": 0.5,
+    "historical": 0.45
+  }
+}

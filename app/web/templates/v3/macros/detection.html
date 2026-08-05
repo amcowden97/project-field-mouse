@@ -1,0 +1,81 @@
+{% from "v3/macros/assets.html" import pixel_art %}
+{% from "v3/macros/time.html" import local_time %}
+
+{% macro detection_item(detection, compact=false) -%}
+    {% set confidence_percent = (detection.confidence | float * 100) | round(1) %}
+    {% set confidence_tone = (
+        "high"
+        if confidence_percent >= 90
+        else "medium"
+        if confidence_percent >= 75
+        else "low"
+    ) %}
+    <article class="pfm-detection{% if compact %} pfm-detection--compact{% endif %}">
+        <div class="pfm-detection__identity">
+            {{ pixel_art(
+                size="small" if compact else "medium",
+                fallback="♪"
+            ) }}
+
+            <div>
+                <h3>
+                    <a href="{{ url_for(
+                        'species_detail',
+                        common_name=detection.common_name
+                    ) }}">
+                        {{ detection.common_name }}
+                    </a>
+                </h3>
+                {% if detection.scientific_name %}
+                    <p class="pfm-scientific-name">
+                        {{ detection.scientific_name }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <dl class="pfm-detection__metadata">
+            <div>
+                <dt>Recorded</dt>
+                <dd>
+                    {{ local_time(
+                        detection.recorded_at or detection.created_at,
+                        relative=true
+                    ) }}
+                </dd>
+            </div>
+            {% if detection.duration_seconds %}
+                <div>
+                    <dt>Clip</dt>
+                    <dd>{{ detection.duration_seconds }} seconds</dd>
+                </div>
+            {% endif %}
+        </dl>
+
+        {% if not compact %}
+            <div class="pfm-detection__audio">
+                {% if detection.audio_available %}
+                    <audio controls preload="none">
+                        <source
+                            src="{{ url_for(
+                                'audio',
+                                recording_id=detection.recording_id
+                            ) }}"
+                            type="audio/wav"
+                        >
+                        Your browser does not support audio playback.
+                    </audio>
+                {% else %}
+                    <span class="pfm-audio-unavailable">
+                        Audio is no longer stored
+                    </span>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div class="pfm-confidence pfm-confidence--{{ confidence_tone }}">
+            <span>Confidence</span>
+            <strong>{{ confidence_percent }}%</strong>
+        </div>
+    </article>
+{%- endmacro %}

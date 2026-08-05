@@ -1,0 +1,27 @@
+{% macro pixel_art(
+    filename=none,
+    alt="",
+    size="medium",
+    fallback="✦",
+    class_name=""
+) -%}
+    {% set is_decorative = not alt %}
+    <span
+        class="pfm-pixel-art pfm-pixel-art--{{ size }}{% if class_name %} {{ class_name }}{% endif %}"
+        {% if is_decorative %}aria-hidden="true"{% endif %}
+    >
+        {% if filename %}
+            <img
+                src="{{ url_for('static', filename='assets/v3/' ~ filename) }}"
+                alt="{{ alt }}"
+                loading="lazy"
+                decoding="async"
+            >
+        {% else %}
+            <span class="pfm-pixel-art__fallback">{{ fallback }}</span>
+            {% if alt %}
+                <span class="pfm-visually-hidden">{{ alt }}</span>
+            {% endif %}
+        {% endif %}
+    </span>
+{%- endmacro %}

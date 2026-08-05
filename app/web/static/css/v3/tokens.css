@@ -1,0 +1,93 @@
+:root {
+    color-scheme: light;
+
+    --pfm-color-pine-950: #193126;
+    --pfm-color-pine-900: #244a35;
+    --pfm-color-pine-800: #315b43;
+    --pfm-color-pine-700: #426d50;
+    --pfm-color-moss-600: #5f7855;
+    --pfm-color-moss-500: #758b68;
+    --pfm-color-sage-300: #afc2a2;
+    --pfm-color-sage-200: #ced9c7;
+    --pfm-color-bark-700: #614631;
+    --pfm-color-bark-600: #76563d;
+    --pfm-color-rust-600: #a65f3f;
+    --pfm-color-gold-500: #d4a94f;
+    --pfm-color-gold-300: #ead395;
+    --pfm-color-paper: #fff8e8;
+    --pfm-color-paper-deep: #f2e7cc;
+    --pfm-color-cream: #f8f1df;
+    --pfm-color-ink: #28362d;
+    --pfm-color-ink-soft: #59645c;
+    --pfm-color-sky: #a9c4c0;
+    --pfm-color-white: #ffffff;
+
+    --pfm-color-canvas: var(--pfm-color-cream);
+    --pfm-color-surface: var(--pfm-color-paper);
+    --pfm-color-surface-muted: var(--pfm-color-paper-deep);
+    --pfm-color-text: var(--pfm-color-ink);
+    --pfm-color-text-muted: var(--pfm-color-ink-soft);
+    --pfm-color-border: var(--pfm-color-sage-300);
+    --pfm-color-border-strong: var(--pfm-color-pine-800);
+    --pfm-color-link: var(--pfm-color-pine-800);
+    --pfm-color-link-hover: var(--pfm-color-pine-950);
+    --pfm-color-focus: var(--pfm-color-gold-500);
+    --pfm-color-success: var(--pfm-color-pine-700);
+    --pfm-color-warning: #8b6422;
+    --pfm-color-danger: #8b4533;
+
+    --pfm-font-display: Georgia, "Times New Roman", serif;
+    --pfm-font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --pfm-font-mono: "Courier New", Courier, monospace;
+
+    --pfm-text-xs: 0.75rem;
+    --pfm-text-sm: 0.875rem;
+    --pfm-text-base: 1rem;
+    --pfm-text-lg: clamp(1.063rem, 0.98rem + 0.35vw, 1.2rem);
+    --pfm-text-xl: clamp(1.3rem, 1.12rem + 0.7vw, 1.7rem);
+    --pfm-text-2xl: clamp(1.75rem, 1.4rem + 1.35vw, 2.6rem);
+    --pfm-text-3xl: clamp(2.2rem, 1.65rem + 2.2vw, 3.75rem);
+
+    --pfm-leading-tight: 1.15;
+    --pfm-leading-normal: 1.55;
+    --pfm-leading-relaxed: 1.7;
+
+    --pfm-space-1: 0.25rem;
+    --pfm-space-2: 0.5rem;
+    --pfm-space-3: 0.75rem;
+    --pfm-space-4: 1rem;
+    --pfm-space-5: 1.25rem;
+    --pfm-space-6: 1.5rem;
+    --pfm-space-8: 2rem;
+    --pfm-space-10: 2.5rem;
+    --pfm-space-12: 3rem;
+    --pfm-space-16: 4rem;
+
+    --pfm-radius-sm: 0.5rem;
+    --pfm-radius-md: 0.875rem;
+    --pfm-radius-lg: 1.25rem;
+    --pfm-radius-xl: 1.75rem;
+    --pfm-radius-round: 999px;
+
+    --pfm-border-thin: 1px;
+    --pfm-border-medium: 2px;
+    --pfm-border-heavy: 3px;
+
+    --pfm-shadow-sm: 0 3px 0 rgba(36, 74, 53, 0.12);
+    --pfm-shadow-md:
+        0 5px 0 rgba(36, 74, 53, 0.1),
+        0 14px 30px rgba(25, 49, 38, 0.1);
+    --pfm-shadow-lg:
+        0 7px 0 rgba(36, 74, 53, 0.13),
+        0 22px 45px rgba(25, 49, 38, 0.12);
+
+    --pfm-content-width: 78rem;
+    --pfm-reading-width: 44rem;
+    --pfm-touch-target: 2.75rem;
+    --pfm-layer-skip-link: 100;
+
+    --pfm-duration-fast: 120ms;
+    --pfm-duration-base: 220ms;
+    --pfm-duration-slow: 420ms;
+    --pfm-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}

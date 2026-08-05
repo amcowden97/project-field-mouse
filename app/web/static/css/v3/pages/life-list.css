@@ -1,0 +1,226 @@
+.pfm-life-list-page {
+    --pfm-stack-gap: var(--pfm-space-10);
+}
+
+.pfm-collection-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pfm-space-6);
+    align-items: center;
+    padding: var(--pfm-space-6);
+    border: var(--pfm-border-heavy) solid var(--pfm-color-pine-950);
+    border-radius: var(--pfm-radius-xl);
+    color: var(--pfm-color-paper);
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.06),
+            transparent 48%
+        ),
+        var(--pfm-color-pine-800);
+    box-shadow: var(--pfm-shadow-lg);
+}
+
+.pfm-collection-hero h1 {
+    color: var(--pfm-color-paper);
+}
+
+.pfm-collection-hero .pfm-eyebrow {
+    color: var(--pfm-color-gold-300);
+}
+
+.pfm-collection-hero .pfm-lede {
+    color: var(--pfm-color-sage-200);
+}
+
+.pfm-collection-hero > div {
+    display: grid;
+    gap: var(--pfm-space-3);
+}
+
+.pfm-collection-progress {
+    display: flex;
+    width: fit-content;
+    gap: var(--pfm-space-3);
+    align-items: baseline;
+    margin-top: var(--pfm-space-2);
+    padding: var(--pfm-space-2) var(--pfm-space-4);
+    border: var(--pfm-border-thin) solid var(--pfm-color-sage-300);
+    border-radius: var(--pfm-radius-round);
+    background: rgba(25, 49, 38, 0.45);
+}
+
+.pfm-collection-progress strong {
+    color: var(--pfm-color-gold-300);
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-2xl);
+}
+
+.pfm-achievement-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pfm-space-4);
+}
+
+.pfm-achievement-grid article {
+    display: flex;
+    gap: var(--pfm-space-3);
+    align-items: center;
+    padding: var(--pfm-space-4);
+    border: var(--pfm-border-medium) solid var(--pfm-color-border);
+    border-radius: var(--pfm-radius-lg);
+    background: var(--pfm-color-surface);
+    box-shadow: var(--pfm-shadow-sm);
+}
+
+.pfm-achievement-grid article > span {
+    display: grid;
+    width: 2.8rem;
+    height: 2.8rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: var(--pfm-border-medium) solid var(--pfm-color-pine-900);
+    border-radius: 50%;
+    background: var(--pfm-color-gold-300);
+}
+
+.pfm-achievement-grid article > div {
+    display: grid;
+    min-width: 0;
+}
+
+.pfm-achievement-grid small,
+.pfm-achievement-grid time,
+.pfm-achievement-grid div > span {
+    color: var(--pfm-color-text-muted);
+    font-size: var(--pfm-text-xs);
+}
+
+.pfm-life-list-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pfm-space-4);
+    align-items: end;
+    justify-content: space-between;
+    margin-bottom: var(--pfm-space-5);
+}
+
+.pfm-life-list-toolbar > div {
+    display: grid;
+    gap: var(--pfm-space-1);
+}
+
+.pfm-life-list-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pfm-space-5);
+}
+
+.pfm-species-card {
+    display: grid;
+    gap: var(--pfm-space-4);
+    min-width: 0;
+    padding: var(--pfm-space-4);
+    border: var(--pfm-border-medium) solid var(--pfm-color-border);
+    border-radius: var(--pfm-radius-lg);
+    background: var(--pfm-color-surface);
+    box-shadow: var(--pfm-shadow-md);
+}
+
+.pfm-species-card__topline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pfm-space-2);
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--pfm-font-mono);
+    font-size: var(--pfm-text-xs);
+}
+
+.pfm-collection-number {
+    color: var(--pfm-color-bark-700);
+    font-weight: 700;
+}
+
+.pfm-confidence-stamp {
+    padding: var(--pfm-space-1) var(--pfm-space-2);
+    border: var(--pfm-border-thin) dashed var(--pfm-color-bark-600);
+    border-radius: var(--pfm-radius-sm);
+    color: var(--pfm-color-bark-700);
+    background: var(--pfm-color-surface-muted);
+}
+
+.pfm-species-card__identity {
+    display: flex;
+    gap: var(--pfm-space-4);
+    align-items: center;
+    min-width: 0;
+    text-decoration: none;
+}
+
+.pfm-species-card__identity > span:last-child {
+    display: grid;
+    min-width: 0;
+}
+
+.pfm-species-card__identity strong {
+    overflow-wrap: anywhere;
+    color: var(--pfm-color-pine-950);
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-xl);
+}
+
+.pfm-species-card__identity em {
+    overflow-wrap: anywhere;
+    color: var(--pfm-color-text-muted);
+    font-family: var(--pfm-font-display);
+}
+
+.pfm-species-card__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: var(--pfm-border-thin) dashed var(--pfm-color-border);
+}
+
+.pfm-species-card__stats div {
+    min-width: 0;
+    padding: var(--pfm-space-3);
+    border-bottom: var(--pfm-border-thin) dashed var(--pfm-color-border);
+}
+
+.pfm-species-card__stats dt {
+    color: var(--pfm-color-text-muted);
+    font-size: var(--pfm-text-xs);
+}
+
+.pfm-species-card__stats dd {
+    overflow-wrap: anywhere;
+    font-weight: 700;
+}
+
+@media (min-width: 42rem) {
+    .pfm-collection-hero {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: var(--pfm-space-8);
+    }
+
+    .pfm-achievement-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 62rem) {
+    .pfm-life-list-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 25rem) {
+    .pfm-species-card__identity {
+        align-items: flex-start;
+    }
+
+    .pfm-species-card__stats {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

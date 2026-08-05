@@ -5,10 +5,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-
-DEFAULT_DATABASE = Path("data/database/fieldmouse.db")
-DEFAULT_EMPTY_RETENTION_DAYS = 3
-DEFAULT_DETECTION_RETENTION_DAYS = 30
+from app.config import load_config
 
 
 def table_columns(
@@ -81,6 +78,7 @@ def get_candidates(
     *,
     empty_cutoff: datetime,
     detection_cutoff: datetime,
+    rare_species: frozenset[str] = frozenset(),
 ) -> list[sqlite3.Row]:
     columns = table_columns(
         connection,
@@ -140,6 +138,7 @@ def get_candidates(
             r.{timestamp_column} AS recorded_at,
             {status_selection},
             COUNT(d.id) AS detection_count
+            , GROUP_CONCAT(DISTINCT d.common_name) AS detected_species
         FROM recordings AS r
         LEFT JOIN detections AS d
             ON d.recording_id = r.id
@@ -163,6 +162,7 @@ def get_candidates(
             "processing",
             "recording",
             "in_progress",
+            "audio_expired",
         }:
             continue
 
@@ -176,6 +176,18 @@ def get_candidates(
         detection_count = int(
             row["detection_count"]
         )
+        detected_species = {
+            name.strip().casefold()
+            for name in str(row["detected_species"] or "").split(",")
+            if name.strip()
+        }
+
+        if detection_count > 0:
+            # Without an authoritative rare-species list, fail closed and
+            # preserve every detection-bearing recording. Once configured,
+            # only recordings containing no listed rare species are eligible.
+            if not rare_species or detected_species & rare_species:
+                continue
 
         cutoff = (
             detection_cutoff
@@ -189,7 +201,7 @@ def get_candidates(
     return candidates
 
 
-def delete_recording(
+def expire_recording_audio(
     connection: sqlite3.Connection,
     *,
     recording_id: int,
@@ -210,15 +222,8 @@ def delete_recording(
 
     connection.execute(
         """
-        DELETE FROM detections
-        WHERE recording_id = ?
-        """,
-        (recording_id,),
-    )
-
-    connection.execute(
-        """
-        DELETE FROM recordings
+        UPDATE recordings
+        SET processing_status = 'audio_expired'
         WHERE id = ?
         """,
         (recording_id,),
@@ -236,15 +241,22 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="Station TOML path (defaults to PFM_CONFIG or config/station.toml).",
+    )
+
+    parser.add_argument(
         "--database",
         type=Path,
-        default=DEFAULT_DATABASE,
+        default=None,
     )
 
     parser.add_argument(
         "--empty-retention-days",
         type=int,
-        default=DEFAULT_EMPTY_RETENTION_DAYS,
+        default=None,
         help=(
             "Days to keep recordings with no detections."
         ),
@@ -253,7 +265,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--detection-retention-days",
         type=int,
-        default=DEFAULT_DETECTION_RETENTION_DAYS,
+        default=None,
         help=(
             "Days to keep recordings containing detections."
         ),
@@ -263,8 +275,17 @@ def parse_arguments() -> argparse.Namespace:
         "--apply",
         action="store_true",
         help=(
-            "Actually delete files and database rows. "
+            "Actually expire eligible audio files while preserving "
+            "database history. "
             "Without this option, cleanup is a dry run."
+        ),
+    )
+    parser.add_argument(
+        "--rare-species",
+        action="append",
+        default=[],
+        help=(
+            "Common name to preserve forever. Repeat for each rare species."
         ),
     )
 
@@ -273,6 +294,22 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> int:
     arguments = parse_arguments()
+    config = load_config(arguments.config)
+    arguments.database = arguments.database or config.storage.database_path
+    arguments.empty_retention_days = (
+        arguments.empty_retention_days
+        if arguments.empty_retention_days is not None
+        else config.storage.empty_recording_retention_days
+    )
+    arguments.detection_retention_days = (
+        arguments.detection_retention_days
+        if arguments.detection_retention_days is not None
+        else config.storage.detection_recording_retention_days
+    )
+    rare_species = [
+        *config.storage.rare_species,
+        *arguments.rare_species,
+    ]
 
     if arguments.empty_retention_days < 0:
         raise ValueError(
@@ -309,6 +346,11 @@ def main() -> int:
             connection,
             empty_cutoff=empty_cutoff,
             detection_cutoff=detection_cutoff,
+            rare_species=frozenset(
+                name.strip().casefold()
+                for name in rare_species
+                if name.strip()
+            ),
         )
 
         mode = "APPLY" if arguments.apply else "DRY RUN"
@@ -323,6 +365,15 @@ def main() -> int:
             "Detection retention: "
             f"{arguments.detection_retention_days} day(s)"
         )
+        print(
+            "Rare species preserved forever: "
+            f"{len(set(name.casefold() for name in rare_species))}"
+        )
+        if not rare_species:
+            print(
+                "Detection cleanup: disabled (no authoritative "
+                "rare-species list configured)"
+            )
         print()
 
         if not candidates:
@@ -330,7 +381,7 @@ def main() -> int:
             return 0
 
         total_bytes = 0
-        deleted_rows = 0
+        preserved_rows = 0
         deleted_files = 0
 
         for row in candidates:
@@ -362,13 +413,13 @@ def main() -> int:
                 (
                     file_deleted,
                     freed_bytes,
-                ) = delete_recording(
+                ) = expire_recording_audio(
                     connection,
                     recording_id=recording_id,
                     audio_path=audio_path,
                 )
 
-                deleted_rows += 1
+                preserved_rows += 1
 
                 if file_deleted:
                     deleted_files += 1
@@ -391,8 +442,8 @@ def main() -> int:
             connection.commit()
 
             print(
-                f"Deleted database rows: "
-                f"{deleted_rows}"
+                f"Preserved database rows: "
+                f"{preserved_rows}"
             )
             print(
                 f"Deleted audio files: "

@@ -1,0 +1,82 @@
+{% set current_page = active_page | default("home") %}
+{% set current_station_name = (
+    station.name
+    if station is defined and station.name is defined and station.name
+    else "Backyard Sanctuary"
+) %}
+{% set station_is_listening = (
+    stats.recorder_recent
+    if stats is defined and stats.recorder_recent is defined
+    else none
+) %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+    <meta name="theme-color" content="#244a35">
+
+    <title>{% block title %}Project Field Mouse{% endblock %}</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/tokens.css') }}"
+    >
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/reset.css') }}"
+    >
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/typography.css') }}"
+    >
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/shell.css') }}"
+    >
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/layout.css') }}"
+    >
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/components.css') }}"
+    >
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/utilities.css') }}"
+    >
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/motion.css') }}"
+    >
+    {% block page_styles %}{% endblock %}
+    {% block head %}{% endblock %}
+</head>
+
+<body class="pfm-page pfm-page--{{ current_page }}">
+    <a class="pfm-skip-link" href="#main-content">
+        Skip to main content
+    </a>
+
+    <div class="pfm-site-shell">
+        {% include "v3/partials/header.html" %}
+        {% include "v3/partials/navigation.html" %}
+
+        <main
+            class="pfm-main"
+            id="main-content"
+            tabindex="-1"
+        >
+            {% block content %}{% endblock %}
+        </main>
+
+        {% include "v3/partials/footer.html" %}
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

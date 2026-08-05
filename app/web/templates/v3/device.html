@@ -1,0 +1,266 @@
+{% extends "v3/base.html" %}
+{% from "v3/macros/assets.html" import pixel_art %}
+{% from "v3/macros/cards.html" import card %}
+{% from "v3/macros/meters.html" import meter %}
+{% from "v3/macros/time.html" import local_time %}
+
+{% set active_page = "device" %}
+
+{% block title %}Device · Project Field Mouse{% endblock %}
+
+{% block page_styles %}
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/v3/pages/device.css') }}"
+    >
+{% endblock %}
+
+{% block content %}
+    <div class="pfm-stack pfm-device-page">
+        <header class="pfm-page-hero pfm-page-hero--device">
+            <div>
+                <p class="pfm-eyebrow">Behind the field station</p>
+                <h1>{{ current_station_name }} Device</h1>
+                <p class="pfm-lede">
+                    A calm technical checkup for the small computer doing
+                    the listening.
+                </p>
+            </div>
+            {{ pixel_art(
+                filename="brand/station-hero-scene.png",
+                alt="Pixel-art Project Field Mouse station",
+                size="hero",
+                fallback="▣"
+            ) }}
+        </header>
+
+        <section class="pfm-device-vitals" aria-label="Device overview">
+            <article>
+                <span aria-hidden="true">⌂</span>
+                <small>Hostname</small>
+                <strong>{{ device.hostname }}</strong>
+            </article>
+            <article>
+                <span aria-hidden="true">⌁</span>
+                <small>Local address</small>
+                <strong>{{ device.ip_address or "Unavailable" }}</strong>
+            </article>
+            <article>
+                <span aria-hidden="true">◷</span>
+                <small>System uptime</small>
+                <strong>{{ device.uptime }}</strong>
+            </article>
+            <article>
+                <span aria-hidden="true">♨</span>
+                <small>CPU temperature</small>
+                <strong>
+                    {% if device.cpu_temperature is not none %}
+                        {{ device.cpu_temperature }}°C
+                    {% else %}
+                        Unavailable
+                    {% endif %}
+                </strong>
+            </article>
+        </section>
+
+        <section aria-labelledby="services-title">
+            <div class="pfm-section-heading">
+                <div>
+                    <p class="pfm-eyebrow">Background workers</p>
+                    <h2 id="services-title">Station Services</h2>
+                </div>
+                <span class="pfm-journal-note">
+                    Read-only status · no service controls
+                </span>
+            </div>
+
+            <div class="pfm-service-grid">
+                {% for service in device.services %}
+                    <article class="pfm-service-card">
+                        <div>
+                            <span
+                                class="pfm-service-dot pfm-service-dot--{{ service.state_class }}"
+                                aria-hidden="true"
+                            ></span>
+                            <div>
+                                <h3>{{ service.label }}</h3>
+                                <code>{{ service.name }}</code>
+                            </div>
+                        </div>
+                        <strong class="pfm-service-state pfm-service-state--{{ service.state_class }}">
+                            {{ service.display_state }}
+                        </strong>
+                        <dl>
+                            <div>
+                                <dt>Startup</dt>
+                                <dd>{{ service.enabled_state }}</dd>
+                            </div>
+                            <div>
+                                <dt>Health</dt>
+                                <dd>{{ service.state_class | capitalize }}</dd>
+                            </div>
+                        </dl>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="pfm-resource-grid" aria-label="System resources">
+            {% call card(title="Storage", eyebrow="Recording archive") %}
+                {{ meter(
+                    "Disk used",
+                    stats.disk_percent,
+                    tone="bark",
+                    detail=(stats.disk_free | filesize) ~ " free"
+                ) }}
+                <dl class="pfm-data-list">
+                    <div>
+                        <dt>Stored recordings</dt>
+                        <dd>{{ stats.total_recordings }}</dd>
+                    </div>
+                    <div>
+                        <dt>Recording data</dt>
+                        <dd>{{ stats.total_recording_bytes | filesize }}</dd>
+                    </div>
+                    <div>
+                        <dt>Archive path</dt>
+                        <dd><code>{{ recordings_path }}</code></dd>
+                    </div>
+                </dl>
+            {% endcall %}
+
+            {% call card(title="Memory", eyebrow="System resources") %}
+                {{ meter(
+                    "Memory used",
+                    device.memory.percent,
+                    tone="moss",
+                    detail=(
+                        (device.memory.available | filesize) ~ " available"
+                        if device.memory.available is not none
+                        else "Memory details unavailable"
+                    )
+                ) }}
+                <dl class="pfm-data-list">
+                    <div>
+                        <dt>1-minute load</dt>
+                        <dd>{{ device.load_average.one or "Unavailable" }}</dd>
+                    </div>
+                    <div>
+                        <dt>5-minute load</dt>
+                        <dd>{{ device.load_average.five or "Unavailable" }}</dd>
+                    </div>
+                    <div>
+                        <dt>15-minute load</dt>
+                        <dd>{{ device.load_average.fifteen or "Unavailable" }}</dd>
+                    </div>
+                </dl>
+            {% endcall %}
+        </section>
+
+        <section class="pfm-device-detail-grid">
+            {% call card(title="Database", eyebrow="Field Mouse records") %}
+                <dl class="pfm-data-list">
+                    <div>
+                        <dt>Database size</dt>
+                        <dd>{{ database_size | filesize }}</dd>
+                    </div>
+                    <div>
+                        <dt>Total detections</dt>
+                        <dd>{{ database_stats.detection_count }}</dd>
+                    </div>
+                    <div>
+                        <dt>Latest detection</dt>
+                        <dd>{{ local_time(database_stats.latest_detection_at, relative=true) }}</dd>
+                    </div>
+                    <div>
+                        <dt>Database path</dt>
+                        <dd><code>{{ database_path }}</code></dd>
+                    </div>
+                </dl>
+            {% endcall %}
+
+            {% call card(title="Recording Health", eyebrow="Freshness") %}
+                <div class="pfm-health-message{% if not stats.recorder_recent %} is-warning{% endif %}">
+                    <span aria-hidden="true">
+                        {% if stats.recorder_recent %}✓{% else %}!{% endif %}
+                    </span>
+                    <div>
+                        <strong>
+                            {% if stats.recorder_recent %}
+                                Recorder is current
+                            {% else %}
+                                Recorder needs attention
+                            {% endif %}
+                        </strong>
+                        <p>
+                            Latest recording:
+                            {{ local_time(
+                                database_stats.latest_recording_at,
+                                relative=true
+                            ) }}
+                        </p>
+                    </div>
+                </div>
+            {% endcall %}
+
+            {% call card(title="BirdNET Model", eyebrow="Wildlife detection") %}
+                <div class="pfm-model-status">
+                    {{ pixel_art(
+                        filename="field-kit/magnifying-glass.png",
+                        size="medium",
+                        fallback="◎"
+                    ) }}
+                    <div>
+                        <strong>Local species detection</strong>
+                        <p>
+                            Model details will appear when the detector exposes
+                            a reliable runtime status.
+                        </p>
+                    </div>
+                </div>
+            {% endcall %}
+
+            {% call card(title="Storage Cleanup", eyebrow="Archive care") %}
+                <div class="pfm-model-status">
+                    {{ pixel_art(
+                        filename="flora/acorn.png",
+                        size="medium",
+                        fallback="♢"
+                    ) }}
+                    <div>
+                        <strong>Retention policy active</strong>
+                        <p>
+                            Cleanup status follows the storage-manager service
+                            shown above.
+                        </p>
+                    </div>
+                </div>
+            {% endcall %}
+        </section>
+
+        <details class="pfm-technical-details">
+            <summary>Show additional technical details</summary>
+            <dl class="pfm-data-list">
+                <div>
+                    <dt>Dashboard process uptime</dt>
+                    <dd>{{ device.process_uptime }}</dd>
+                </div>
+                <div>
+                    <dt>Status generated</dt>
+                    <dd>{{ local_time(device.generated_at) }}</dd>
+                </div>
+                <div>
+                    <dt>Total database recordings</dt>
+                    <dd>{{ database_stats.recording_count }}</dd>
+                </div>
+            </dl>
+        </details>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script
+        defer
+        src="{{ url_for('static', filename='js/dashboard-v3.js') }}"
+    ></script>
+{% endblock %}

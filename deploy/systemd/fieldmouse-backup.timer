@@ -1,0 +1,11 @@
+[Unit]
+Description=Schedule Project Field Mouse verified backups
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+RandomizedDelaySec=15min
+Persistent=true
+Unit=fieldmouse-backup.service
+
+[Install]
+WantedBy=timers.target

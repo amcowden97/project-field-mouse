@@ -1,0 +1,19 @@
+{% macro empty_state(
+    title,
+    message,
+    symbol="✦",
+    class_name=""
+) -%}
+    <div
+        class="pfm-empty-state{% if class_name %} {{ class_name }}{% endif %}"
+        role="status"
+    >
+        <span class="pfm-empty-state__symbol" aria-hidden="true">
+            {{ symbol }}
+        </span>
+        <div>
+            <h2>{{ title }}</h2>
+            <p>{{ message }}</p>
+        </div>
+    </div>
+{%- endmacro %}

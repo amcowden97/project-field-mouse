@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 import sqlite3
+import json
 from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
-from app.config import FieldMouseConfig
+from app.config import PROJECT_ROOT, FieldMouseConfig
+from app.database.migrations import apply_migrations
+from app.version import __version__
 
 
 class DatabaseError(RuntimeError):
@@ -21,9 +24,12 @@ def connect_database(database_path: Path) -> sqlite3.Connection:
     database_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
-        connection = sqlite3.connect(database_path)
+        connection = sqlite3.connect(database_path, timeout=10)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA journal_mode = WAL")
+        connection.execute("PRAGMA synchronous = NORMAL")
+        connection.execute("PRAGMA busy_timeout = 10000")
         return connection
     except sqlite3.Error as error:
         raise DatabaseError(
@@ -33,7 +39,7 @@ def connect_database(database_path: Path) -> sqlite3.Connection:
 
 def initialize_database(
     database_path: Path,
-    schema_path: Path = Path("data/database/schema.sql"),
+    schema_path: Path = PROJECT_ROOT / "data" / "database" / "schema.sql",
 ) -> None:
     if not schema_path.exists():
         raise DatabaseError(
@@ -50,6 +56,7 @@ def initialize_database(
     try:
         with closing(connect_database(database_path)) as connection:
             connection.executescript(schema_sql)
+            apply_migrations(connection)
             connection.commit()
     except sqlite3.Error as error:
         raise DatabaseError(
@@ -62,6 +69,40 @@ def upsert_station(
     config: FieldMouseConfig,
 ) -> None:
     try:
+        columns = {
+            row["name"]
+            for row in connection.execute("PRAGMA table_info(stations)").fetchall()
+        }
+        if "station_uuid" in columns:
+            connection.execute(
+                """
+                INSERT INTO stations (
+                    id, name, timezone, created_at, station_uuid, hardware_version,
+                    software_version, deployment_date, location_name, latitude,
+                    longitude, capabilities
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    name = excluded.name,
+                    timezone = excluded.timezone,
+                    station_uuid = excluded.station_uuid,
+                    hardware_version = excluded.hardware_version,
+                    software_version = excluded.software_version,
+                    deployment_date = excluded.deployment_date,
+                    location_name = excluded.location_name,
+                    latitude = excluded.latitude,
+                    longitude = excluded.longitude,
+                    capabilities = excluded.capabilities
+                """,
+                (
+                    config.station.id, config.station.name, config.station.timezone,
+                    utc_now_iso(), config.station.uuid or None,
+                    config.station.hardware_version, __version__,
+                    config.station.deployment_date or None,
+                    config.station.location_name or None, config.station.latitude,
+                    config.station.longitude, json.dumps(config.station.capabilities),
+                ),
+            )
+            return
         connection.execute(
             """
             INSERT INTO stations (

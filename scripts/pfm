@@ -1,47 +1,9 @@
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-ROOT="$(cd "$(dirname "$0")" && pwd)"
-
-source "$ROOT/lib/common.sh"
-
-if [[ $# -lt 2 ]]; then
-
-    echo
-
-    echo "Usage"
-
-    echo
-
-    echo "./scripts/pfm dashboard 5"
-
-    echo "./scripts/pfm release"
-
-    echo
-
-    exit 1
-
+#!/usr/bin/env sh
+set -eu
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+PYTHON="${PFM_PYTHON:-$ROOT/.venv/bin/python}"
+if [ ! -x "$PYTHON" ]; then
+    PYTHON="${PYTHON_FALLBACK:-python3}"
 fi
-
-MODULE="$1"
-
-ACTION="$2"
-
-case "$MODULE" in
-
-dashboard)
-
-    bash "$ROOT/dashboard/milestone${ACTION}.sh"
-
-    ;;
-
-*)
-
-    failure "Unknown module."
-
-    exit 1
-
-    ;;
-
-esac
+cd "$ROOT"
+exec "$PYTHON" -m app.cli "$@"

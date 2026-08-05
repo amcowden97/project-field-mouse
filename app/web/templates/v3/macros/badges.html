@@ -1,0 +1,6 @@
+{% macro badge(label, tone="moss", icon="✦") -%}
+    <span class="pfm-badge pfm-badge--{{ tone }}">
+        <span aria-hidden="true">{{ icon }}</span>
+        <span>{{ label }}</span>
+    </span>
+{%- endmacro %}

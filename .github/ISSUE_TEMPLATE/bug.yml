@@ -1,0 +1,20 @@
+name: Bug report
+description: Report reproducible station behavior
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Version or commit
+  - type: textarea
+    attributes:
+      label: Health output and relevant logs
+      description: Remove coordinates, hostnames, tokens, and private data.

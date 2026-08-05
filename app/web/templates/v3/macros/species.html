@@ -1,0 +1,66 @@
+{% from "v3/macros/assets.html" import pixel_art %}
+{% from "v3/macros/badges.html" import badge %}
+{% from "v3/macros/time.html" import local_time %}
+
+{% macro species_card(item, artwork=none) -%}
+    <article class="pfm-species-card">
+        <div class="pfm-species-card__topline">
+            {% if item.collection_number %}
+                <span class="pfm-collection-number">
+                    No. {{ "%03d" | format(item.collection_number) }}
+                </span>
+            {% endif %}
+            <span class="pfm-confidence-stamp">
+                {{ item.highest_confidence | default(0) }}% best match
+            </span>
+        </div>
+
+        <a
+            class="pfm-species-card__identity"
+            href="{{ url_for(
+                'species_detail',
+                common_name=item.common_name
+            ) }}"
+        >
+            {{ pixel_art(
+                filename=artwork,
+                alt=item.common_name ~ " pixel artwork" if artwork else "",
+                size="large",
+                fallback="♩"
+            ) }}
+            <span>
+                <strong>{{ item.common_name }}</strong>
+                {% if item.scientific_name %}
+                    <em>{{ item.scientific_name }}</em>
+                {% endif %}
+            </span>
+        </a>
+
+        {% if item.badges %}
+            <div class="pfm-badge-row" aria-label="Discovery badges">
+                {% for item_badge in item.badges %}
+                    {{ badge(item_badge) }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <dl class="pfm-species-card__stats">
+            <div>
+                <dt>Detections</dt>
+                <dd>{{ item.total_detections }}</dd>
+            </div>
+            <div>
+                <dt>Season</dt>
+                <dd>{{ item.season | default("Season unknown") }}</dd>
+            </div>
+            <div>
+                <dt>First seen</dt>
+                <dd>{{ local_time(item.first_detected_at) }}</dd>
+            </div>
+            <div>
+                <dt>Last seen</dt>
+                <dd>{{ local_time(item.last_detected_at, relative=true) }}</dd>
+            </div>
+        </dl>
+    </article>
+{%- endmacro %}

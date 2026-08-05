@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import argparse
 import csv
+import logging
 import sqlite3
 import tempfile
+from datetime import datetime
+from logging.handlers import QueueHandler
 from pathlib import Path
 
 import birdnet
 
+from app.database.migrations import apply_migrations
 from app.detectors.local_species import (
     DEFAULT_LATITUDE,
     DEFAULT_LONGITUDE,
@@ -15,16 +19,57 @@ from app.detectors.local_species import (
     create_local_species_list,
     get_week_for_recording,
 )
+from app.detectors.timestamps import parse_birdnet_timestamp
+from app.verification.factory import build_verification_manager
+from app.verification.models import DetectionContext
+from app.verification.repository import save_verification
 
 
 DEFAULT_DATABASE = Path("data/database/fieldmouse.db")
 DEFAULT_CONFIDENCE = 0.25
 
 
+def close_birdnet_session_loggers() -> None:
+    """Release queues retained by completed BirdNET inference sessions.
+
+    birdnet 0.2.16 leaves each session's QueueHandler registered globally.
+    The attached multiprocessing queue holds two file descriptors, eventually
+    exhausting the long-running worker. Inference has joined its child
+    processes before returning, so the session queues are no longer in use.
+    """
+    manager = logging.Logger.manager
+    session_names = [
+        name
+        for name in manager.loggerDict
+        if name.startswith("birdnet.session_")
+    ]
+    closed_queues: set[int] = set()
+
+    for name in session_names:
+        logger = manager.loggerDict.get(name)
+        if not isinstance(logger, logging.Logger):
+            continue
+
+        for handler in list(logger.handlers):
+            if isinstance(handler, QueueHandler):
+                queue = handler.queue
+                logger.removeHandler(handler)
+                queue_id = id(queue)
+                if queue_id not in closed_queues:
+                    queue.close()
+                    queue.join_thread()
+                    closed_queues.add(queue_id)
+            handler.close()
+
+    for name in session_names:
+        manager.loggerDict.pop(name, None)
+
+
 def connect_database(database_path: Path) -> sqlite3.Connection:
     connection = sqlite3.connect(database_path)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
+    apply_migrations(connection)
     return connection
 
 
@@ -70,7 +115,7 @@ def get_recording(
 
     if recording_id is not None:
         query = f"""
-            SELECT id, {path_column} AS audio_path
+            SELECT id, {path_column} AS audio_path, station_id, recorded_at
             FROM recordings
             WHERE id = ?
         """
@@ -82,7 +127,7 @@ def get_recording(
 
     elif "processing_status" in columns:
         query = f"""
-            SELECT id, {path_column} AS audio_path
+            SELECT id, {path_column} AS audio_path, station_id, recorded_at
             FROM recordings
             WHERE processing_status = 'pending'
             ORDER BY id ASC
@@ -93,7 +138,7 @@ def get_recording(
 
     elif "status" in columns:
         query = f"""
-            SELECT id, {path_column} AS audio_path
+            SELECT id, {path_column} AS audio_path, station_id, recorded_at
             FROM recordings
             WHERE status = 'pending'
             ORDER BY id ASC
@@ -104,7 +149,7 @@ def get_recording(
 
     else:
         query = f"""
-            SELECT id, {path_column} AS audio_path
+            SELECT id, {path_column} AS audio_path, station_id, recorded_at
             FROM recordings
             ORDER BY id DESC
             LIMIT 1
@@ -188,6 +233,7 @@ def run_birdnet(
         finally:
             csv_path.unlink(missing_ok=True)
     finally:
+        close_birdnet_session_loggers()
         species_path.unlink(missing_ok=True)
 
 
@@ -198,12 +244,26 @@ def save_detections(
     minimum_confidence: float,
 ) -> int:
     saved_count = 0
+    path_column = get_recording_path_column(connection)
+    recording = connection.execute(
+        f"""
+        SELECT station_id, {path_column} AS audio_path, recorded_at
+        FROM recordings WHERE id = ?
+        """,
+        (recording_id,),
+    ).fetchone()
+    manager = build_verification_manager(connection)
 
     connection.execute(
         """
         DELETE FROM detections
         WHERE recording_id = ?
           AND detector = 'birdnet'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM detection_reviews
+              WHERE detection_reviews.detection_id = detections.id
+          )
         """,
         (recording_id,),
     )
@@ -217,8 +277,48 @@ def save_detections(
         scientific_name, common_name = split_species_name(
             prediction["species_name"]
         )
+        start_time = parse_birdnet_timestamp(
+            prediction["start_time"],
+            field_name="start_time",
+        )
+        end_time = parse_birdnet_timestamp(
+            prediction["end_time"],
+            field_name="end_time",
+        )
+        if end_time < start_time:
+            raise ValueError(
+                "Invalid BirdNET timestamp range: "
+                f"end_time {end_time} precedes start_time {start_time}."
+            )
+        reviewed_detection = connection.execute(
+            """
+            SELECT d.id
+            FROM detections AS d
+            WHERE d.recording_id = ?
+              AND d.detector = 'birdnet'
+              AND COALESCE(d.scientific_name, '') = COALESCE(?, '')
+              AND d.common_name = ?
+              AND d.start_time = ?
+              AND d.end_time = ?
+              AND EXISTS (
+                  SELECT 1 FROM detection_reviews AS review
+                  WHERE review.detection_id = d.id
+              )
+            LIMIT 1
+            """,
+            (
+                recording_id,
+                scientific_name,
+                common_name,
+                start_time,
+                end_time,
+            ),
+        ).fetchone()
+        if reviewed_detection is not None:
+            saved_count += 1
+            continue
 
-        connection.execute(
+        cursor = connection.execute(
             """
             INSERT INTO detections (
                 recording_id,
@@ -237,10 +337,34 @@ def save_detections(
                 scientific_name,
                 common_name,
                 confidence,
-                prediction["start_time"],
-                prediction["end_time"],
+                start_time,
+                end_time,
             ),
         )
+
+        detection_id = cursor.lastrowid
+        if (
+            manager is not None
+            and detection_id is not None
+            and recording is not None
+        ):
+            decision = manager.verify(
+                DetectionContext(
+                    detection_id=int(detection_id),
+                    recording_id=recording_id,
+                    station_id=str(recording["station_id"]),
+                    scientific_name=scientific_name,
+                    common_name=common_name,
+                    birdnet_confidence=confidence,
+                    recorded_at=datetime.fromisoformat(
+                        str(recording["recorded_at"]).replace("Z", "+00:00")
+                    ),
+                    audio_path=resolve_audio_path(str(recording["audio_path"])),
+                    start_time=start_time,
+                    end_time=end_time,
+                )
+            )
+            save_verification(connection, int(detection_id), decision)
 
         saved_count += 1
 
@@ -294,8 +418,8 @@ def parse_arguments() -> argparse.Namespace:
         "--recording-id",
         type=int,
         help=(
-            "Recording to process. Defaults to the oldest "
-            "pending recording."
+            "Recording to process, including a failed recording selected for "
+            "administrative retry. Defaults to the oldest pending recording."
         ),
     )
 

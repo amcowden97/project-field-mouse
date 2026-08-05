@@ -1,0 +1,13 @@
+{% macro local_time(value, relative=false, fallback="Unknown") -%}
+    {% if value %}
+        <time
+            datetime="{{ value }}"
+            class="{% if relative %}relative-time{% else %}local-time{% endif %}"
+            data-timestamp="{{ value }}"
+        >
+            {{ value }}
+        </time>
+    {% else %}
+        <span>{{ fallback }}</span>
+    {% endif %}
+{%- endmacro %}

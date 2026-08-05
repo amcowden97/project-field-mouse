@@ -137,6 +137,12 @@ cd project-field-mouse
 
 See the documentation for installation, hardware setup, configuration, and deployment instructions.
 
+The current release candidate is `1.0.0-rc1`. Before deploying it, review the
+[release notes](RELEASE_NOTES.md), follow the
+[installation guide](docs/INSTALLATION.md), and complete the
+[release checklist](docs/RELEASE_CHECKLIST.md). Operational guidance is in the
+[operations guide](docs/OPERATIONS.md).
+
 ---
 
 # Roadmap

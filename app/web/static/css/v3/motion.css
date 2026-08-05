@@ -1,0 +1,45 @@
+@keyframes pfm-listening-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0.18rem rgba(212, 169, 79, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 0 0.36rem rgba(212, 169, 79, 0.05);
+    }
+}
+
+.pfm-station-status:not(.is-offline, .is-unknown)
+    .pfm-station-status__indicator {
+    animation:
+        pfm-listening-pulse
+        2.8s
+        var(--pfm-ease-out)
+        infinite;
+}
+
+.pfm-button,
+.pfm-chip,
+.pfm-navigation__item,
+.pfm-skip-link {
+    transition:
+        color var(--pfm-duration-fast) var(--pfm-ease-out),
+        background-color var(--pfm-duration-fast) var(--pfm-ease-out),
+        border-color var(--pfm-duration-fast) var(--pfm-ease-out),
+        transform var(--pfm-duration-base) var(--pfm-ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

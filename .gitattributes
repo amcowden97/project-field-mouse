@@ -1,0 +1,4 @@
+data/database/migrations/*.sql text eol=lf
+*.sh text eol=lf
+deploy/production/pfm-deploy text eol=lf
+deploy/production/pfm-rollback text eol=lf
