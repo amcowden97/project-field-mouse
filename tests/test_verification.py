@@ -25,6 +25,7 @@ from app.verification.plugins.second_model import PerchCommandAdapter
 from app.verification.repository import save_verification
 from app.verification.reviews import ReviewInput, record_review
 from app.verification.rules import RuleConfig, RuleEngine
+from app.verification.service import verify_detection_safely
 
 
 class FixedPlugin(VerificationPlugin):
@@ -44,6 +45,12 @@ class FailingPlugin(VerificationPlugin):
     def verify(self, context: DetectionContext) -> PluginResult:
         del context
         raise RuntimeError("model unavailable")
+
+
+class FailingManager:
+    def verify(self, detection_context: DetectionContext) -> None:
+        del detection_context
+        raise RuntimeError("consensus unavailable")
 
 
 def context(
@@ -79,12 +86,13 @@ class RuleEngineTests(unittest.TestCase):
         self.assertEqual("rejected", decision.status)
         self.assertEqual((), decision.plugin_results)
 
-    def test_high_confidence_auto_accepts(self) -> None:
+    def test_high_confidence_is_verified_without_contradiction(self) -> None:
         decision = VerificationManager([], rules=self.engine).verify(
             context(0.97)
         )
         self.assertEqual("verified", decision.status)
         self.assertAlmostEqual(0.97, decision.score)
+        self.assertEqual("birdnet_strong_prior", decision.rule_outcome.rule)
 
 
 class ConsensusTests(unittest.TestCase):
@@ -127,6 +135,31 @@ class ConsensusTests(unittest.TestCase):
         self.assertEqual("neutral", decision.plugin_results[0].verdict)
         self.assertEqual(0.0, decision.plugin_results[0].weight)
         self.assertIn("unavailable", decision.plugin_results[0].reason)
+        self.assertFalse(decision.evidence[1]["available"])
+        self.assertEqual(0.0, decision.evidence[1]["log_odds_contribution"])
+
+    def test_high_confidence_birdnet_still_receives_independent_review(
+        self,
+    ) -> None:
+        plugin = FixedPlugin(
+            PluginResult(
+                "second", "oppose", 0.99, 2.0, "Independent model disagrees."
+            )
+        )
+        decision = VerificationManager([plugin]).verify(context(0.97))
+        self.assertEqual("second", decision.plugin_results[0].plugin)
+        self.assertLess(decision.score, 0.97)
+
+    def test_evidence_records_exact_consensus_contributions(self) -> None:
+        plugin = FixedPlugin(
+            PluginResult("location", "support", 0.80, 0.5, "Expected locally.")
+        )
+        decision = VerificationManager([plugin]).verify(context(0.75))
+        birdnet = decision.evidence[0]
+        location = decision.evidence[1]
+        self.assertGreater(birdnet["log_odds_contribution"], 0.0)
+        self.assertGreater(location["log_odds_contribution"], 0.0)
+        self.assertTrue(location["available"])
 
     @patch("app.verification.plugins.second_model.subprocess.run")
     def test_perch_adapter_uses_isolated_json_protocol(self, run) -> None:
@@ -221,6 +254,100 @@ class ContextPluginTests(unittest.TestCase):
 
 
 class PersistenceTests(unittest.TestCase):
+    @staticmethod
+    def verification_connection() -> sqlite3.Connection:
+        connection = sqlite3.connect(":memory:")
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA foreign_keys = ON")
+        connection.executescript(
+            """
+            CREATE TABLE stations (
+                id TEXT PRIMARY KEY, name TEXT, timezone TEXT, created_at TEXT
+            );
+            CREATE TABLE recordings (
+                id INTEGER PRIMARY KEY, station_id TEXT, file_path TEXT,
+                recorded_at TEXT, duration_seconds INTEGER,
+                sample_rate INTEGER, channels INTEGER, sample_format TEXT,
+                file_size_bytes INTEGER, processing_status TEXT,
+                created_at TEXT,
+                FOREIGN KEY (station_id) REFERENCES stations(id)
+            );
+            """
+        )
+        apply_migrations(connection)
+        connection.execute(
+            """
+            INSERT INTO stations (id, name, timezone, created_at)
+            VALUES ('test-station', 'Test', 'UTC', 'now')
+            """
+        )
+        connection.execute(
+            """
+            INSERT INTO recordings VALUES
+            (1, 'test-station', 'test.wav', '2026-05-01T07:00:00+00:00',
+             60, 48000, 1, 'S16_LE', 1, 'processed', 'now')
+            """
+        )
+        connection.execute(
+            """
+            INSERT INTO detections (
+                id, recording_id, detector, scientific_name, common_name,
+                confidence, start_time, end_time
+            ) VALUES (
+                1, 1, 'birdnet', 'Testus birdus', 'Test Bird', .8, 0, 3
+            )
+            """
+        )
+        return connection
+
+    def test_verification_failure_preserves_detection_and_marks_unavailable(
+        self,
+    ) -> None:
+        connection = self.verification_connection()
+        try:
+            verify_detection_safely(
+                connection,
+                1,
+                context(0.80),
+                FailingManager(),  # type: ignore[arg-type]
+            )
+            self.assertEqual(
+                1,
+                connection.execute("SELECT COUNT(*) FROM detections").fetchone()[0],
+            )
+            verification = connection.execute(
+                "SELECT * FROM verifications WHERE detection_id = 1"
+            ).fetchone()
+            self.assertEqual("uncertain", verification["status"])
+            self.assertEqual("verification_unavailable", verification["rule_name"])
+            self.assertIn(
+                "verification_unavailable",
+                json.loads(verification["review_flags_json"]),
+            )
+        finally:
+            connection.close()
+
+    def test_verification_persistence_failure_still_preserves_detection(
+        self,
+    ) -> None:
+        connection = self.verification_connection()
+        try:
+            manager = VerificationManager([])
+            with (
+                patch(
+                    "app.verification.service.save_verification",
+                    side_effect=sqlite3.OperationalError("database busy"),
+                ),
+                self.assertLogs("app.verification.service", level="ERROR"),
+            ):
+                verify_detection_safely(connection, 1, context(0.80), manager)
+            self.assertEqual(
+                1,
+                connection.execute("SELECT COUNT(*) FROM detections").fetchone()[0],
+            )
+        finally:
+            connection.close()
+
     def test_migration_and_plugin_outputs_are_persisted(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             connection = sqlite3.connect(":memory:")

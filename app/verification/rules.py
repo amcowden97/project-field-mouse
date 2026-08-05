@@ -30,10 +30,10 @@ class RuleEngine:
             )
         if confidence >= self.config.verify_below:
             return RuleOutcome(
-                "accept",
-                f"BirdNET confidence {confidence:.0%} meets the "
-                f"{self.config.verify_below:.0%} automatic acceptance threshold.",
-                "birdnet_accept_threshold",
+                "verify",
+                f"BirdNET confidence {confidence:.0%} provides a strong prior; "
+                "independent evidence is still evaluated.",
+                "birdnet_strong_prior",
             )
         return RuleOutcome(
             "verify",

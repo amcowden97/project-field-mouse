@@ -21,12 +21,14 @@ from app.detectors.local_species import (
 )
 from app.detectors.timestamps import parse_birdnet_timestamp
 from app.verification.factory import build_verification_manager
+from app.verification.manager import VerificationManager
 from app.verification.models import DetectionContext
-from app.verification.repository import save_verification
+from app.verification.service import verify_detection_safely
 
 
 DEFAULT_DATABASE = Path("data/database/fieldmouse.db")
 DEFAULT_CONFIDENCE = 0.25
+LOGGER = logging.getLogger(__name__)
 
 
 def close_birdnet_session_loggers() -> None:
@@ -252,7 +254,17 @@ def save_detections(
         """,
         (recording_id,),
     ).fetchone()
-    manager = build_verification_manager(connection)
+    manager: VerificationManager | None = None
+    manager_error: Exception | None = None
+    try:
+        manager = build_verification_manager(connection)
+    except Exception as error:
+        manager_error = error
+        LOGGER.exception(
+            "Verification initialization failed for recording %s; BirdNET "
+            "detections will be preserved",
+            recording_id,
+        )
 
     connection.execute(
         """
@@ -344,27 +356,31 @@ def save_detections(
 
         detection_id = cursor.lastrowid
         if (
-            manager is not None
-            and detection_id is not None
+            detection_id is not None
             and recording is not None
+            and (manager is not None or manager_error is not None)
         ):
-            decision = manager.verify(
-                DetectionContext(
-                    detection_id=int(detection_id),
-                    recording_id=recording_id,
-                    station_id=str(recording["station_id"]),
-                    scientific_name=scientific_name,
-                    common_name=common_name,
-                    birdnet_confidence=confidence,
-                    recorded_at=datetime.fromisoformat(
-                        str(recording["recorded_at"]).replace("Z", "+00:00")
-                    ),
-                    audio_path=resolve_audio_path(str(recording["audio_path"])),
-                    start_time=start_time,
-                    end_time=end_time,
-                )
+            detection_context = DetectionContext(
+                detection_id=int(detection_id),
+                recording_id=recording_id,
+                station_id=str(recording["station_id"]),
+                scientific_name=scientific_name,
+                common_name=common_name,
+                birdnet_confidence=confidence,
+                recorded_at=datetime.fromisoformat(
+                    str(recording["recorded_at"]).replace("Z", "+00:00")
+                ),
+                audio_path=resolve_audio_path(str(recording["audio_path"])),
+                start_time=start_time,
+                end_time=end_time,
             )
-            save_verification(connection, int(detection_id), decision)
+            verify_detection_safely(
+                connection,
+                int(detection_id),
+                detection_context,
+                manager,
+                manager_error,
+            )
 
         saved_count += 1
 
