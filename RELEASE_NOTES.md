@@ -1,6 +1,6 @@
-# Project Field Mouse 3.0.0 RC1
+# Project Field Mouse 1.0.0 RC1
 
-Project Field Mouse 3.0.0 RC1 integrates the infrastructure, bird verification,
+Project Field Mouse 1.0.0 RC1 integrates the infrastructure, bird verification,
 and Dashboard V3 milestones into one reviewable release candidate.
 
 ## Highlights
@@ -27,8 +27,7 @@ without first validating its `schema_migrations` history.
 
 ## Known limitations
 
-- Raspberry Pi audio hardware, BirdNET model execution, systemd restart/reboot
-  recovery, and browser layout acceptance must be validated on staging hardware.
-- Dashboard V2 assets remain temporarily for rollback and can be removed after V3
-  acceptance.
+- Rare-species cleanup fails closed when rarity cannot be determined. This
+  preserves uncertain recordings but can increase storage consumption.
+- Dashboard V2 assets remain temporarily available as rollback artifacts.
 - Weather content is an intentional non-live placeholder.

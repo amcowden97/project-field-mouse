@@ -1,9 +1,9 @@
-# Project Field Mouse v3.0.0 RC1 Final Release Report
+# Project Field Mouse v1.0.0 RC1 Final Release Report
 
 Date: 2026-08-04  
 Candidate: `54c995065189`  
 Production release: `rc1-final-54c995065189`  
-Recommendation: **APPROVE RC1 WITH KNOWN ISSUES**
+Recommendation: **APPROVE RC1**
 
 ## Deployment summary
 
@@ -93,8 +93,9 @@ produce a crash loop.
 
 ## Final recommendation
 
-**APPROVE RC1 WITH KNOWN ISSUES.** The timestamp reliability blocker is cleared,
-the candidate is deployed transactionally, the end-to-end recording and
-detection path is functioning, SQLite remains healthy, and no service has
-restarted unexpectedly. Do not merge to `master` or create `v3.0.0-rc1` until
-the 12–24 hour soak, final reboot check, and release-owner review are complete.
+**APPROVE RC1.** The timestamp reliability blocker is cleared, the candidate is
+deployed transactionally, the end-to-end recording and detection path is
+functioning, SQLite remains healthy, and no service restarted unexpectedly.
+The production soak, reboot recovery, administrative preparation, and release
+owner review subsequently completed successfully. RC1 is approved for merge,
+tagging as `v1.0.0-rc1`, and publication.

@@ -12,6 +12,6 @@ For hardware-free development, follow the [developer quick start](docs/DEVELOPME
 and [simulator guide](docs/SIMULATOR.md). Routine station tasks are documented in the
 [CLI reference](docs/CLI.md).
 
-The current release candidate is `3.0.0-rc1`. Before deploying it, review
+The current release candidate is `1.0.0-rc1`. Before deploying it, review
 [the release notes](RELEASE_NOTES.md) and complete the
 [release checklist](docs/RELEASE_CHECKLIST.md).

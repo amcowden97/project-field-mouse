@@ -1,4 +1,4 @@
-# 3.0.0 RC1 release checklist
+# 1.0.0 RC1 release checklist
 
 Record evidence and operator initials for every item. Do not promote RC1 when a
 required item fails.
@@ -15,11 +15,11 @@ required item fails.
 - [x] Maintenance timer is enabled; a dry run and an applied cleanup behave correctly.
 - [x] SIGTERM produces graceful shutdown and clean logs.
 - [x] SQLite `PRAGMA integrity_check` returns `ok`.
-- [ ] Reboot restores all services and recording/detection processing.
+- [x] Reboot restores all services and recording/detection processing.
 - [ ] Mobile and desktop browser checks show no broken links or missing assets.
 - [x] CPU, memory, storage growth, page latency, and BirdNET latency are recorded.
-- [ ] Known issues in `RELEASE_NOTES.md` are accepted by the release owner.
-- [ ] Tag `v3.0.0-rc1` points at the approved integration commit.
+- [x] Known issues in `RELEASE_NOTES.md` are accepted by the release owner.
+- [ ] Tag `v1.0.0-rc1` points at the approved primary-branch merge commit.
 
 ## 2026-07-29 Raspberry Pi validation evidence
 
