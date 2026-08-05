@@ -6,6 +6,7 @@ import json
 import sqlite3
 import tempfile
 import zipfile
+from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -83,7 +84,12 @@ def verify_backup(archive: Path) -> dict:
             for name, expected in manifest["files"].items():
                 if _sha256(root / name) != expected:
                     raise RuntimeError(f"Backup checksum failed for {name}")
-            with sqlite3.connect(f"file:{root / 'database.db'}?mode=ro", uri=True) as connection:
+            with closing(
+                sqlite3.connect(
+                    f"file:{root / 'database.db'}?mode=ro",
+                    uri=True,
+                )
+            ) as connection:
                 integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
                 if integrity != "ok":
                     raise RuntimeError(f"Backup database is corrupt: {integrity}")
