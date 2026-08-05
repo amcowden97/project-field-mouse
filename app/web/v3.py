@@ -194,6 +194,56 @@ def get_recent_discoveries(connection, limit: int = 4) -> list[dict]:
     return [dict(row) for row in rows]
 
 
+def get_wildlife_story(connection, station: dict) -> dict:
+    """Build compact, read-only narrative highlights for the overview."""
+    start, end = station_day_bounds(station["timezone"])
+    active = connection.execute(
+        """
+        SELECT
+            common_name,
+            scientific_name,
+            COUNT(*) AS detection_count,
+            ROUND(MAX(confidence) * 100, 1) AS highest_confidence
+        FROM detections
+        WHERE datetime(created_at) >= datetime(?)
+          AND datetime(created_at) < datetime(?)
+        GROUP BY common_name, scientific_name
+        ORDER BY detection_count DESC, highest_confidence DESC
+        LIMIT 1
+        """,
+        (start.isoformat(), end.isoformat()),
+    ).fetchone()
+    new_this_week = connection.execute(
+        """
+        SELECT COUNT(*) AS species_count
+        FROM (
+            SELECT common_name
+            FROM detections
+            GROUP BY common_name
+            HAVING datetime(MIN(created_at)) >= datetime('now', '-7 days')
+        )
+        """
+    ).fetchone()
+    season = SEASON_NAMES[datetime.now(timezone.utc).month]
+    seasonal = connection.execute(
+        """
+        SELECT
+            COUNT(*) AS detection_count,
+            COUNT(DISTINCT common_name) AS species_count
+        FROM detections
+        WHERE datetime(created_at) >= datetime('now', '-30 days')
+        """
+    ).fetchone()
+
+    return {
+        "most_active": dict(active) if active is not None else None,
+        "new_species_week": new_this_week["species_count"] or 0,
+        "season": season,
+        "season_detection_count": seasonal["detection_count"] or 0,
+        "season_species_count": seasonal["species_count"] or 0,
+    }
+
+
 def get_activity_timeline(connection, station: dict) -> list[dict]:
     start, end = station_day_bounds(station["timezone"])
     rows = connection.execute(
@@ -366,6 +416,7 @@ def build_overview_context(
         "station": selected_station,
         "stats": stats,
         "today": get_today_summary(connection, selected_station),
+        "wildlife_story": get_wildlife_story(connection, selected_station),
         "latest_visitors": latest_visitors,
         "recent_discoveries": get_recent_discoveries(connection),
         "species_streak": get_species_streak(

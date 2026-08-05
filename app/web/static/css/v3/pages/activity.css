@@ -31,6 +31,25 @@
     font-size: var(--pfm-text-sm);
 }
 
+.pfm-verification-note {
+    display: grid;
+    gap: var(--pfm-space-3);
+    padding: var(--pfm-space-5);
+    border-left: 0.35rem solid var(--pfm-color-gold-500);
+    border-radius: var(--pfm-radius-md);
+    background: var(--pfm-color-surface-muted);
+}
+
+.pfm-verification-note > div {
+    display: grid;
+    gap: var(--pfm-space-1);
+}
+
+.pfm-verification-note p:last-child {
+    max-width: var(--pfm-reading-width);
+    color: var(--pfm-color-text-muted);
+}
+
 .pfm-load-more,
 .pfm-pagination {
     display: grid;
