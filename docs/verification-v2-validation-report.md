@@ -6,6 +6,10 @@ Branch: `feature/verification-v2`
 
 Recommendation: **ADDITIONAL DEVELOPMENT REQUIRED**
 
+> Superseded for the scientific-calibration milestone by the
+> [5 August field validation report](verification-calibration-report.md), whose
+> evidence-gated conclusion is **ADDITIONAL FIELD DATA REQUIRED**.
+
 Verification V2 passes complete engineering validation in the pinned local
 environment. It is not yet ready for RC1.1 integration because no reviewed
 Field Mouse evaluation dataset or production Raspberry Pi benchmark evidence
