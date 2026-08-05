@@ -1,5 +1,0 @@
-input,start_time,end_time,species_name,confidence
-"/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-21/2026-07-21T16-16-35-0700.wav","00:00:00.00","00:00:03.00","Siren_Siren",0.240523
-"/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-21/2026-07-21T16-16-35-0700.wav","00:00:03.00","00:00:06.00","Engine_Engine",0.206216
-"/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-21/2026-07-21T16-16-35-0700.wav","00:00:03.00","00:00:06.00","Siren_Siren",0.131101
-"/home/amcowden97/Project-Field-Mouse/data/recordings/project-field-mouse-001/2026-07-21/2026-07-21T16-16-35-0700.wav","00:00:12.00","00:00:15.00","Engine_Engine",0.437564

@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/images/logo.png" alt="Project Field Mouse" width="325">
-</p>
-
 <h1 align="center">Project Field Mouse</h1>
 
 <p align="center">
@@ -20,10 +16,6 @@ An open-source wildlife monitoring platform for Raspberry Pi that combines autom
   <a href="#roadmap"><strong>Roadmap</strong></a> •
   <a href="#contributing"><strong>Contributing</strong></a>
 </p>
-
----
-
-![Project Field Mouse Dashboard](docs/images/dashboard-home.png)
 
 ---
 
@@ -140,7 +132,7 @@ See the documentation for installation, hardware setup, configuration, and deplo
 The current release candidate is `1.0.0-rc1`. Before deploying it, review the
 [release notes](RELEASE_NOTES.md), follow the
 [installation guide](docs/INSTALLATION.md), and complete the
-[release checklist](docs/RELEASE_CHECKLIST.md). Operational guidance is in the
+[release checklist](docs/releases/rc1/release-checklist.md). Operational guidance is in the
 [operations guide](docs/OPERATIONS.md).
 
 ---
@@ -183,6 +175,7 @@ Documentation includes:
 - FAQ
 - Contributor Guide
 - [Repository Maintenance Policy](docs/REPOSITORY_MAINTENANCE_POLICY.md)
+- [RC1 Release History](docs/releases/rc1/README.md)
 
 ---
 

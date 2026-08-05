@@ -8,7 +8,8 @@ The storage cleanup reclaimed 4.25 GB while preserving SQLite recording and
 detection history. Production disk utilization fell from 89% to 82%, and the
 health endpoint recovered from HTTP 503 to HTTP 200.
 
-The current post-cleanup report is `audio-audit-report-post-cleanup-20260804.json`.
+The preserved post-cleanup report is
+[`evidence/audio-audit-report-post-cleanup-20260804.json`](evidence/audio-audit-report-post-cleanup-20260804.json).
 The station copy is retained at:
 
 `/home/amcowden97/pfm-audio-audit/audio-audit-report-post-cleanup-20260804.json`

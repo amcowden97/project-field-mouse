@@ -22,6 +22,7 @@ desktop.ini
 # Runtime data
 data/recordings/
 data/logs/
+data/detections/latest-birdnet-results.csv
 *.log
 
 # SQLite transient files

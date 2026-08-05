@@ -19,7 +19,7 @@ and Dashboard V3 milestones into one reviewable release candidate.
 3. Run `python -m app.cli migrate`.
 4. Install the units from `deploy/systemd`, reload systemd, and restart the recorder,
    BirdNET worker, dashboard, and maintenance timer.
-5. Run `scripts/verify.sh` and complete `docs/RELEASE_CHECKLIST.md`.
+5. Run `scripts/verify.sh` and complete `docs/releases/rc1/release-checklist.md`.
 
 The integration renumbers verification migrations after infrastructure migrations.
 Do not deploy over a database that already ran an unreleased verification migration
