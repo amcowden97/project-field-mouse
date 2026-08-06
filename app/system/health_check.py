@@ -36,7 +36,10 @@ def _temperature() -> float | None:
     try:
         return round(float(thermal.read_text().strip()) / 1000, 1)
     except (OSError, ValueError):
-        temperatures = psutil.sensors_temperatures()
+        sensor_reader = getattr(psutil, "sensors_temperatures", None)
+        if sensor_reader is None:
+            return None
+        temperatures = sensor_reader()
         for entries in temperatures.values():
             if entries:
                 return round(float(entries[0].current), 1)

@@ -30,7 +30,10 @@ class VerificationManager:
     def verify(self, context: DetectionContext) -> VerificationDecision:
         rule = self.rules.evaluate(context)
         results: list[PluginResult] = []
-        if rule.action == "verify":
+        # Even a strong BirdNET prediction is independently evaluated. Rules
+        # may avoid expensive work for rejected low-confidence detections, but
+        # they must not turn BirdNET into its own verifier.
+        if rule.action != "reject":
             for plugin in self.plugins:
                 try:
                     results.append(plugin.verify(context))
@@ -42,7 +45,10 @@ class VerificationManager:
                             score=0.5,
                             weight=0.0,
                             reason=f"{plugin.name} unavailable: {error}",
-                            details={"error": type(error).__name__},
+                            details={
+                                "available": False,
+                                "error": type(error).__name__,
+                            },
                         )
                     )
         decision = self.consensus.decide(context, results, rule)

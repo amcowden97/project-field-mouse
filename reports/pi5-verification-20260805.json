@@ -1,0 +1,13 @@
+{
+  "iterations": 1000,
+  "max_latency_seconds": 0.008774275993346237,
+  "mean_cpu_percent": 99.8485,
+  "mean_latency_seconds": 0.0022129129938984987,
+  "min_latency_seconds": 0.0021720549993915483,
+  "p95_latency_seconds": 0.0022308879997581244,
+  "peak_rss_bytes": 40960000,
+  "process_cpu_seconds": 2.3000000000000003,
+  "startup_seconds": 0.0005746429960709065,
+  "temperature_after_c": 57.85,
+  "temperature_before_c": 56.75
+}
