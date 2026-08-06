@@ -2,6 +2,7 @@
 {% from "v3/macros/time.html" import local_time %}
 
 {% macro detection_item(detection, compact=false) -%}
+    {% set verification = detection.verification | default(none) %}
     {% set confidence_percent = (detection.confidence | float * 100) | round(1) %}
     {% set confidence_tone = (
         "high"
@@ -74,8 +75,51 @@
         {% endif %}
 
         <div class="pfm-confidence pfm-confidence--{{ confidence_tone }}">
-            <span>Confidence</span>
+            <span>BirdNET</span>
             <strong>{{ confidence_percent }}%</strong>
         </div>
+
+        {% if not compact %}
+            <details class="pfm-verification">
+                <summary>
+                    <span>Verification details</span>
+                    <span class="pfm-verification__state">
+                        {% if verification %}
+                            {{ verification.status | replace("_", " ") | title }}
+                        {% else %}
+                            BirdNET only
+                        {% endif %}
+                    </span>
+                </summary>
+                {% if verification %}
+                    <div class="pfm-verification__body">
+                        <div class="pfm-verification__score">
+                            <span>Combined verification confidence</span>
+                            <strong>{{ (verification.score | float * 100) | round(1) }}%</strong>
+                        </div>
+                        <p>{{ verification.explanation | default("Independent evidence was evaluated for this observation.") }}</p>
+                        {% if verification.evidence | default([]) %}
+                            <ul class="pfm-evidence-list">
+                                {% for evidence in verification.evidence %}
+                                    <li class="pfm-evidence pfm-evidence--{{ evidence.verdict | default('neutral') }}">
+                                        <strong>{{ evidence.source | default("Evidence source") }}</strong>
+                                        <span>{{ evidence.verdict | default("neutral") | title }}</span>
+                                        <p>{{ evidence.reason | default("No explanation supplied.") }}</p>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="pfm-verification__body">
+                        <p>
+                            This observation currently shows BirdNET confidence only.
+                            Supporting and contradicting evidence will appear here when
+                            Verification V2 data is available.
+                        </p>
+                    </div>
+                {% endif %}
+            </details>
+        {% endif %}
     </article>
 {%- endmacro %}

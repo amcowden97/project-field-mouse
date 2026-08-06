@@ -119,6 +119,47 @@
     color: var(--pfm-color-text-muted);
 }
 
+.pfm-highlight-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pfm-space-4);
+}
+
+.pfm-highlight-card {
+    display: grid;
+    gap: var(--pfm-space-2);
+    min-width: 0;
+    padding: var(--pfm-space-5);
+    border: var(--pfm-border-medium) solid var(--pfm-color-border);
+    border-radius: var(--pfm-radius-lg);
+    background: var(--pfm-color-surface);
+    box-shadow: var(--pfm-shadow-sm);
+}
+
+.pfm-highlight-card--feature {
+    border-color: var(--pfm-color-pine-800);
+    background: var(--pfm-color-paper-deep);
+}
+
+.pfm-highlight-card__label {
+    color: var(--pfm-color-bark-700);
+    font-family: var(--pfm-font-mono);
+    font-size: var(--pfm-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.pfm-highlight-card strong {
+    overflow-wrap: anywhere;
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-xl);
+}
+
+.pfm-highlight-card p {
+    color: var(--pfm-color-text-muted);
+}
+
 .pfm-visitor-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -279,6 +320,14 @@
 
     .pfm-today-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .pfm-highlight-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pfm-highlight-card--feature {
+        grid-row: span 2;
     }
 
     .pfm-visitor-grid {

@@ -85,6 +85,43 @@
             </div>
         </section>
 
+        <section class="pfm-section" aria-labelledby="highlights-title">
+            <div class="pfm-section-heading">
+                <div>
+                    <p class="pfm-eyebrow">The story so far</p>
+                    <h2 id="highlights-title">Today’s Highlights</h2>
+                </div>
+                <span class="pfm-journal-note">Wildlife first, systems second</span>
+            </div>
+            <div class="pfm-highlight-grid">
+                <article class="pfm-highlight-card pfm-highlight-card--feature">
+                    <span class="pfm-highlight-card__label">Most active visitor</span>
+                    {% if wildlife_story.most_active %}
+                        <strong>{{ wildlife_story.most_active.common_name }}</strong>
+                        <p>
+                            Heard {{ wildlife_story.most_active.detection_count }}
+                            {% if wildlife_story.most_active.detection_count == 1 %}time{% else %}times{% endif %}
+                            today, with a best BirdNET match of
+                            {{ wildlife_story.most_active.highest_confidence }}%.
+                        </p>
+                    {% else %}
+                        <strong>Waiting for today’s first visitor</strong>
+                        <p>The station is listening. This story will grow with each observation.</p>
+                    {% endif %}
+                </article>
+                <article class="pfm-highlight-card">
+                    <span class="pfm-highlight-card__label">New this week</span>
+                    <strong>{{ wildlife_story.new_species_week }} species</strong>
+                    <p>First-time additions to this station’s Life List during the last seven days.</p>
+                </article>
+                <article class="pfm-highlight-card">
+                    <span class="pfm-highlight-card__label">{{ wildlife_story.season }} notes</span>
+                    <strong>{{ wildlife_story.season_species_count }} species</strong>
+                    <p>{{ wildlife_story.season_detection_count }} observations collected during the last 30 days.</p>
+                </article>
+            </div>
+        </section>
+
         <section class="pfm-section" aria-labelledby="visitors-title">
             <div class="pfm-section-heading">
                 <div>

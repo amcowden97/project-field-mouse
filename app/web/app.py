@@ -251,7 +251,7 @@ def get_primary_ip_address() -> str | None:
 def get_load_average() -> dict:
     try:
         one, five, fifteen = os.getloadavg()
-    except OSError:
+    except (AttributeError, OSError):
         return {
             "one": None,
             "five": None,
