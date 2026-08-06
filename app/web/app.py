@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import socket
@@ -549,9 +550,14 @@ def get_detection_rows(
             d.created_at,
             r.recorded_at,
             r.file_path,
-            r.duration_seconds
+            r.duration_seconds,
+            v.consensus_score AS verification_score,
+            v.status AS verification_status,
+            v.reason AS verification_reason,
+            v.evidence_json AS verification_evidence_json
         FROM detections d
         JOIN recordings r ON r.id = d.recording_id
+        LEFT JOIN verifications v ON v.detection_id = d.id
         WHERE d.confidence >= ?
         ORDER BY d.created_at DESC, d.confidence DESC
         LIMIT ? OFFSET ?
@@ -572,10 +578,44 @@ def get_detection_rows(
             recording_path
             and recording_path.is_file()
         )
+        detection["verification"] = build_verification_presentation(
+            detection
+        )
 
         detections.append(detection)
 
     return detections
+
+
+def build_verification_presentation(row: dict) -> dict | None:
+    """Normalize persisted Verification V2 evidence for Dashboard V2."""
+    status = row.get("verification_status")
+    if not status:
+        return None
+
+    try:
+        stored_evidence = json.loads(
+            row.get("verification_evidence_json") or "[]"
+        )
+    except (TypeError, ValueError):
+        stored_evidence = []
+
+    evidence = []
+    for item in stored_evidence if isinstance(stored_evidence, list) else []:
+        if not isinstance(item, dict):
+            continue
+        evidence.append({
+            "source": item.get("source", "Evidence source"),
+            "verdict": item.get("outcome", "neutral"),
+            "reason": item.get("summary", "No explanation supplied."),
+        })
+
+    return {
+        "status": status,
+        "score": row.get("verification_score") or 0.0,
+        "explanation": row.get("verification_reason"),
+        "evidence": evidence,
+    }
 
 
 def get_detection_count(

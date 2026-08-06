@@ -3,6 +3,7 @@ from __future__ import annotations
 import sqlite3
 from datetime import datetime, timezone
 
+from app.web.app import build_verification_presentation
 from app.web.v3 import get_wildlife_story
 
 
@@ -62,3 +63,35 @@ def test_wildlife_story_prioritizes_todays_most_active_species() -> None:
     assert story["new_species_week"] == 2
     assert story["season_detection_count"] == 3
     assert story["season_species_count"] == 2
+
+
+def test_verification_presentation_normalizes_persisted_evidence() -> None:
+    verification = build_verification_presentation({
+        "verification_status": "verified",
+        "verification_score": 0.94,
+        "verification_reason": "Independent evidence supports this detection.",
+        "verification_evidence_json": """
+            [{
+                "source": "seasonal",
+                "outcome": "support",
+                "summary": "Expected locally in August."
+            }]
+        """,
+    })
+
+    assert verification == {
+        "status": "verified",
+        "score": 0.94,
+        "explanation": "Independent evidence supports this detection.",
+        "evidence": [{
+            "source": "seasonal",
+            "verdict": "support",
+            "reason": "Expected locally in August.",
+        }],
+    }
+
+
+def test_verification_presentation_preserves_birdnet_only_fallback() -> None:
+    assert build_verification_presentation({
+        "verification_status": None,
+    }) is None
