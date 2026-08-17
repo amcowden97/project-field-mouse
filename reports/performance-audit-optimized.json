@@ -1,0 +1,326 @@
+{
+  "generated_at": "2026-08-17T05:21:37.168514+00:00",
+  "platform": {
+    "system": "Linux",
+    "node": "DESKTOP-0JMPC51",
+    "release": "6.18.33.2-microsoft-standard-WSL2",
+    "version": "#1 SMP PREEMPT_DYNAMIC Thu Jun 18 21:54:43 UTC 2026",
+    "machine": "x86_64"
+  },
+  "sqlite_version": "3.45.1",
+  "repetitions": 7,
+  "datasets": [
+    {
+      "detections": 1000,
+      "recordings": 100,
+      "database_bytes": 487424,
+      "populate_ms": 19.393,
+      "process_rss_bytes": 46403584,
+      "routes": {
+        "/": {
+          "status": 200,
+          "median_ms": 16.695,
+          "p95_ms": 16.901,
+          "queries": 14,
+          "response_bytes": 39506,
+          "peak_python_bytes": 217604
+        },
+        "/activity": {
+          "status": 200,
+          "median_ms": 11.212,
+          "p95_ms": 11.338,
+          "queries": 5,
+          "response_bytes": 59065,
+          "peak_python_bytes": 305734
+        },
+        "/activity?page=100&per_page=20": {
+          "status": 200,
+          "median_ms": 12.481,
+          "p95_ms": 13.285,
+          "queries": 6,
+          "response_bytes": 58574,
+          "peak_python_bytes": 304901
+        },
+        "/life-list": {
+          "status": 200,
+          "median_ms": 30.611,
+          "p95_ms": 33.618,
+          "queries": 7,
+          "response_bytes": 27758,
+          "peak_python_bytes": 150196
+        },
+        "/species/American%20Robin": {
+          "status": 200,
+          "median_ms": 35.731,
+          "p95_ms": 38.063,
+          "queries": 3,
+          "response_bytes": 46420,
+          "peak_python_bytes": 300803
+        },
+        "/device": {
+          "status": 200,
+          "median_ms": 32.003,
+          "p95_ms": 35.048,
+          "queries": 4,
+          "response_bytes": 21007,
+          "peak_python_bytes": 115563
+        },
+        "/api/dashboard": {
+          "status": 200,
+          "median_ms": 2.642,
+          "p95_ms": 2.931,
+          "queries": 4,
+          "response_bytes": 921,
+          "peak_python_bytes": 11483
+        },
+        "/api/metrics": {
+          "status": 200,
+          "median_ms": 1.059,
+          "p95_ms": 1.17,
+          "queries": 2,
+          "response_bytes": 274,
+          "peak_python_bytes": 8212
+        },
+        "/audio/1": {
+          "status": 200,
+          "median_ms": 1.488,
+          "p95_ms": 1.56,
+          "queries": 1,
+          "response_bytes": 4096,
+          "peak_python_bytes": 18275
+        },
+        "/static/css/dashboard-v3.css": {
+          "status": 200,
+          "median_ms": 2.851,
+          "p95_ms": 6.313,
+          "queries": 0,
+          "response_bytes": 394,
+          "peak_python_bytes": 17666
+        }
+      },
+      "query_plans": {
+        "recent_detection": [
+          "SCAN detections USING INDEX idx_detections_created"
+        ],
+        "recent_24h_wrapped": [
+          "SEARCH detections USING INDEX idx_detections_datetime_created (<expr>>?)"
+        ],
+        "activity_page": [
+          "SCAN detections USING INDEX idx_detections_created",
+          "USE TEMP B-TREE FOR RIGHT PART OF ORDER BY"
+        ],
+        "species_page": [
+          "SEARCH detections USING INDEX idx_detections_species_created (common_name=?)"
+        ]
+      }
+    },
+    {
+      "detections": 10000,
+      "recordings": 1000,
+      "database_bytes": 4296704,
+      "populate_ms": 107.958,
+      "process_rss_bytes": 84656128,
+      "routes": {
+        "/": {
+          "status": 200,
+          "median_ms": 39.762,
+          "p95_ms": 42.11,
+          "queries": 14,
+          "response_bytes": 39576,
+          "peak_python_bytes": 214806
+        },
+        "/activity": {
+          "status": 200,
+          "median_ms": 15.056,
+          "p95_ms": 16.386,
+          "queries": 5,
+          "response_bytes": 59067,
+          "peak_python_bytes": 304720
+        },
+        "/activity?page=100&per_page=20": {
+          "status": 200,
+          "median_ms": 17.215,
+          "p95_ms": 21.178,
+          "queries": 5,
+          "response_bytes": 59357,
+          "peak_python_bytes": 306896
+        },
+        "/life-list": {
+          "status": 200,
+          "median_ms": 49.504,
+          "p95_ms": 86.153,
+          "queries": 7,
+          "response_bytes": 27767,
+          "peak_python_bytes": 150099
+        },
+        "/species/American%20Robin": {
+          "status": 200,
+          "median_ms": 64.252,
+          "p95_ms": 65.78,
+          "queries": 3,
+          "response_bytes": 48498,
+          "peak_python_bytes": 437519
+        },
+        "/device": {
+          "status": 200,
+          "median_ms": 34.136,
+          "p95_ms": 35.684,
+          "queries": 4,
+          "response_bytes": 21006,
+          "peak_python_bytes": 115558
+        },
+        "/api/dashboard": {
+          "status": 200,
+          "median_ms": 7.296,
+          "p95_ms": 7.49,
+          "queries": 4,
+          "response_bytes": 927,
+          "peak_python_bytes": 11562
+        },
+        "/api/metrics": {
+          "status": 200,
+          "median_ms": 1.392,
+          "p95_ms": 1.602,
+          "queries": 2,
+          "response_bytes": 277,
+          "peak_python_bytes": 8232
+        },
+        "/audio/1": {
+          "status": 200,
+          "median_ms": 1.452,
+          "p95_ms": 3.543,
+          "queries": 1,
+          "response_bytes": 4096,
+          "peak_python_bytes": 18955
+        },
+        "/static/css/dashboard-v3.css": {
+          "status": 200,
+          "median_ms": 2.85,
+          "p95_ms": 6.118,
+          "queries": 0,
+          "response_bytes": 394,
+          "peak_python_bytes": 17130
+        }
+      },
+      "query_plans": {
+        "recent_detection": [
+          "SCAN detections USING INDEX idx_detections_created"
+        ],
+        "recent_24h_wrapped": [
+          "SEARCH detections USING INDEX idx_detections_datetime_created (<expr>>?)"
+        ],
+        "activity_page": [
+          "SCAN detections USING INDEX idx_detections_created",
+          "USE TEMP B-TREE FOR RIGHT PART OF ORDER BY"
+        ],
+        "species_page": [
+          "SEARCH detections USING INDEX idx_detections_species_created (common_name=?)"
+        ]
+      }
+    },
+    {
+      "detections": 100000,
+      "recordings": 10000,
+      "database_bytes": 43462656,
+      "populate_ms": 1072.386,
+      "process_rss_bytes": 126267392,
+      "routes": {
+        "/": {
+          "status": 200,
+          "median_ms": 225.696,
+          "p95_ms": 230.531,
+          "queries": 14,
+          "response_bytes": 39577,
+          "peak_python_bytes": 215557
+        },
+        "/activity": {
+          "status": 200,
+          "median_ms": 37.2,
+          "p95_ms": 38.879,
+          "queries": 5,
+          "response_bytes": 59069,
+          "peak_python_bytes": 304730
+        },
+        "/activity?page=100&per_page=20": {
+          "status": 200,
+          "median_ms": 41.546,
+          "p95_ms": 49.499,
+          "queries": 5,
+          "response_bytes": 59359,
+          "peak_python_bytes": 306794
+        },
+        "/life-list": {
+          "status": 200,
+          "median_ms": 218.05,
+          "p95_ms": 221.008,
+          "queries": 7,
+          "response_bytes": 27776,
+          "peak_python_bytes": 150214
+        },
+        "/species/American%20Robin": {
+          "status": 200,
+          "median_ms": 80.867,
+          "p95_ms": 84.031,
+          "queries": 3,
+          "response_bytes": 55422,
+          "peak_python_bytes": 460817
+        },
+        "/device": {
+          "status": 200,
+          "median_ms": 53.971,
+          "p95_ms": 61.311,
+          "queries": 4,
+          "response_bytes": 21012,
+          "peak_python_bytes": 115352
+        },
+        "/api/dashboard": {
+          "status": 200,
+          "median_ms": 58.25,
+          "p95_ms": 58.485,
+          "queries": 4,
+          "response_bytes": 932,
+          "peak_python_bytes": 11913
+        },
+        "/api/metrics": {
+          "status": 200,
+          "median_ms": 4.34,
+          "p95_ms": 8.697,
+          "queries": 2,
+          "response_bytes": 280,
+          "peak_python_bytes": 9408
+        },
+        "/audio/1": {
+          "status": 200,
+          "median_ms": 1.549,
+          "p95_ms": 1.881,
+          "queries": 1,
+          "response_bytes": 4096,
+          "peak_python_bytes": 18043
+        },
+        "/static/css/dashboard-v3.css": {
+          "status": 200,
+          "median_ms": 3.095,
+          "p95_ms": 9.166,
+          "queries": 0,
+          "response_bytes": 394,
+          "peak_python_bytes": 17122
+        }
+      },
+      "query_plans": {
+        "recent_detection": [
+          "SCAN detections USING INDEX idx_detections_created"
+        ],
+        "recent_24h_wrapped": [
+          "SEARCH detections USING INDEX idx_detections_datetime_created (<expr>>?)"
+        ],
+        "activity_page": [
+          "SCAN detections USING INDEX idx_detections_created",
+          "USE TEMP B-TREE FOR RIGHT PART OF ORDER BY"
+        ],
+        "species_page": [
+          "SEARCH detections USING INDEX idx_detections_species_created (common_name=?)"
+        ]
+      }
+    }
+  ]
+}

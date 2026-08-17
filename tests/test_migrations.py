@@ -9,7 +9,7 @@ from app.migrations import migrate, migration_history
 def test_migrations_are_ordered_and_idempotent(tmp_path: Path) -> None:
     database = tmp_path / "station.db"
     applied = migrate(database, tmp_path / "backups")
-    expected_versions = [1, 2, 3, 4]
+    expected_versions = [1, 2, 3, 4, 5]
     assert [item.version for item in applied] == expected_versions
     assert migrate(database, tmp_path / "backups") == []
     history = migration_history(database)
@@ -25,8 +25,18 @@ def test_migrations_are_ordered_and_idempotent(tmp_path: Path) -> None:
                 "SELECT name FROM sqlite_master WHERE type = 'table'"
             )
         }
+        indexes = {
+            row[0]
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'index'"
+            )
+        }
     assert "station_uuid" in columns
     assert {"detections", "verifications", "detection_reviews"} <= tables
+    assert {
+        "idx_detections_created",
+        "idx_detections_datetime_created",
+    } <= indexes
 
 
 def test_failed_migration_rolls_back(tmp_path: Path) -> None:
