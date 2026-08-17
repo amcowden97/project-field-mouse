@@ -70,6 +70,13 @@ Service process-tree baselines:
 | BirdNET | 46,252,032 B | 0 | 3 | 4 | 0 |
 | Gunicorn | 63,700,992 B | 0 | 17 | 3 | 0 |
 
+The first automatic timer sample arrived at 23:03:01 PDT. BirdNET had completed
+model warm-up by then: its process tree was 301,268,992 bytes RSS with 10 descriptors
+and zero restarts. Total available memory was 460,128,256 bytes and zram swap was
+203,522,048 bytes. Recorder and Gunicorn remained close to their first values. This
+cold-to-warm transition is the appropriate starting point for BirdNET trend
+comparison; it is not classified as a leak.
+
 Recorder, BirdNET, Gunicorn, backup timer, cleanup timer, and reliability timer were
 enabled and active. `/health`, `/api/metrics`, `/api/dashboard`, the home, Activity,
 Life List, and Device pages returned HTTP 200. A 1 KiB range request against an
@@ -86,12 +93,13 @@ The health response reported the microphone and SQLite healthy with no warnings.
 - The sample includes CPU, memory, swap, load, root usage, disk I/O, network I/O,
   temperature, firmware flags, service process trees and restarts, SQLite/WAL size,
   recording growth, log growth, timer results, and ext4 health.
-- The trend summarizer parsed the production JSONL and reported one boot, one clean
-  sample, zero inactive services, zero network errors, zero ext4 errors, and zero
-  diagnostic snapshots in the corrected directory.
-- Automatic snapshot generation executed under the first release when objective
-  conditions were observed. Those conditions were activation artifacts, which the
-  corrected release removed; the clean baseline correctly generated no snapshot.
+- The trend summarizer parsed two production samples from one boot with zero
+  inactive services, zero network errors, zero ext4 errors, and no read-only samples.
+- The automatic timer generated sample two without operator intervention. BirdNET's
+  expected cold-to-warm RSS increase crossed the objective 128 MiB interval threshold
+  and automatically created a 31,625-byte diagnostic snapshot owned
+  `root:pfm-operators`. This validates the production snapshot path while preserving
+  the evidence for comparison with later samples.
 - Automated validation proves daily append behavior, atomic latest-state writes,
   anomaly detection, summary generation, and the 20-snapshot cap. Metrics retain 30
   days and snapshots are capped at 20.
