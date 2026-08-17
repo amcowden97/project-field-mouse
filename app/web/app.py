@@ -319,7 +319,7 @@ def get_device_information() -> dict:
             "fieldmouse-dashboard.service"
         ),
         get_service_information(
-            "fieldmouse-storage-manager.timer"
+            "fieldmouse-cleanup.timer"
         ),
     ]
 
@@ -327,7 +327,7 @@ def get_device_information() -> dict:
         "fieldmouse-recorder.service": "Audio recorder",
         "fieldmouse-birdnet.service": "BirdNET detector",
         "fieldmouse-dashboard.service": "Web dashboard",
-        "fieldmouse-storage-manager.timer": "Storage cleanup",
+        "fieldmouse-cleanup.timer": "Storage cleanup",
     }
 
     for service in services:
