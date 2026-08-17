@@ -6,8 +6,8 @@ The simulator is the recommended hardware-free development workflow:
 python -m venv .venv
 . .venv/bin/activate
 pip install flask psutil pytest
-scripts/pfm --config config/development.toml config init --name "Dev Station"
-scripts/pfm --config config/development.toml simulate --mode detections
+scripts/pfm --config data/processed/development.toml config init --name "Dev Station"
+scripts/pfm --config data/processed/development.toml simulate --mode detections
 flask --app app.web.app run --port 8000
 ```
 

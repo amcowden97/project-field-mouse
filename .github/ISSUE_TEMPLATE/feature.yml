@@ -1,0 +1,35 @@
+name: Improvement proposal
+description: Suggest a focused improvement to Project Field Mouse
+title: "[Proposal]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for proposing an improvement. For broad design discussion, consider starting in GitHub Discussions.
+  - type: textarea
+    id: need
+    attributes:
+      label: Problem or opportunity
+      description: Describe the user, research, education, conservation, or operator need.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Proposed outcome
+      description: Describe the desired outcome without requiring a particular implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and constraints
+      description: Include Raspberry Pi resource, offline-use, privacy, or compatibility considerations.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and discussions for a similar proposal.
+          required: true
