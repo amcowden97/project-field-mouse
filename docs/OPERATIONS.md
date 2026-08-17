@@ -40,8 +40,10 @@ signals an application service.
 
 ```bash
 sudo -n /usr/bin/systemctl start fieldmouse-reliability.service
-/opt/project-field-mouse/current/.venv/bin/python \
-  -m app.system.reliability_monitor --summarize
+(
+  cd /opt/project-field-mouse/current
+  .venv/bin/python -m app.system.reliability_monitor --summarize
+)
 sudo -n /usr/bin/journalctl --no-pager -n 200 \
   -u fieldmouse-reliability.service
 ```

@@ -89,8 +89,10 @@ The summarizer reports first, last, minimum/maximum values, boot IDs, inactive
 samples, restart changes, network errors, and diagnostic count:
 
 ```bash
-/opt/project-field-mouse/current/.venv/bin/python \
-  -m app.system.reliability_monitor --summarize
+(
+  cd /opt/project-field-mouse/current
+  .venv/bin/python -m app.system.reliability_monitor --summarize
+)
 ```
 
 ## Root-cause assessment
