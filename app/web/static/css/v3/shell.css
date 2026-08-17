@@ -240,6 +240,35 @@ body {
     font-size: 1rem;
 }
 
+@media (max-width: 35.99rem) {
+    .pfm-navigation__item.is-future {
+        display: none;
+    }
+
+    .pfm-navigation__item:nth-child(4n) {
+        border-right: 0;
+    }
+}
+
+@media (max-width: 24.5rem) {
+    .pfm-site-shell {
+        width: min(calc(100% - 0.5rem), var(--pfm-content-width));
+    }
+
+    .pfm-header {
+        padding: var(--pfm-space-4);
+    }
+
+    .pfm-brand {
+        gap: var(--pfm-space-3);
+    }
+
+    .pfm-brand__mark {
+        width: 3.25rem;
+        height: 3.25rem;
+    }
+}
+
 .pfm-main {
     min-width: 0;
     padding: var(--pfm-space-6) var(--pfm-space-3);

@@ -108,7 +108,7 @@ const renderChart = (chart) => {
 
 const renderCharts = (root = document) => {
     root.querySelectorAll(
-        ".pfm-timeline, .pfm-history-chart",
+        ".pfm-timeline, .pfm-history-chart, .pfm-week-chart",
     ).forEach(renderChart);
 };
 

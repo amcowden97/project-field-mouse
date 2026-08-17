@@ -94,6 +94,43 @@
     gap: var(--pfm-space-5);
 }
 
+.pfm-rhythm-layout {
+    display: grid;
+    gap: var(--pfm-space-5);
+}
+
+.pfm-rhythm-story {
+    max-width: 48rem;
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-lg);
+    line-height: var(--pfm-leading-relaxed);
+}
+
+.pfm-rhythm-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pfm-space-3);
+}
+
+.pfm-rhythm-facts > div {
+    display: grid;
+    gap: var(--pfm-space-1);
+    padding: var(--pfm-space-3);
+    border-left: 0.25rem solid var(--pfm-color-moss-600);
+    background: var(--pfm-color-surface-muted);
+}
+
+.pfm-rhythm-facts dt {
+    color: var(--pfm-color-text-muted);
+    font-size: var(--pfm-text-sm);
+}
+
+.pfm-rhythm-facts dd {
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-lg);
+    font-weight: 700;
+}
+
 .pfm-field-fact {
     font-family: var(--pfm-font-display);
     font-size: var(--pfm-text-lg);
@@ -249,5 +286,9 @@
 
     .pfm-confidence-chart > div > span {
         grid-column: 1 / -1;
+    }
+
+    .pfm-rhythm-facts {
+        grid-template-columns: minmax(0, 1fr);
     }
 }

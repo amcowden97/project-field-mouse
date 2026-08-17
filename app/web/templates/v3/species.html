@@ -77,6 +77,44 @@
             </article>
         </section>
 
+        <section class="pfm-card" aria-labelledby="rhythm-title">
+            <header class="pfm-card__header">
+                <div>
+                    <p class="pfm-eyebrow">A living observation record</p>
+                    <h2 id="rhythm-title">Observation Rhythm</h2>
+                </div>
+                <span class="pfm-journal-note">Past 30 days</span>
+            </header>
+            <div class="pfm-card__body pfm-rhythm-layout">
+                <p class="pfm-rhythm-story">
+                    {% if observation_profile.recent_detection_count %}
+                        This visitor was heard
+                        <strong>{{ observation_profile.recent_detection_count }} times</strong>
+                        across {{ observation_profile.recent_active_days }} active days.
+                        The busiest listening hour has been around
+                        <strong>{{ observation_profile.typical_hour_label }}</strong>.
+                    {% else %}
+                        This visitor has been quiet during the last month. The
+                        station will keep listening for its return.
+                    {% endif %}
+                </p>
+                <dl class="pfm-rhythm-facts">
+                    <div>
+                        <dt>Typical hour</dt>
+                        <dd>{{ observation_profile.typical_hour_label }}</dd>
+                    </div>
+                    <div>
+                        <dt>Recent active days</dt>
+                        <dd>{{ observation_profile.recent_active_days }}</dd>
+                    </div>
+                    <div>
+                        <dt>Recent BirdNET match</dt>
+                        <dd>{{ observation_profile.recent_average_confidence }}%</dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
         <div class="pfm-species-editorial-grid">
             {% call card(
                 title="A note about this visitor",
