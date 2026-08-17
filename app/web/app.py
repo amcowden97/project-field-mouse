@@ -946,6 +946,12 @@ def species_detail(common_name: str):
             connection,
             common_name,
         )
+        observed_species_names = {
+            row["common_name"]
+            for row in connection.execute(
+                "SELECT DISTINCT common_name FROM detections"
+            ).fetchall()
+        }
 
     return render_template(
         "v3/species.html",
@@ -954,6 +960,7 @@ def species_detail(common_name: str):
         detections=detections,
         daily_activity=daily_activity,
         observation_profile=observation_profile,
+        observed_species_names=observed_species_names,
         species_content=get_species_content(common_name),
         confidence_distribution=get_confidence_distribution(detections),
         minimum_confidence=minimum_confidence,

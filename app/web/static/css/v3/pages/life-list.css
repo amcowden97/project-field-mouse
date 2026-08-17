@@ -1,5 +1,5 @@
 .pfm-life-list-page {
-    --pfm-stack-gap: var(--pfm-space-10);
+    --pfm-stack-gap: var(--pfm-section-gap);
 }
 
 .pfm-collection-hero {
@@ -125,6 +125,17 @@
     border-radius: var(--pfm-radius-lg);
     background: var(--pfm-color-surface);
     box-shadow: var(--pfm-shadow-md);
+    transition:
+        border-color var(--pfm-duration-fast) var(--pfm-ease-out),
+        transform var(--pfm-duration-base) var(--pfm-ease-out),
+        box-shadow var(--pfm-duration-base) var(--pfm-ease-out);
+}
+
+.pfm-species-card:has(.pfm-species-card__identity:hover),
+.pfm-species-card:has(.pfm-species-card__identity:focus-visible) {
+    transform: translateY(-0.18rem);
+    border-color: var(--pfm-color-border-strong);
+    box-shadow: var(--pfm-shadow-lg);
 }
 
 .pfm-species-card__topline {

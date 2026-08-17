@@ -9,6 +9,14 @@
     }
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
+:where(section, [id]) {
+    scroll-margin-top: var(--pfm-space-4);
+}
+
 .pfm-station-status:not(.is-offline, .is-unknown)
     .pfm-station-status__indicator {
     animation:

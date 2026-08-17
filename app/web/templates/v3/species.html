@@ -51,6 +51,14 @@
             </div>
         </header>
 
+        <nav class="pfm-species-jump" aria-label="On this species page">
+            <span>Explore this record</span>
+            <a href="#rhythm-title">Rhythm</a>
+            <a href="#field-notes">Field notes</a>
+            <a href="#history-title">History</a>
+            <a href="#audio-gallery-title">Clips</a>
+        </nav>
+
         <section
             class="pfm-species-summary"
             aria-label="Species observation summary"
@@ -115,7 +123,7 @@
             </div>
         </section>
 
-        <div class="pfm-species-editorial-grid">
+        <div class="pfm-species-editorial-grid" id="field-notes">
             {% call card(
                 title="A note about this visitor",
                 eyebrow="Field guide"
@@ -271,13 +279,23 @@
                 {% if species_content.related | default([]) %}
                     <div class="pfm-related-species">
                         {% for related_name in species_content.related %}
-                            <a href="{{ url_for(
-                                'species_detail',
-                                common_name=related_name
-                            ) }}">
-                                {{ pixel_art(size="small", fallback="♪") }}
-                                <span>{{ related_name }}</span>
-                            </a>
+                            {% if related_name in observed_species_names %}
+                                <a href="{{ url_for(
+                                    'species_detail',
+                                    common_name=related_name
+                                ) }}">
+                                    {{ pixel_art(size="small", fallback="♪") }}
+                                    <span>{{ related_name }}</span>
+                                </a>
+                            {% else %}
+                                <span class="pfm-related-species__future">
+                                    {{ pixel_art(size="small", fallback="♪") }}
+                                    <span>
+                                        {{ related_name }}
+                                        <small>Not yet observed here</small>
+                                    </span>
+                                </span>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 {% else %}

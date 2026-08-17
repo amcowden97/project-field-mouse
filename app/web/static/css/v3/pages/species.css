@@ -1,5 +1,5 @@
 .pfm-species-page {
-    --pfm-stack-gap: var(--pfm-space-10);
+    --pfm-stack-gap: var(--pfm-section-gap);
 }
 
 .pfm-species-hero {
@@ -92,6 +92,31 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: var(--pfm-space-5);
+}
+
+.pfm-species-jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pfm-space-2);
+    align-items: center;
+    padding: var(--pfm-space-3) var(--pfm-space-4);
+    border: var(--pfm-border-thin) dashed var(--pfm-color-border-strong);
+    border-radius: var(--pfm-radius-md);
+    background: var(--pfm-color-surface-muted);
+    font-family: var(--pfm-font-mono);
+    font-size: var(--pfm-text-sm);
+}
+
+.pfm-species-jump span {
+    margin-right: var(--pfm-space-2);
+    color: var(--pfm-color-bark-700);
+    font-weight: 700;
+}
+
+.pfm-species-jump a {
+    min-height: var(--pfm-touch-target);
+    padding: var(--pfm-space-2) var(--pfm-space-3);
+    border-radius: var(--pfm-radius-round);
 }
 
 .pfm-rhythm-layout {
@@ -243,7 +268,8 @@
     gap: var(--pfm-space-3);
 }
 
-.pfm-related-species a {
+.pfm-related-species a,
+.pfm-related-species__future {
     display: flex;
     gap: var(--pfm-space-3);
     align-items: center;
@@ -252,6 +278,15 @@
     border: var(--pfm-border-thin) solid var(--pfm-color-border);
     border-radius: var(--pfm-radius-md);
     text-decoration: none;
+}
+
+.pfm-related-species__future {
+    color: var(--pfm-color-text-muted);
+    background: var(--pfm-color-surface-muted);
+}
+
+.pfm-related-species__future > span:last-child {
+    display: grid;
 }
 
 @media (min-width: 42rem) {
