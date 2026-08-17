@@ -1,5 +1,5 @@
 .pfm-overview {
-    --pfm-stack-gap: var(--pfm-space-12);
+    --pfm-stack-gap: var(--pfm-section-gap);
 }
 
 .pfm-overview-hero {
@@ -262,6 +262,62 @@
     border: var(--pfm-border-medium) solid var(--pfm-color-border);
     border-radius: var(--pfm-radius-lg);
     background: var(--pfm-color-surface);
+    transition:
+        border-color var(--pfm-duration-fast) var(--pfm-ease-out),
+        transform var(--pfm-duration-base) var(--pfm-ease-out),
+        box-shadow var(--pfm-duration-base) var(--pfm-ease-out);
+}
+
+.pfm-visitor-card:has(a:hover),
+.pfm-visitor-card:has(a:focus-visible) {
+    transform: translateY(-0.15rem);
+    border-color: var(--pfm-color-border-strong);
+    box-shadow: var(--pfm-shadow-md);
+}
+
+.pfm-week-chart {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: clamp(0.3rem, 1.4vw, var(--pfm-space-3));
+    min-height: 14rem;
+    padding: var(--pfm-space-5) var(--pfm-space-3) var(--pfm-space-3);
+    border: var(--pfm-border-medium) solid var(--pfm-color-border);
+    border-radius: var(--pfm-radius-lg);
+    background: var(--pfm-color-surface);
+}
+
+.pfm-week-chart__day {
+    display: grid;
+    grid-template-rows: auto minmax(7rem, 1fr) auto auto;
+    gap: var(--pfm-space-1);
+    align-items: end;
+    min-width: 0;
+    text-align: center;
+}
+
+.pfm-week-chart__count {
+    color: var(--pfm-color-bark-700);
+    font-family: var(--pfm-font-display);
+    font-weight: 700;
+}
+
+.pfm-week-chart__bar {
+    width: 100%;
+    min-height: 0.2rem;
+    border-radius: var(--pfm-radius-sm) var(--pfm-radius-sm) 0 0;
+    background: var(--pfm-color-gold-500);
+}
+
+.pfm-week-chart time,
+.pfm-week-chart small {
+    overflow: hidden;
+    font-family: var(--pfm-font-mono);
+    font-size: clamp(0.58rem, 1.7vw, var(--pfm-text-xs));
+    white-space: nowrap;
+}
+
+.pfm-week-chart small {
+    color: var(--pfm-color-text-muted);
 }
 
 .pfm-timeline__hour {
@@ -353,5 +409,9 @@
     .pfm-weather-placeholder,
     .pfm-nature-tip {
         align-items: flex-start;
+    }
+
+    .pfm-week-chart {
+        padding-inline: var(--pfm-space-2);
     }
 }

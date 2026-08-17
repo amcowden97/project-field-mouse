@@ -108,7 +108,7 @@ const renderChart = (chart) => {
 
 const renderCharts = (root = document) => {
     root.querySelectorAll(
-        ".pfm-timeline, .pfm-history-chart",
+        ".pfm-timeline, .pfm-history-chart, .pfm-week-chart",
     ).forEach(renderChart);
 };
 
@@ -139,6 +139,8 @@ const initializeInfiniteActivity = () => {
         if (loading || !loadMore.href) return;
 
         loading = true;
+        list.setAttribute("aria-busy", "true");
+        loadMore.classList.add("is-loading");
         loadMore.setAttribute("aria-disabled", "true");
         setStatus("Loading more observations…");
 
@@ -192,6 +194,8 @@ const initializeInfiniteActivity = () => {
             console.warn("Activity loading failed:", error);
         } finally {
             loading = false;
+            list.removeAttribute("aria-busy");
+            loadMore.classList.remove("is-loading");
         }
     };
 

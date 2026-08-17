@@ -1,5 +1,5 @@
 .pfm-species-page {
-    --pfm-stack-gap: var(--pfm-space-10);
+    --pfm-stack-gap: var(--pfm-section-gap);
 }
 
 .pfm-species-hero {
@@ -92,6 +92,68 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: var(--pfm-space-5);
+}
+
+.pfm-species-jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--pfm-space-2);
+    align-items: center;
+    padding: var(--pfm-space-3) var(--pfm-space-4);
+    border: var(--pfm-border-thin) dashed var(--pfm-color-border-strong);
+    border-radius: var(--pfm-radius-md);
+    background: var(--pfm-color-surface-muted);
+    font-family: var(--pfm-font-mono);
+    font-size: var(--pfm-text-sm);
+}
+
+.pfm-species-jump span {
+    margin-right: var(--pfm-space-2);
+    color: var(--pfm-color-bark-700);
+    font-weight: 700;
+}
+
+.pfm-species-jump a {
+    min-height: var(--pfm-touch-target);
+    padding: var(--pfm-space-2) var(--pfm-space-3);
+    border-radius: var(--pfm-radius-round);
+}
+
+.pfm-rhythm-layout {
+    display: grid;
+    gap: var(--pfm-space-5);
+}
+
+.pfm-rhythm-story {
+    max-width: 48rem;
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-lg);
+    line-height: var(--pfm-leading-relaxed);
+}
+
+.pfm-rhythm-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pfm-space-3);
+}
+
+.pfm-rhythm-facts > div {
+    display: grid;
+    gap: var(--pfm-space-1);
+    padding: var(--pfm-space-3);
+    border-left: 0.25rem solid var(--pfm-color-moss-600);
+    background: var(--pfm-color-surface-muted);
+}
+
+.pfm-rhythm-facts dt {
+    color: var(--pfm-color-text-muted);
+    font-size: var(--pfm-text-sm);
+}
+
+.pfm-rhythm-facts dd {
+    font-family: var(--pfm-font-display);
+    font-size: var(--pfm-text-lg);
+    font-weight: 700;
 }
 
 .pfm-field-fact {
@@ -206,7 +268,8 @@
     gap: var(--pfm-space-3);
 }
 
-.pfm-related-species a {
+.pfm-related-species a,
+.pfm-related-species__future {
     display: flex;
     gap: var(--pfm-space-3);
     align-items: center;
@@ -215,6 +278,15 @@
     border: var(--pfm-border-thin) solid var(--pfm-color-border);
     border-radius: var(--pfm-radius-md);
     text-decoration: none;
+}
+
+.pfm-related-species__future {
+    color: var(--pfm-color-text-muted);
+    background: var(--pfm-color-surface-muted);
+}
+
+.pfm-related-species__future > span:last-child {
+    display: grid;
 }
 
 @media (min-width: 42rem) {
@@ -249,5 +321,9 @@
 
     .pfm-confidence-chart > div > span {
         grid-column: 1 / -1;
+    }
+
+    .pfm-rhythm-facts {
+        grid-template-columns: minmax(0, 1fr);
     }
 }

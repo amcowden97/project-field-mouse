@@ -35,6 +35,10 @@
     --pfm-color-success: var(--pfm-color-pine-700);
     --pfm-color-warning: #8b6422;
     --pfm-color-danger: #8b4533;
+    --pfm-color-info: var(--pfm-color-sky);
+    --pfm-color-accent: var(--pfm-color-gold-500);
+    --pfm-color-brand: var(--pfm-color-pine-900);
+    --pfm-color-brand-strong: var(--pfm-color-pine-950);
 
     --pfm-font-display: Georgia, "Times New Roman", serif;
     --pfm-font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -62,6 +66,7 @@
     --pfm-space-10: 2.5rem;
     --pfm-space-12: 3rem;
     --pfm-space-16: 4rem;
+    --pfm-section-gap: var(--pfm-space-10);
 
     --pfm-radius-sm: 0.5rem;
     --pfm-radius-md: 0.875rem;

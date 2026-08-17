@@ -1,5 +1,5 @@
 .pfm-activity-page {
-    --pfm-stack-gap: var(--pfm-space-10);
+    --pfm-stack-gap: var(--pfm-section-gap);
 }
 
 .pfm-page-hero--activity {
@@ -67,6 +67,25 @@
     min-height: 1.5em;
     color: var(--pfm-color-text-muted);
     font-size: var(--pfm-text-sm);
+}
+
+.pfm-load-more .pfm-button.is-loading::before {
+    display: inline-block;
+    width: 0.85rem;
+    height: 0.85rem;
+    margin-right: var(--pfm-space-2);
+    content: "";
+    border: 0.14rem solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    vertical-align: -0.08rem;
+    animation: pfm-loading-turn 700ms linear infinite;
+}
+
+@keyframes pfm-loading-turn {
+    to {
+        transform: rotate(1turn);
+    }
 }
 
 @media (min-width: 48rem) {
