@@ -6,7 +6,8 @@ Integration and release operators belong to `pfm-operators`. The policy in
 - the root-owned `pfm-deploy` and `pfm-rollback` entry points;
 - start, stop, restart, or status for named Field Mouse units;
 - `systemctl daemon-reload`;
-- fixed 200-line journal reads for named Field Mouse units;
+- fixed 200-line journal reads for named Field Mouse units, including reliability
+  capture;
 - reboot; and
 - `/usr/bin/true`, solely for noninteractive authorization testing.
 
@@ -26,6 +27,8 @@ The operator must start a new login session after group membership changes. Vali
 sudo -n true
 sudo -n /usr/bin/systemctl status fieldmouse-dashboard.service
 sudo -n /usr/bin/journalctl --no-pager -n 200 -u fieldmouse-dashboard.service
+sudo -n /usr/bin/systemctl status fieldmouse-reliability.timer
+sudo -n /usr/bin/systemctl start fieldmouse-reliability.service
 sudo -n /usr/bin/id && echo "POLICY FAILURE" || echo "Correctly denied"
 sudo -n /bin/sh -c true && echo "POLICY FAILURE" || echo "Correctly denied"
 ```
