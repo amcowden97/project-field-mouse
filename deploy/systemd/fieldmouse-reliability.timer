@@ -2,7 +2,7 @@
 Description=Capture Project Field Mouse reliability telemetry every five minutes
 
 [Timer]
-OnBootSec=5min
+OnActiveSec=5min
 OnUnitActiveSec=5min
 AccuracySec=30s
 RandomizedDelaySec=30s

@@ -83,6 +83,6 @@ systemctl is-failed --quiet fieldmouse-reliability.service && {
     echo "FAIL: on-demand reliability sample failed." >&2
     exit 1
 }
-[[ -s /var/log/fieldmouse/reliability/latest.json ]]
+[[ -s /var/log/project-field-mouse-reliability/latest.json ]]
 
 echo "Production validation passed for: $CURRENT"

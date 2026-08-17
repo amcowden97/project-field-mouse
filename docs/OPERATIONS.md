@@ -26,7 +26,7 @@ counts, daily detections, and collected execution timings. There is no write API
 ## Reliability telemetry
 
 `fieldmouse-reliability.timer` records one bounded sample every five minutes under
-`/var/log/fieldmouse/reliability/`. Daily `metrics-YYYY-MM-DD.jsonl` files retain
+`/var/log/project-field-mouse-reliability/`. Daily `metrics-YYYY-MM-DD.jsonl` files retain
 30 days of CPU, load, memory, swap, disk and network I/O counters, Pi power/thermal
 flags, and service process-tree RSS, swap, threads, descriptors, CPU time, and
 restart counts. It also records recorder/database/log growth, filesystem error

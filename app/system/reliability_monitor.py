@@ -28,6 +28,7 @@ MAINTENANCE_UNITS = (
 )
 STATE_FILE = "latest.json"
 MIB = 1024 * 1024
+DEFAULT_OUTPUT_DIRECTORY = Path("/var/log/project-field-mouse-reliability")
 
 
 def _command(arguments: list[str], timeout: float = 5) -> str | None:
@@ -204,9 +205,22 @@ def _storage_inventory() -> dict[str, Any]:
     }
 
 
+def _root_mount(mountinfo: str) -> tuple[str | None, list[str]]:
+    for line in mountinfo.splitlines():
+        fields = line.split()
+        if len(fields) < 10 or fields[4] != "/" or "-" not in fields:
+            continue
+        separator = fields.index("-")
+        filesystem = fields[separator + 1] if len(fields) > separator + 1 else None
+        return filesystem, fields[5].split(",")
+    return None, []
+
+
 def _filesystem_health() -> dict[str, Any]:
-    mount = _command(["findmnt", "--noheadings", "--output", "FSTYPE,OPTIONS", "/"])
-    mount_options = mount.partition(" ")[2].split(",") if mount else []
+    try:
+        filesystem, mount_options = _root_mount(Path("/proc/1/mountinfo").read_text())
+    except OSError:
+        filesystem, mount_options = None, []
     errors = {}
     for path in Path("/sys/fs/ext4").glob("*/errors_count"):
         try:
@@ -214,7 +228,8 @@ def _filesystem_health() -> dict[str, Any]:
         except (OSError, ValueError):
             continue
     return {
-        "root_mount": mount,
+        "root_filesystem": filesystem,
+        "root_mount_options": mount_options,
         "root_read_only": "ro" in mount_options,
         "ext4_error_counts": errors,
     }
@@ -543,7 +558,7 @@ def main() -> int:
     parser.add_argument(
         "--output-directory",
         type=Path,
-        default=Path("/var/log/fieldmouse/reliability"),
+        default=DEFAULT_OUTPUT_DIRECTORY,
     )
     parser.add_argument("--retention-days", type=int, default=30)
     parser.add_argument(

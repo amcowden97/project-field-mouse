@@ -16,8 +16,8 @@
   database/fieldmouse.db
   recordings/
   backups/
-/var/log/fieldmouse/
-  reliability/                          bounded long-term telemetry
+/var/log/fieldmouse/                     application logs
+/var/log/project-field-mouse-reliability/ root:pfm-operators telemetry
 ```
 
 Application releases and virtual environments become root-owned after dependency

@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
-from app.system.reliability_monitor import assess_anomalies, record, summarize
+from app.system.reliability_monitor import _root_mount, assess_anomalies, record, summarize
 
 
 def _sample(**overrides):
@@ -62,6 +62,18 @@ def test_assess_anomalies_detects_pressure_and_growth() -> None:
     assert "swap_growth_at_or_above_128_mib_per_interval" in reasons
     assert "cpu_temperature_at_or_above_80_c" in reasons
     assert "firmware_throttle_or_power_flag_set" in reasons
+
+
+def test_root_mount_uses_pid_one_namespace_data() -> None:
+    mountinfo = (
+        "31 1 179:2 / / rw,noatime shared:1 - ext4 /dev/root rw,errors=remount-ro\n"
+        "32 31 0:5 / /proc rw,nosuid,nodev,noexec - proc proc rw\n"
+    )
+
+    filesystem, options = _root_mount(mountinfo)
+
+    assert filesystem == "ext4"
+    assert options == ["rw", "noatime"]
 
 
 def test_record_appends_daily_metrics_and_preserves_latest_state(tmp_path: Path) -> None:

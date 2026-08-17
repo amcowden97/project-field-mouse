@@ -153,7 +153,7 @@ install -d -o root -g root -m 0755 "$OPT_ROOT" "$RELEASES"
 install -d -o fieldmouse -g fieldmouse -m 0750 \
     "$STATE_ROOT" "$STATE_ROOT/database" "$STATE_ROOT/recordings" "$STATE_ROOT/backups" \
     "$LOG_ROOT" "$LOG_ROOT/deployments"
-install -d -o root -g fieldmouse -m 0750 "$LOG_ROOT/reliability"
+install -d -o root -g pfm-operators -m 0750 /var/log/project-field-mouse-reliability
 install -d -o root -g fieldmouse -m 0750 /etc/fieldmouse
 install -d -o fieldmouse -g fieldmouse -m 0750 "$PIP_CACHE"
 

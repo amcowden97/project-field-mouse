@@ -68,7 +68,7 @@ Storage differs from the assignment background: the measured root filesystem was
 ## Instrumentation implementation
 
 The new five-minute reliability timer records daily JSONL samples under
-`/var/log/fieldmouse/reliability` with 30-day retention. It captures:
+`/var/log/project-field-mouse-reliability` with 30-day retention. It captures:
 
 - CPU, load averages, memory, zram swap, root disk use, disk I/O counters, and
   network counters;
