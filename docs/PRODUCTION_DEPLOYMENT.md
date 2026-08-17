@@ -16,7 +16,8 @@
   database/fieldmouse.db
   recordings/
   backups/
-/var/log/fieldmouse/
+/var/log/fieldmouse/                     application logs
+/var/log/project-field-mouse-reliability/ root:pfm-operators telemetry
 ```
 
 Application releases and virtual environments become root-owned after dependency
@@ -37,10 +38,12 @@ network.target --> fieldmouse-dashboard (Gunicorn)
 
 fieldmouse-backup.timer  --> verified compressed backup
 fieldmouse-cleanup.timer --> retention cleanup
+fieldmouse-reliability.timer --> five-minute metrics + abnormal snapshots
 ```
 
-Systemd restarts long-running services after failures. Backup and cleanup are separate
-oneshot services and persistent timers, so a missed run occurs after the next boot.
+Systemd restarts long-running services after failures. Backup, cleanup, and reliability
+collection are separate oneshot services and persistent timers, so a missed run occurs
+after the next boot. Reliability collection observes services but never restarts them.
 
 ## One-command deployment
 

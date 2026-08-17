@@ -21,6 +21,7 @@ readonly SERVICES=(
 readonly TIMERS=(
     fieldmouse-backup.timer
     fieldmouse-cleanup.timer
+    fieldmouse-reliability.timer
 )
 
 SOURCE=""
@@ -113,6 +114,11 @@ rollback_on_error() {
         cp -a "$UNIT_BACKUP/." /etc/systemd/system/
     fi
     if ((SWITCHED)) && [[ -n "$PREVIOUS_TARGET" && -d "$PREVIOUS_TARGET" ]]; then
+        if [[ ! -f "$PREVIOUS_TARGET/app/system/reliability_monitor.py" ]]; then
+            systemctl disable --now fieldmouse-reliability.timer 2>/dev/null || true
+            rm -f /etc/systemd/system/fieldmouse-reliability.service \
+                /etc/systemd/system/fieldmouse-reliability.timer
+        fi
         ln -sfn "$PREVIOUS_TARGET" "$CURRENT"
         restore_database || echo "WARNING: automatic database restore failed." >&2
         systemctl daemon-reload
@@ -120,6 +126,9 @@ rollback_on_error() {
         systemctl restart "${SERVICES[@]}" || true
         echo "Rolled back to $PREVIOUS_TARGET." >&2
     elif ((SWITCHED)) && [[ -d "$LEGACY_ROLLBACK/units" ]]; then
+        systemctl disable --now fieldmouse-reliability.timer 2>/dev/null || true
+        rm -f /etc/systemd/system/fieldmouse-reliability.service \
+            /etc/systemd/system/fieldmouse-reliability.timer
         unlink "$CURRENT"
         systemctl daemon-reload
         systemctl enable --now fieldmouse-cleanup.timer \
