@@ -65,7 +65,7 @@ Storage differs from the assignment background: the measured root filesystem was
 - Previous reports contained healthy snapshots and soak summaries, but not a time
   series spanning a degradation event.
 
-## Instrumentation delivered
+## Instrumentation implementation
 
 The new five-minute reliability timer records daily JSONL samples under
 `/var/log/fieldmouse/reliability` with 30-day retention. It captures:
@@ -146,8 +146,15 @@ samples, restart changes, network errors, and diagnostic count:
 
 ## Exit status
 
-**ROOT CAUSE NOT YET CONFIRMED — OBSERVABILITY READY FOR SOAK.**
+**ROOT CAUSE NOT YET CONFIRMED - PRODUCTION ACTIVATION REQUIRED.**
 
 The issue is narrowed to a small evidence-supported set, but a multi-day run or an
 actual failure capture is required before a corrective software or hardware change
 is justified.
+
+Production activation is pending. The Pi's staged source directory is not a Git
+worktree, and the active release is `rc1.1-ic1-99ec4a6`. Activating this branch
+therefore requires an explicit source restage, privileged bootstrap refresh for the
+narrow reliability sudo entries, and a normal transactional deployment. No files
+were copied to the Pi and no production cutover was performed during this
+investigation.
