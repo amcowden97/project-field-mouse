@@ -13,5 +13,6 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
-ReadWritePaths=/var/log/project-field-mouse-reliability
+LogsDirectory=project-field-mouse-reliability
+LogsDirectoryMode=0750
 UMask=0027
