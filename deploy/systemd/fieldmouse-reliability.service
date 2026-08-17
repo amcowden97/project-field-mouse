@@ -1,0 +1,18 @@
+[Unit]
+Description=Project Field Mouse reliability telemetry capture
+After=local-fs.target
+RequiresMountsFor=/var/log/fieldmouse
+
+[Service]
+Type=oneshot
+User=root
+Group=fieldmouse
+WorkingDirectory=/opt/project-field-mouse/current
+ExecStart=/opt/project-field-mouse/current/.venv/bin/python -m app.system.reliability_monitor
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/log/fieldmouse/reliability
+UMask=0027
+

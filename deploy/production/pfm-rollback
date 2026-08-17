@@ -28,7 +28,7 @@ done
 if [[ ! -L "$PREVIOUS" && -d "$LEGACY_ROLLBACK/units" ]]; then
     systemctl stop "${SERVICES[@]}"
     systemctl disable --now fieldmouse-backup.timer fieldmouse-cleanup.timer \
-        2>/dev/null || true
+        fieldmouse-reliability.timer 2>/dev/null || true
     cp -a "$LEGACY_ROLLBACK/units/." /etc/systemd/system/
     [[ ! -L "$CURRENT" ]] || unlink "$CURRENT"
     systemctl daemon-reload
@@ -49,6 +49,11 @@ fi
 
 OLD_CURRENT="$(readlink -f "$CURRENT")"
 systemctl stop "${SERVICES[@]}"
+if [[ ! -f "$TARGET/app/system/reliability_monitor.py" ]]; then
+    systemctl disable --now fieldmouse-reliability.timer 2>/dev/null || true
+    rm -f /etc/systemd/system/fieldmouse-reliability.service \
+        /etc/systemd/system/fieldmouse-reliability.timer
+fi
 ln -sfn "$TARGET" "$CURRENT"
 if [[ -n "$BACKUP" ]]; then
     runuser -u fieldmouse -- env PFM_CONFIG="$CONFIG" \
