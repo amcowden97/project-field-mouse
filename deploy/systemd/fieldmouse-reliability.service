@@ -15,4 +15,3 @@ ProtectHome=true
 ProtectSystem=strict
 ReadWritePaths=/var/log/fieldmouse/reliability
 UMask=0027
-
