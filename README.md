@@ -134,10 +134,11 @@ For a hardware-free contributor setup, follow the
 [installation guide](docs/INSTALLATION.md). The [documentation index](docs/README.md)
 links configuration, architecture, operations, troubleshooting, and release guidance.
 
-The current release candidate is `1.0.0-rc1`. Before deploying it, review the
+The next public release is `1.1.0`, pending final production-soak acceptance. Before
+deploying it, review the
 [release notes](RELEASE_NOTES.md), follow the
 [installation guide](docs/INSTALLATION.md), and complete the
-[release checklist](docs/releases/rc1/release-checklist.md). Operational guidance is in the
+[release checklist](docs/releases/v1.1.0/release-checklist.md). Operational guidance is in the
 [operations guide](docs/OPERATIONS.md).
 
 ---
@@ -176,6 +177,7 @@ Start with the [documentation index](docs/README.md). Frequently used guides inc
 - [Architecture](docs/ARCHITECTURE.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md) and [FAQ](docs/FAQ.md)
 - [Contributor guide](CONTRIBUTING.md)
+- [v1.1.0 release package](docs/releases/v1.1.0/README.md)
 - [RC1 release history](docs/releases/rc1/README.md)
 
 ---

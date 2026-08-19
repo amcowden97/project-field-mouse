@@ -34,5 +34,9 @@ directory for maintainers. Final and superseded RC1 records are indexed in the
 [RC1 release history](releases/rc1/README.md). Historical release reports describe the
 state at that time and are not current installation instructions.
 
+Release owners should use the [v1.1.0 release package](releases/v1.1.0/README.md) for
+the final checklist, documentation audit, screenshot manifest, and RC1.2 transition
+plan.
+
 For contributing expectations, see [CONTRIBUTING.md](../CONTRIBUTING.md). Security
 reports follow [SECURITY.md](../SECURITY.md).
