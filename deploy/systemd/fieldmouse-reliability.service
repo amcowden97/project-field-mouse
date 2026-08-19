@@ -8,6 +8,8 @@ Type=oneshot
 User=root
 Group=pfm-operators
 WorkingDirectory=/opt/project-field-mouse/current
+Environment=PFM_CONFIG=/etc/fieldmouse/station.toml
+EnvironmentFile=-/etc/default/fieldmouse
 ExecStart=/opt/project-field-mouse/current/.venv/bin/python -m app.system.reliability_monitor
 NoNewPrivileges=true
 PrivateTmp=true

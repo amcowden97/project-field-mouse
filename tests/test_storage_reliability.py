@@ -4,6 +4,7 @@ import json
 import subprocess
 import sqlite3
 from datetime import datetime, timezone
+from pathlib import Path
 
 from app.system.notifications import notify_state_change
 from app.system.release_retention import prune_inactive_releases
@@ -23,6 +24,12 @@ def test_storage_watermarks_are_graduated() -> None:
     assert storage_state(90) == "warning"
     assert storage_state(95) == "critical"
     assert storage_state(98) == "emergency"
+
+
+def test_reliability_service_uses_production_configuration() -> None:
+    unit = Path("deploy/systemd/fieldmouse-reliability.service").read_text()
+    assert "Environment=PFM_CONFIG=/etc/fieldmouse/station.toml" in unit
+    assert "EnvironmentFile=-/etc/default/fieldmouse" in unit
 
 
 def test_forecast_reports_time_and_date() -> None:
