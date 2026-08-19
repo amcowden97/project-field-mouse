@@ -15,6 +15,12 @@ from typing import Any
 
 import psutil
 
+from app.config import load_config
+from app.system.health_check import collect_health
+from app.system.notifications import notify_state_change
+from app.system.storage_health import storage_state
+from app.system.storage_recovery import recover_storage
+
 SERVICES = (
     "fieldmouse-recorder.service",
     "fieldmouse-birdnet.service",
@@ -92,7 +98,8 @@ def _maintenance_properties(unit: str) -> dict[str, Any]:
             "show",
             unit,
             "--no-pager",
-            "--property=ActiveState,SubState,Result,ExecMainStatus,LastTriggerUSec,NextElapseUSecRealtime",
+            "--property=ActiveState,SubState,Result,ExecMainStatus,"
+            "LastTriggerUSec,NextElapseUSecRealtime",
         ]
     )
     properties = {}
@@ -241,6 +248,7 @@ def collect_sample() -> dict[str, Any]:
     disk = psutil.disk_usage("/")
     disk_io = psutil.disk_io_counters()
     network_io = psutil.net_io_counters()
+    functional_health = collect_health(load_config())
     return {
         "schema_version": 1,
         "recorded_at": datetime.now(timezone.utc).isoformat(),
@@ -289,6 +297,7 @@ def collect_sample() -> dict[str, Any]:
         "maintenance": {unit: _maintenance_properties(unit) for unit in MAINTENANCE_UNITS},
         "storage_inventory": _storage_inventory(),
         "filesystem": _filesystem_health(),
+        "functional_health": functional_health,
     }
 
 
@@ -300,8 +309,10 @@ def assess_anomalies(sample: dict[str, Any], previous: dict[str, Any] | None) ->
         reasons.append("swap_usage_at_or_above_75_percent")
     if sample["load_average"][1] >= max(4.0, (os.cpu_count() or 1) * 1.5):
         reasons.append("five_minute_load_high")
-    if sample["disk"]["used_percent"] >= 90:
-        reasons.append("root_disk_usage_at_or_above_90_percent")
+    state = sample.get("functional_health", {}).get("disk", {}).get("state")
+    state = state or storage_state(sample["disk"]["used_percent"])
+    if state in {"warning", "critical", "emergency"}:
+        reasons.append(f"root_storage_{state}")
     if (sample["pi"]["temperature_c"] or 0) >= 80:
         reasons.append("cpu_temperature_at_or_above_80_c")
     if sample["pi"]["throttled_flags"] not in (None, 0):
@@ -322,6 +333,13 @@ def assess_anomalies(sample: dict[str, Any], previous: dict[str, Any] | None) ->
             reasons.append(f"{label}_not_active")
         if service["file_descriptors"] >= 1024:
             reasons.append(f"{label}_file_descriptors_at_or_above_1024")
+    for warning in sample.get("functional_health", {}).get("warnings", []):
+        normalized = warning.lower().replace(" ", "_")
+        if normalized in {
+            "recording_stalled", "birdnet_processing_stale", "cleanup_failed",
+            "cleanup_stale",
+        }:
+            reasons.append(normalized)
     if previous and previous.get("boot_id") == sample.get("boot_id"):
         if sample["swap"]["used_bytes"] - previous["swap"]["used_bytes"] >= 128 * MIB:
             reasons.append("swap_growth_at_or_above_128_mib_per_interval")
@@ -537,6 +555,31 @@ def record(output_directory: Path, retention_days: int = 30) -> tuple[dict[str, 
     previous = _read_json(output_directory / STATE_FILE)
     sample = collect_sample()
     reasons = assess_anomalies(sample, previous)
+    config = load_config()
+    state = storage_state(
+        sample["disk"]["used_percent"],
+        advisory=config.health.disk_advisory_percent,
+        warning=config.health.disk_warning_percent,
+        critical=config.health.disk_critical_percent,
+        emergency=config.health.disk_emergency_percent,
+    )
+    previous_state = (
+        storage_state(
+            previous["disk"]["used_percent"],
+            advisory=config.health.disk_advisory_percent,
+            warning=config.health.disk_warning_percent,
+            critical=config.health.disk_critical_percent,
+            emergency=config.health.disk_emergency_percent,
+        )
+        if previous
+        else None
+    )
+    sample["automatic_recovery"] = recover_storage(
+        state,
+        resume_nonessential=(
+            previous_state == "emergency" and state not in {"critical", "emergency"}
+        ),
+    )
     now = datetime.fromisoformat(sample["recorded_at"])
     metrics = output_directory / f"metrics-{now:%Y-%m-%d}.jsonl"
     with metrics.open("a", encoding="utf-8") as stream:
@@ -549,6 +592,26 @@ def record(output_directory: Path, retention_days: int = 30) -> tuple[dict[str, 
             output_directory / f"diagnostic-{stamp}.json",
             _diagnostic_snapshot(sample, reasons),
         )
+    notify_conditions = [
+        reason for reason in reasons
+        if reason in {
+            "root_storage_critical", "root_storage_emergency",
+            "recording_stalled", "birdnet_processing_stale",
+            "cleanup_failed", "cleanup_stale",
+        }
+    ]
+    notify_state_change(
+        url=config.health.notification_webhook_url,
+        state_path=output_directory / "notification-state.json",
+        station_id=config.station.id,
+        conditions=notify_conditions,
+        detail={
+            "disk": sample["disk"],
+            "functional_health": sample.get("functional_health"),
+            "automatic_recovery": sample["automatic_recovery"],
+        },
+        timeout=config.health.notification_timeout_seconds,
+    )
     _remove_expired(output_directory, now, retention_days)
     return sample, reasons
 

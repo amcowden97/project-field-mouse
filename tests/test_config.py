@@ -87,3 +87,19 @@ def test_invalid_timezone_is_rejected(tmp_path: Path) -> None:
     )
     with pytest.raises(ConfigurationError):
         load_config(config_file, {})
+
+
+def test_legacy_disk_warning_is_migrated_to_graduated_watermarks(tmp_path: Path) -> None:
+    config_file = tmp_path / "station.toml"
+    config_file.write_text(
+        '[station]\nid="x"\nname="X"\ntimezone="UTC"\n'
+        "[health]\ndisk_warning_percent=85.0\n",
+        encoding="utf-8",
+    )
+    config = load_config(config_file, {})
+    assert (
+        config.health.disk_advisory_percent,
+        config.health.disk_warning_percent,
+        config.health.disk_critical_percent,
+        config.health.disk_emergency_percent,
+    ) == (80.0, 90.0, 95.0, 98.0)

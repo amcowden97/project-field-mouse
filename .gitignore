@@ -55,3 +55,6 @@ logs/
 
 # Local configuration secrets
 .env
+
+# Raw production incident evidence can contain private station data.
+reports/incidents/*/evidence/

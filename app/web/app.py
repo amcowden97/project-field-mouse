@@ -15,6 +15,7 @@ from flask import Flask, abort, jsonify, render_template, request, send_file
 from app.config import load_config
 from app.metrics import metrics_snapshot
 from app.system.health_check import collect_health
+from app.system.storage_health import storage_forecast, storage_state
 from app.web.v3 import (
     build_overview_context,
     enrich_life_list,
@@ -373,7 +374,12 @@ def get_dashboard_stats(connection: sqlite3.Connection) -> dict:
         SELECT
             COUNT(*) AS total_recordings,
             COALESCE(SUM(file_size_bytes), 0) AS total_recording_bytes,
-            MAX(recorded_at) AS latest_recording_at
+            MIN(recorded_at) AS earliest_recording_at,
+            MAX(recorded_at) AS latest_recording_at,
+            MAX(CASE WHEN processing_status IN ('processed', 'audio_expired')
+                THEN recorded_at END) AS latest_processed_at,
+            SUM(CASE WHEN processing_status IN ('pending', 'processing')
+                THEN 1 ELSE 0 END) AS queue_depth
         FROM recordings
         """
     ).fetchone()
@@ -397,6 +403,23 @@ def get_dashboard_stats(connection: sqlite3.Connection) -> dict:
         recording_age_seconds is not None
         and recording_age_seconds <= 180
     )
+    latest_processed_at = recording_stats["latest_processed_at"]
+    processing_age_seconds = seconds_since(latest_processed_at)
+    birdnet_recent = (
+        processing_age_seconds is not None
+        and processing_age_seconds <= CONFIG.health.birdnet_stale_seconds
+    )
+    disk_percent = round((disk.used / disk.total) * 100, 1)
+    recording_rate = None
+    earliest_recording = recording_stats["earliest_recording_at"]
+    try:
+        first = datetime.fromisoformat(str(earliest_recording).replace("Z", "+00:00"))
+        last = datetime.fromisoformat(str(latest_recording_at).replace("Z", "+00:00"))
+        elapsed = (last - first).total_seconds()
+        if elapsed > 0:
+            recording_rate = recording_stats["total_recording_bytes"] / elapsed
+    except (TypeError, ValueError):
+        pass
 
     return {
         "hostname": socket.gethostname(),
@@ -411,6 +434,10 @@ def get_dashboard_stats(connection: sqlite3.Connection) -> dict:
         "latest_recording_at": latest_recording_at,
         "recorder_recent": recorder_recent,
         "recording_age_seconds": recording_age_seconds,
+        "latest_processed_at": latest_processed_at,
+        "processing_age_seconds": processing_age_seconds,
+        "birdnet_recent": birdnet_recent,
+        "queue_depth": recording_stats["queue_depth"] or 0,
         "detections_last_24_hours": (
             recent_stats["detections_last_24_hours"] or 0
         ),
@@ -420,7 +447,18 @@ def get_dashboard_stats(connection: sqlite3.Connection) -> dict:
         "disk_total": disk.total,
         "disk_used": disk.used,
         "disk_free": disk.free,
-        "disk_percent": round((disk.used / disk.total) * 100, 1),
+        "disk_percent": disk_percent,
+        "storage_state": storage_state(
+            disk_percent,
+            advisory=CONFIG.health.disk_advisory_percent,
+            warning=CONFIG.health.disk_warning_percent,
+            critical=CONFIG.health.disk_critical_percent,
+            emergency=CONFIG.health.disk_emergency_percent,
+        ),
+        "storage_forecast": storage_forecast(
+            disk.free,
+            recording_rate,
+        ),
     }
 
 

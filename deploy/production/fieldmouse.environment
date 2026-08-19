@@ -4,3 +4,5 @@ PFM_BIRDNET_LATITUDE=47.5673
 PFM_BIRDNET_LONGITUDE=-122.6326
 PFM_BIRDNET_OCCURRENCE_THRESHOLD=0.03
 PFM_BIRDNET_POLL_INTERVAL=10
+# Set locally to an operator-controlled HTTPS webhook. Do not commit credentials.
+# PFM_HEALTH_NOTIFICATION_WEBHOOK_URL=https://alerts.example.invalid/fieldmouse
