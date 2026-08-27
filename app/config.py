@@ -91,8 +91,15 @@ class LoggingConfig:
 @dataclass(frozen=True)
 class HealthConfig:
     recording_stale_seconds: int = 1200
-    disk_warning_percent: float = 85.0
+    birdnet_stale_seconds: int = 1800
+    cleanup_stale_seconds: int = 28800
+    disk_advisory_percent: float = 80.0
+    disk_warning_percent: float = 90.0
+    disk_critical_percent: float = 95.0
+    disk_emergency_percent: float = 98.0
     temperature_warning_c: float = 75.0
+    notification_webhook_url: str = ""
+    notification_timeout_seconds: int = 5
     services: tuple[str, ...] = (
         "fieldmouse-recorder.service",
         "fieldmouse-birdnet.service",
@@ -145,6 +152,19 @@ def _migrate_compatibility_fields(data: dict[str, dict[str, Any]]) -> None:
                     f"and {section}.{current}"
                 )
             values[current] = values.pop(legacy)
+    health = data["health"]
+    new_watermarks = {
+        "disk_advisory_percent",
+        "disk_critical_percent",
+        "disk_emergency_percent",
+    }
+    if (
+        health.get("disk_warning_percent") == 85.0
+        and not new_watermarks.intersection(health)
+    ):
+        # RC1 used one 85% blocking threshold. RC1.1.1 replaces it with the
+        # documented 80/90/95/98 graduated policy.
+        health.pop("disk_warning_percent")
 
 
 def _environment(data: dict[str, Any], environ: dict[str, str]) -> None:
@@ -282,6 +302,18 @@ def load_config(
         if logging.level.upper() not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
             raise ConfigurationError("logging.level is invalid")
         health = HealthConfig(**{**data["health"], "services": tuple(data["health"]["services"])})
+        thresholds = (
+            health.disk_advisory_percent,
+            health.disk_warning_percent,
+            health.disk_critical_percent,
+            health.disk_emergency_percent,
+        )
+        if not (
+            0 < thresholds[0] < thresholds[1] < thresholds[2] < thresholds[3] < 100
+        ):
+            raise ConfigurationError(
+                "health disk thresholds must increase from advisory to emergency"
+            )
     except (TypeError, ValueError, ZoneInfoNotFoundError) as error:
         raise ConfigurationError(f"Invalid configuration: {error}") from error
     return FieldMouseConfig(station, audio, storage, detection, birdnet,

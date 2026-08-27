@@ -79,6 +79,7 @@ def get_candidates(
     empty_cutoff: datetime,
     detection_cutoff: datetime,
     rare_species: frozenset[str] = frozenset(),
+    limit: int | None = None,
 ) -> list[sqlite3.Row]:
     columns = table_columns(
         connection,
@@ -130,75 +131,78 @@ def get_candidates(
         else "'unknown' AS processing_status"
     )
 
-    rows = connection.execute(
+    excluded_statuses = (
+        "pending", "processing", "recording", "in_progress", "audio_expired"
+    )
+    status_placeholders = ",".join("?" * len(excluded_statuses))
+    status_filter = (
+        f"AND LOWER(COALESCE(r.{status_column}, '')) "
+        f"NOT IN ({status_placeholders})"
+        if status_column
+        else ""
+    )
+    limit_clause = "LIMIT ?" if limit is not None else ""
+    common_parameters: list[object] = (
+        list(excluded_statuses) if status_column else []
+    )
+    empty_parameters: list[object] = [empty_cutoff.isoformat(), *common_parameters]
+    if limit is not None:
+        empty_parameters.append(limit)
+    candidates = connection.execute(
         f"""
-        SELECT
-            r.id,
-            r.{path_column} AS audio_path,
-            r.{timestamp_column} AS recorded_at,
-            {status_selection},
-            COUNT(d.id) AS detection_count
-            , GROUP_CONCAT(DISTINCT d.common_name) AS detected_species
+        SELECT r.id, r.{path_column} AS audio_path,
+               r.{timestamp_column} AS recorded_at, {status_selection},
+               0 AS detection_count, NULL AS detected_species
         FROM recordings AS r
-        LEFT JOIN detections AS d
-            ON d.recording_id = r.id
-        GROUP BY
-            r.id,
-            r.{path_column},
-            r.{timestamp_column}
+        WHERE datetime(r.{timestamp_column}) < datetime(?)
+          {status_filter}
+          AND NOT EXISTS (
+              SELECT 1 FROM detections AS d WHERE d.recording_id = r.id
+          )
         ORDER BY r.id
-        """
+        {limit_clause}
+        """,
+        empty_parameters,
     ).fetchall()
 
-    candidates: list[sqlite3.Row] = []
+    # Fail closed for detection-bearing audio until an authoritative rare-species
+    # list exists. Empty recordings remain safely recoverable under ENOSPC.
+    if not rare_species or (limit is not None and len(candidates) >= limit):
+        return list(candidates)
 
-    for row in rows:
-        status = str(
-            row["processing_status"] or ""
-        ).lower()
-
-        if status in {
-            "pending",
-            "processing",
-            "recording",
-            "in_progress",
-            "audio_expired",
-        }:
-            continue
-
-        recorded_at = parse_timestamp(
-            row["recorded_at"]
-        )
-
-        if recorded_at is None:
-            continue
-
-        detection_count = int(
-            row["detection_count"]
-        )
-        detected_species = {
-            name.strip().casefold()
-            for name in str(row["detected_species"] or "").split(",")
-            if name.strip()
-        }
-
-        if detection_count > 0:
-            # Without an authoritative rare-species list, fail closed and
-            # preserve every detection-bearing recording. Once configured,
-            # only recordings containing no listed rare species are eligible.
-            if not rare_species or detected_species & rare_species:
-                continue
-
-        cutoff = (
-            detection_cutoff
-            if detection_count > 0
-            else empty_cutoff
-        )
-
-        if recorded_at < cutoff:
-            candidates.append(row)
-
-    return candidates
+    remaining = None if limit is None else limit - len(candidates)
+    rare_names = sorted(rare_species)
+    rare_placeholders = ",".join("?" * len(rare_names))
+    detected_parameters: list[object] = [
+        detection_cutoff.isoformat(),
+        *common_parameters,
+        *rare_names,
+    ]
+    if remaining is not None:
+        detected_parameters.append(remaining)
+    detected = connection.execute(
+        f"""
+        SELECT r.id, r.{path_column} AS audio_path,
+               r.{timestamp_column} AS recorded_at, {status_selection},
+               (SELECT COUNT(*) FROM detections AS d
+                WHERE d.recording_id = r.id) AS detection_count,
+               (SELECT GROUP_CONCAT(DISTINCT d.common_name) FROM detections AS d
+                WHERE d.recording_id = r.id) AS detected_species
+        FROM recordings AS r
+        WHERE datetime(r.{timestamp_column}) < datetime(?)
+          {status_filter}
+          AND EXISTS (SELECT 1 FROM detections AS d WHERE d.recording_id = r.id)
+          AND NOT EXISTS (
+              SELECT 1 FROM detections AS d
+              WHERE d.recording_id = r.id
+                AND LOWER(d.common_name) IN ({rare_placeholders})
+          )
+        ORDER BY r.id
+        {limit_clause}
+        """,
+        detected_parameters,
+    ).fetchall()
+    return [*candidates, *detected]
 
 
 def expire_recording_audio(

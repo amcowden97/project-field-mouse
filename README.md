@@ -110,12 +110,14 @@ Flask Dashboard
 
 ```
 project-field-mouse/
-├── app/
-├── docs/
-├── scripts/
-├── services/
-├── tests/
-└── config/
+|-- app/       # Python application and web interface
+|-- config/    # Versioned configuration examples and profiles
+|-- data/      # Database schema and migrations; runtime data is ignored
+|-- deploy/    # Production systemd and deployment resources
+|-- docs/      # User, operator, contributor, and release documentation
+|-- samples/   # Safe sample data
+|-- scripts/   # Supported development and operator commands
+`-- tests/     # Automated tests
 ```
 
 ---
@@ -127,12 +129,16 @@ git clone https://github.com/amcowden97/project-field-mouse.git
 cd project-field-mouse
 ```
 
-See the documentation for installation, hardware setup, configuration, and deployment instructions.
+For a hardware-free contributor setup, follow the
+[developer quick start](docs/DEVELOPMENT.md). For a Raspberry Pi station, use the
+[installation guide](docs/INSTALLATION.md). The [documentation index](docs/README.md)
+links configuration, architecture, operations, troubleshooting, and release guidance.
 
-The current release candidate is `1.0.0-rc1`. Before deploying it, review the
+The next public release is `1.1.0`, pending final production-soak acceptance. Before
+deploying it, review the
 [release notes](RELEASE_NOTES.md), follow the
 [installation guide](docs/INSTALLATION.md), and complete the
-[release checklist](docs/releases/rc1/release-checklist.md). Operational guidance is in the
+[release checklist](docs/releases/v1.1.0/release-checklist.md). Operational guidance is in the
 [operations guide](docs/OPERATIONS.md).
 
 ---
@@ -163,19 +169,16 @@ The current release candidate is `1.0.0-rc1`. Before deploying it, review the
 
 # Documentation
 
-Documentation includes:
+Start with the [documentation index](docs/README.md). Frequently used guides include:
 
-- Installation Guide
-- Quick Start
-- Hardware Setup
-- Raspberry Pi Configuration
-- Architecture Overview
-- API Documentation
-- Troubleshooting
-- FAQ
-- Contributor Guide
-- [Repository Maintenance Policy](docs/REPOSITORY_MAINTENANCE_POLICY.md)
-- [RC1 Release History](docs/releases/rc1/README.md)
+- [Installation and station setup](docs/INSTALLATION.md)
+- [Developer quick start](docs/DEVELOPMENT.md)
+- [Configuration reference](docs/CONFIGURATION.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md) and [FAQ](docs/FAQ.md)
+- [Contributor guide](CONTRIBUTING.md)
+- [v1.1.0 release package](docs/releases/v1.1.0/README.md)
+- [RC1 release history](docs/releases/rc1/README.md)
 
 ---
 
@@ -183,7 +186,8 @@ Documentation includes:
 
 Contributions of all sizes are welcome.
 
-Please review **CONTRIBUTING.md** before opening an issue or pull request.
+Please review [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[Code of Conduct](CODE_OF_CONDUCT.md) before opening an issue or pull request.
 
 ---
 

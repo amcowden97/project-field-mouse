@@ -56,7 +56,14 @@ json = true
 
 [health]
 recording_stale_seconds = 1200
-disk_warning_percent = 85.0
+birdnet_stale_seconds = 1800
+cleanup_stale_seconds = 28800
+disk_advisory_percent = 80.0
+disk_warning_percent = 90.0
+disk_critical_percent = 95.0
+disk_emergency_percent = 98.0
+notification_webhook_url = ""
+notification_timeout_seconds = 5
 temperature_warning_c = 75.0
 services = [
   "fieldmouse-recorder.service",

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import shutil
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,15 +15,20 @@ from app.database.connection import connect_database, initialize_database
 def backup_database(source: Path, destination: Path) -> Path:
     destination.mkdir(parents=True, exist_ok=True)
     target = destination / f"fieldmouse-{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}.db"
-    with sqlite3.connect(source) as original, sqlite3.connect(target) as copy:
+    with closing(sqlite3.connect(source)) as original, closing(
+        sqlite3.connect(target)
+    ) as copy:
         original.backup(copy)
+        copy.commit()
     return target
 
 
 def restore_database(backup: Path, destination: Path) -> None:
     if not backup.is_file():
         raise FileNotFoundError(backup)
-    with sqlite3.connect(f"file:{backup}?mode=ro", uri=True) as check:
+    with closing(
+        sqlite3.connect(f"file:{backup}?mode=ro", uri=True)
+    ) as check:
         if check.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
             raise RuntimeError("Refusing to restore a corrupt backup")
     destination.parent.mkdir(parents=True, exist_ok=True)

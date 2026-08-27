@@ -9,6 +9,7 @@ readonly SERVICES=(
 readonly TIMERS=(
     fieldmouse-backup.timer
     fieldmouse-cleanup.timer
+    fieldmouse-reliability.timer
 )
 
 [[ $EUID -ne 0 ]] || {
@@ -71,11 +72,17 @@ echo "7/8 Validating dashboard and health..."
 curl --fail --silent --show-error http://127.0.0.1:8000/health >/dev/null
 curl --fail --silent --show-error http://127.0.0.1:8000/ >/dev/null
 
-echo "8/8 Validating backup timer execution..."
+echo "8/8 Validating backup and reliability timer execution..."
 sudo -n /usr/bin/systemctl start fieldmouse-backup.service
 systemctl is-failed --quiet fieldmouse-backup.service && {
     echo "FAIL: on-demand backup failed." >&2
     exit 1
 }
+sudo -n /usr/bin/systemctl start fieldmouse-reliability.service
+systemctl is-failed --quiet fieldmouse-reliability.service && {
+    echo "FAIL: on-demand reliability sample failed." >&2
+    exit 1
+}
+[[ -s /var/log/project-field-mouse-reliability/latest.json ]]
 
 echo "Production validation passed for: $CURRENT"

@@ -85,6 +85,68 @@
             </div>
         </section>
 
+        <section class="pfm-section" aria-labelledby="highlights-title">
+            <div class="pfm-section-heading">
+                <div>
+                    <p class="pfm-eyebrow">The story so far</p>
+                    <h2 id="highlights-title">Today’s Highlights</h2>
+                </div>
+                <span class="pfm-journal-note">Wildlife first, systems second</span>
+            </div>
+            <div class="pfm-highlight-grid">
+                <article class="pfm-highlight-card pfm-highlight-card--feature">
+                    <span class="pfm-highlight-card__label">Most active visitor</span>
+                    {% if wildlife_story.most_active %}
+                        <strong>{{ wildlife_story.most_active.common_name }}</strong>
+                        <p>
+                            Heard {{ wildlife_story.most_active.detection_count }}
+                            {% if wildlife_story.most_active.detection_count == 1 %}time{% else %}times{% endif %}
+                            today, with a best BirdNET match of
+                            {{ wildlife_story.most_active.highest_confidence }}%.
+                        </p>
+                    {% else %}
+                        <strong>Waiting for today’s first visitor</strong>
+                        <p>The station is listening. This story will grow with each observation.</p>
+                    {% endif %}
+                </article>
+                <article class="pfm-highlight-card">
+                    <span class="pfm-highlight-card__label">First visitor</span>
+                    {% if wildlife_story.first_visitor %}
+                        <strong>{{ wildlife_story.first_visitor.common_name }}</strong>
+                        <p>
+                            Opened today’s field notes at
+                            {{ local_time(wildlife_story.first_visitor.created_at) }}.
+                        </p>
+                    {% else %}
+                        <strong>The first page is blank</strong>
+                        <p>No visitor has opened today’s field notes yet.</p>
+                    {% endif %}
+                </article>
+                <article class="pfm-highlight-card">
+                    <span class="pfm-highlight-card__label">Dawn chorus</span>
+                    <strong>{{ wildlife_story.dawn_species_count }} species</strong>
+                    <p>
+                        {{ wildlife_story.dawn_detection_count }} calls and songs
+                        heard between 5 and 9 this morning.
+                    </p>
+                </article>
+                <article class="pfm-highlight-card">
+                    {% if wildlife_story.return_visit %}
+                        <span class="pfm-highlight-card__label">Welcome back</span>
+                        <strong>{{ wildlife_story.return_visit.common_name }}</strong>
+                        <p>
+                            Returned after {{ wildlife_story.return_visit.absence_days }}
+                            quiet days away from the station.
+                        </p>
+                    {% else %}
+                        <span class="pfm-highlight-card__label">New this week</span>
+                        <strong>{{ wildlife_story.new_species_week }} species</strong>
+                        <p>First-time additions to this station’s Life List in seven days.</p>
+                    {% endif %}
+                </article>
+            </div>
+        </section>
+
         <section class="pfm-section" aria-labelledby="visitors-title">
             <div class="pfm-section-heading">
                 <div>
@@ -199,6 +261,48 @@
                 </p>
             {% endcall %}
         </div>
+
+        <section class="pfm-section" aria-labelledby="week-title">
+            <div class="pfm-section-heading">
+                <div>
+                    <p class="pfm-eyebrow">Seven days in the field</p>
+                    <h2 id="week-title">This Week’s Rhythm</h2>
+                </div>
+                <span class="pfm-journal-note">
+                    {{ wildlife_story.season_detection_count }} {{ wildlife_story.season }} observations in 30 days
+                </span>
+            </div>
+            <div class="pfm-week-chart" aria-describedby="week-chart-summary">
+                {% for day in weekly_activity %}
+                    <div class="pfm-week-chart__day">
+                        <span class="pfm-week-chart__count">{{ day.detection_count }}</span>
+                        <span
+                            class="pfm-week-chart__bar"
+                            data-chart-value="{{ day.detection_count }}"
+                            aria-hidden="true"
+                        ></span>
+                        <time datetime="{{ day.activity_date }}">{{ day.label }}</time>
+                        <small>{{ day.species_count }} sp.</small>
+                    </div>
+                {% endfor %}
+            </div>
+            <p id="week-chart-summary" class="pfm-visually-hidden">
+                Daily detections and distinct species for the last seven days.
+            </p>
+            <table class="pfm-visually-hidden">
+                <caption>Weekly wildlife activity</caption>
+                <thead><tr><th>Date</th><th>Detections</th><th>Species</th></tr></thead>
+                <tbody>
+                    {% for day in weekly_activity %}
+                        <tr>
+                            <th>{{ day.activity_date }}</th>
+                            <td>{{ day.detection_count }}</td>
+                            <td>{{ day.species_count }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
 
         <section class="pfm-section" aria-labelledby="timeline-title">
             <div class="pfm-section-heading">

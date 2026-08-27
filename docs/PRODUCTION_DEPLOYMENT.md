@@ -16,7 +16,8 @@
   database/fieldmouse.db
   recordings/
   backups/
-/var/log/fieldmouse/
+/var/log/fieldmouse/                     application logs
+/var/log/project-field-mouse-reliability/ root:pfm-operators telemetry
 ```
 
 Application releases and virtual environments become root-owned after dependency
@@ -37,10 +38,14 @@ network.target --> fieldmouse-dashboard (Gunicorn)
 
 fieldmouse-backup.timer  --> verified compressed backup
 fieldmouse-cleanup.timer --> retention cleanup
+fieldmouse-reliability.timer --> five-minute metrics + abnormal snapshots
 ```
 
-Systemd restarts long-running services after failures. Backup and cleanup are separate
-oneshot services and persistent timers, so a missed run occurs after the next boot.
+Systemd restarts long-running services after failures. Backup, cleanup, and reliability
+collection are separate oneshot services and persistent timers, so a missed run occurs
+after the next boot. At critical storage pressure the root reliability service invokes
+the existing retention cleanup; at emergency pressure it temporarily suspends backups
+and prioritizes recorder recovery. See `RC1.1.1_STORAGE_RELIABILITY.md`.
 
 ## One-command deployment
 
@@ -56,7 +61,8 @@ The command serializes deployments with `flock`, creates a verified database and
 configuration backup, copies a clean source tree, creates a release-specific virtual
 environment, installs production dependencies including Gunicorn, runs migrations,
 installs units, disables known legacy timers, atomically switches `current`, enables
-and restarts services, and checks every service, timer, and `/health`.
+and restarts services, checks every service, timer, and `/health`, then safely retains
+only current, previous, and one inactive diagnostic environment.
 
 Any error after the switch triggers automatic rollback. Deployments do not merge
 branches, create tags, or pull source.

@@ -1,5 +1,5 @@
 .pfm-activity-page {
-    --pfm-stack-gap: var(--pfm-space-10);
+    --pfm-stack-gap: var(--pfm-section-gap);
 }
 
 .pfm-page-hero--activity {
@@ -31,6 +31,25 @@
     font-size: var(--pfm-text-sm);
 }
 
+.pfm-verification-note {
+    display: grid;
+    gap: var(--pfm-space-3);
+    padding: var(--pfm-space-5);
+    border-left: 0.35rem solid var(--pfm-color-gold-500);
+    border-radius: var(--pfm-radius-md);
+    background: var(--pfm-color-surface-muted);
+}
+
+.pfm-verification-note > div {
+    display: grid;
+    gap: var(--pfm-space-1);
+}
+
+.pfm-verification-note p:last-child {
+    max-width: var(--pfm-reading-width);
+    color: var(--pfm-color-text-muted);
+}
+
 .pfm-load-more,
 .pfm-pagination {
     display: grid;
@@ -48,6 +67,25 @@
     min-height: 1.5em;
     color: var(--pfm-color-text-muted);
     font-size: var(--pfm-text-sm);
+}
+
+.pfm-load-more .pfm-button.is-loading::before {
+    display: inline-block;
+    width: 0.85rem;
+    height: 0.85rem;
+    margin-right: var(--pfm-space-2);
+    content: "";
+    border: 0.14rem solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    vertical-align: -0.08rem;
+    animation: pfm-loading-turn 700ms linear infinite;
+}
+
+@keyframes pfm-loading-turn {
+    to {
+        transform: rotate(1turn);
+    }
 }
 
 @media (min-width: 48rem) {

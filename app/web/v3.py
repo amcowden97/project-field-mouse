@@ -194,6 +194,201 @@ def get_recent_discoveries(connection, limit: int = 4) -> list[dict]:
     return [dict(row) for row in rows]
 
 
+def get_wildlife_story(connection, station: dict) -> dict:
+    """Build compact, read-only narrative highlights for the overview."""
+    start, end = station_day_bounds(station["timezone"])
+    active = connection.execute(
+        """
+        SELECT
+            common_name,
+            scientific_name,
+            COUNT(*) AS detection_count,
+            ROUND(MAX(confidence) * 100, 1) AS highest_confidence
+        FROM detections
+        WHERE datetime(created_at) >= datetime(?)
+          AND datetime(created_at) < datetime(?)
+        GROUP BY common_name, scientific_name
+        ORDER BY detection_count DESC, highest_confidence DESC
+        LIMIT 1
+        """,
+        (start.isoformat(), end.isoformat()),
+    ).fetchone()
+    first_visitor = connection.execute(
+        """
+        SELECT common_name, scientific_name, created_at
+        FROM detections
+        WHERE datetime(created_at) >= datetime(?)
+          AND datetime(created_at) < datetime(?)
+        ORDER BY datetime(created_at) ASC
+        LIMIT 1
+        """,
+        (start.isoformat(), end.isoformat()),
+    ).fetchone()
+    dawn_end = start + timedelta(hours=9)
+    dawn_start = start + timedelta(hours=5)
+    dawn = connection.execute(
+        """
+        SELECT
+            COUNT(*) AS detection_count,
+            COUNT(DISTINCT common_name) AS species_count
+        FROM detections
+        WHERE datetime(created_at) >= datetime(?)
+          AND datetime(created_at) < datetime(?)
+        """,
+        (dawn_start.isoformat(), dawn_end.isoformat()),
+    ).fetchone()
+    new_this_week = connection.execute(
+        """
+        SELECT COUNT(*) AS species_count
+        FROM (
+            SELECT common_name
+            FROM detections
+            GROUP BY common_name
+            HAVING datetime(MIN(created_at)) >= datetime('now', '-7 days')
+        )
+        """
+    ).fetchone()
+    season = SEASON_NAMES[datetime.now(timezone.utc).month]
+    seasonal = connection.execute(
+        """
+        SELECT
+            COUNT(*) AS detection_count,
+            COUNT(DISTINCT common_name) AS species_count
+        FROM detections
+        WHERE datetime(created_at) >= datetime('now', '-30 days')
+        """
+    ).fetchone()
+    return_visit = connection.execute(
+        """
+        WITH visits AS (
+            SELECT
+                common_name,
+                scientific_name,
+                created_at,
+                LAG(created_at) OVER (
+                    PARTITION BY common_name
+                    ORDER BY datetime(created_at)
+                ) AS previous_at
+            FROM detections
+        )
+        SELECT
+            common_name,
+            scientific_name,
+            created_at,
+            previous_at,
+            CAST(
+                julianday(created_at) - julianday(previous_at)
+                AS INTEGER
+            ) AS absence_days
+        FROM visits
+        WHERE previous_at IS NOT NULL
+          AND datetime(created_at) >= datetime('now', '-7 days')
+          AND julianday(created_at) - julianday(previous_at) >= 1
+        ORDER BY absence_days DESC, datetime(created_at) DESC
+        LIMIT 1
+        """
+    ).fetchone()
+
+    return {
+        "most_active": dict(active) if active is not None else None,
+        "first_visitor": (
+            dict(first_visitor) if first_visitor is not None else None
+        ),
+        "dawn_detection_count": dawn["detection_count"] or 0,
+        "dawn_species_count": dawn["species_count"] or 0,
+        "return_visit": (
+            dict(return_visit) if return_visit is not None else None
+        ),
+        "new_species_week": new_this_week["species_count"] or 0,
+        "season": season,
+        "season_detection_count": seasonal["detection_count"] or 0,
+        "season_species_count": seasonal["species_count"] or 0,
+    }
+
+
+def get_weekly_activity(connection, station: dict) -> list[dict]:
+    """Return seven station-local day buckets, including quiet days."""
+    today_start, today_end = station_day_bounds(station["timezone"])
+    week_start = today_start - timedelta(days=6)
+    rows = connection.execute(
+        """
+        SELECT
+            DATE(created_at) AS activity_date,
+            COUNT(*) AS detection_count,
+            COUNT(DISTINCT common_name) AS species_count
+        FROM detections
+        WHERE datetime(created_at) >= datetime(?)
+          AND datetime(created_at) < datetime(?)
+        GROUP BY DATE(created_at)
+        """,
+        (week_start.isoformat(), today_end.isoformat()),
+    ).fetchall()
+    counts = {row["activity_date"]: dict(row) for row in rows}
+
+    activity = []
+    for offset in range(7):
+        day = (week_start + timedelta(days=offset)).date()
+        key = day.isoformat()
+        values = counts.get(key, {})
+        activity.append({
+            "activity_date": key,
+            "label": day.strftime("%a"),
+            "detection_count": values.get("detection_count", 0),
+            "species_count": values.get("species_count", 0),
+        })
+
+    return activity
+
+
+def get_species_observation_profile(
+    connection,
+    common_name: str,
+) -> dict:
+    """Summarize when a species tends to visit without changing APIs."""
+    busiest = connection.execute(
+        """
+        SELECT
+            CAST(strftime('%H', created_at) AS INTEGER) AS hour,
+            COUNT(*) AS detection_count
+        FROM detections
+        WHERE common_name = ?
+        GROUP BY strftime('%H', created_at)
+        ORDER BY detection_count DESC, hour ASC
+        LIMIT 1
+        """,
+        (common_name,),
+    ).fetchone()
+    recent = connection.execute(
+        """
+        SELECT
+            COUNT(*) AS detection_count,
+            COUNT(DISTINCT DATE(created_at)) AS active_days,
+            ROUND(AVG(confidence) * 100, 1) AS average_confidence
+        FROM detections
+        WHERE common_name = ?
+          AND datetime(created_at) >= datetime('now', '-30 days')
+        """,
+        (common_name,),
+    ).fetchone()
+
+    hour = int(busiest["hour"]) if busiest is not None else None
+    if hour is None:
+        hour_label = "Still learning"
+    else:
+        hour_label = f"{hour % 12 or 12} {'AM' if hour < 12 else 'PM'}"
+
+    return {
+        "typical_hour": hour,
+        "typical_hour_label": hour_label,
+        "typical_hour_count": (
+            busiest["detection_count"] if busiest is not None else 0
+        ),
+        "recent_detection_count": recent["detection_count"] or 0,
+        "recent_active_days": recent["active_days"] or 0,
+        "recent_average_confidence": recent["average_confidence"] or 0,
+    }
+
+
 def get_activity_timeline(connection, station: dict) -> list[dict]:
     start, end = station_day_bounds(station["timezone"])
     rows = connection.execute(
@@ -366,6 +561,8 @@ def build_overview_context(
         "station": selected_station,
         "stats": stats,
         "today": get_today_summary(connection, selected_station),
+        "wildlife_story": get_wildlife_story(connection, selected_station),
+        "weekly_activity": get_weekly_activity(connection, selected_station),
         "latest_visitors": latest_visitors,
         "recent_discoveries": get_recent_discoveries(connection),
         "species_streak": get_species_streak(

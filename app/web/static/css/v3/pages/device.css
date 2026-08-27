@@ -1,5 +1,5 @@
 .pfm-device-page {
-    --pfm-stack-gap: var(--pfm-space-10);
+    --pfm-stack-gap: var(--pfm-section-gap);
 }
 
 .pfm-page-hero--device {

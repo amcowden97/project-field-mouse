@@ -44,6 +44,24 @@ class ConsensusEngine:
         rule: RuleOutcome,
     ) -> VerificationDecision:
         explanations = [rule.reason]
+        birdnet_contribution = self.birdnet_weight * self._logit(
+            context.birdnet_confidence
+        )
+        evidence: list[dict[str, object]] = [
+            {
+                "source": "birdnet",
+                "available": True,
+                "outcome": "support",
+                "score": context.birdnet_confidence,
+                "weight": self.birdnet_weight,
+                "log_odds_contribution": birdnet_contribution,
+                "summary": (
+                    f"BirdNET proposed {context.common_name} at "
+                    f"{context.birdnet_confidence:.0%}."
+                ),
+                "details": {},
+            }
+        ]
         if rule.action == "reject":
             return VerificationDecision(
                 context.birdnet_confidence,
@@ -52,11 +70,10 @@ class ConsensusEngine:
                 tuple(explanations),
                 tuple(results),
                 rule,
+                evidence=tuple(evidence),
             )
 
-        evidence = self.intercept + self.birdnet_weight * self._logit(
-            context.birdnet_confidence
-        )
+        combined_log_odds = self.intercept + birdnet_contribution
         for result in results:
             direction = {
                 "support": 1.0,
@@ -64,10 +81,23 @@ class ConsensusEngine:
                 "oppose": -1.0,
             }[result.verdict]
             strength = abs(self._logit(result.score))
-            evidence += direction * result.weight * strength
+            contribution = direction * result.weight * strength
+            combined_log_odds += contribution
             explanations.append(result.reason)
+            evidence.append(
+                {
+                    "source": result.plugin,
+                    "available": result.details.get("available", True),
+                    "outcome": result.verdict,
+                    "score": result.score,
+                    "weight": result.weight,
+                    "log_odds_contribution": contribution,
+                    "summary": result.reason,
+                    "details": result.details,
+                }
+            )
 
-        score = self._sigmoid(evidence)
+        score = self._sigmoid(combined_log_odds)
         if score >= self.verified_threshold:
             status = "verified"
         elif score >= self.probable_threshold:
@@ -101,4 +131,5 @@ class ConsensusEngine:
             tuple(explanations),
             tuple(results),
             rule,
+            evidence=tuple(evidence),
         )

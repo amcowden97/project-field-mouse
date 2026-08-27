@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project questions and ideas
+    url: https://github.com/amcowden97/project-field-mouse/discussions
+    about: Ask setup questions or discuss ideas before filing an actionable issue.
+  - name: Private security report
+    url: https://github.com/amcowden97/project-field-mouse/security/advisories/new
+    about: Report suspected vulnerabilities privately; do not include sensitive details in a public issue.

@@ -34,6 +34,8 @@ fields without changing existing detection records.
 `VerificationManager` only knows the `VerificationPlugin` interface. It applies
 the rule engine, calls registered plugins, converts plugin failures to explicit
 neutral/unavailable results, and gives all evidence to the consensus engine.
+Strong BirdNET predictions still pass through enabled plugins: BirdNET supplies
+the prior, not independent corroboration.
 
 Built-in plugins cover:
 
@@ -69,9 +71,15 @@ score is `sigmoid(L)`. This has useful evidence semantics:
 - source weights can be calibrated independently;
 - every contribution remains stored and explainable.
 
+Each item in `evidence_json` records availability, outcome, source score,
+configured weight, exact signed `log_odds_contribution`, human summary, and
+source-specific details. This lets a future dashboard explain both the final
+assessment and the arithmetic behind it without another persistence redesign.
+
 The default status bands are verified at 90%, probable at 70%, rejected below
 35%, and uncertain otherwise. A rule may reject a low BirdNET result before
-expensive plugins run, or accept a very strong BirdNET result directly.
+expensive plugins run. High-confidence results retain a strong BirdNET prior but
+are still independently evaluated.
 
 All thresholds and weights live in `config/verification.toml`.
 
@@ -101,7 +109,7 @@ service can be exchanged without altering orchestration or consensus.
 
 ## Database
 
-`001_verification_v2.sql` extends existing installations and also supplies the
+`0003_verification_v2.sql` extends existing installations and also supplies the
 missing checked-in `detections` definition for fresh databases. Migrations are
 recorded in `schema_migrations`.
 
@@ -109,6 +117,13 @@ recorded in `schema_migrations`.
 review state. `verification_results` stores every plugin output as both queryable
 columns and structured JSON. Re-running verification updates the decision and
 replaces its source results while preserving the review status.
+
+Verification execution and persistence run inside SQLite savepoints. Any
+verification failure is rolled back independently of the detection insert. The
+system then stores an `uncertain`/`verification_unavailable` assessment with a
+review flag when possible. If even that marker cannot be persisted, the error is
+logged and the BirdNET detection still commits. Verification therefore cannot
+turn optional evidence into detection loss.
 
 ## Operational limitations and next steps
 

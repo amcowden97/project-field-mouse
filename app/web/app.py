@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import socket
@@ -14,10 +15,12 @@ from flask import Flask, abort, jsonify, render_template, request, send_file
 from app.config import load_config
 from app.metrics import metrics_snapshot
 from app.system.health_check import collect_health
+from app.system.storage_health import storage_forecast, storage_state
 from app.web.v3 import (
     build_overview_context,
     enrich_life_list,
     get_confidence_distribution,
+    get_species_observation_profile,
     get_species_content,
 )
 
@@ -251,7 +254,7 @@ def get_primary_ip_address() -> str | None:
 def get_load_average() -> dict:
     try:
         one, five, fifteen = os.getloadavg()
-    except OSError:
+    except (AttributeError, OSError):
         return {
             "one": None,
             "five": None,
@@ -317,7 +320,7 @@ def get_device_information() -> dict:
             "fieldmouse-dashboard.service"
         ),
         get_service_information(
-            "fieldmouse-storage-manager.timer"
+            "fieldmouse-cleanup.timer"
         ),
     ]
 
@@ -325,7 +328,7 @@ def get_device_information() -> dict:
         "fieldmouse-recorder.service": "Audio recorder",
         "fieldmouse-birdnet.service": "BirdNET detector",
         "fieldmouse-dashboard.service": "Web dashboard",
-        "fieldmouse-storage-manager.timer": "Storage cleanup",
+        "fieldmouse-cleanup.timer": "Storage cleanup",
     }
 
     for service in services:
@@ -371,7 +374,12 @@ def get_dashboard_stats(connection: sqlite3.Connection) -> dict:
         SELECT
             COUNT(*) AS total_recordings,
             COALESCE(SUM(file_size_bytes), 0) AS total_recording_bytes,
-            MAX(recorded_at) AS latest_recording_at
+            MIN(recorded_at) AS earliest_recording_at,
+            MAX(recorded_at) AS latest_recording_at,
+            MAX(CASE WHEN processing_status IN ('processed', 'audio_expired')
+                THEN recorded_at END) AS latest_processed_at,
+            SUM(CASE WHEN processing_status IN ('pending', 'processing')
+                THEN 1 ELSE 0 END) AS queue_depth
         FROM recordings
         """
     ).fetchone()
@@ -395,6 +403,23 @@ def get_dashboard_stats(connection: sqlite3.Connection) -> dict:
         recording_age_seconds is not None
         and recording_age_seconds <= 180
     )
+    latest_processed_at = recording_stats["latest_processed_at"]
+    processing_age_seconds = seconds_since(latest_processed_at)
+    birdnet_recent = (
+        processing_age_seconds is not None
+        and processing_age_seconds <= CONFIG.health.birdnet_stale_seconds
+    )
+    disk_percent = round((disk.used / disk.total) * 100, 1)
+    recording_rate = None
+    earliest_recording = recording_stats["earliest_recording_at"]
+    try:
+        first = datetime.fromisoformat(str(earliest_recording).replace("Z", "+00:00"))
+        last = datetime.fromisoformat(str(latest_recording_at).replace("Z", "+00:00"))
+        elapsed = (last - first).total_seconds()
+        if elapsed > 0:
+            recording_rate = recording_stats["total_recording_bytes"] / elapsed
+    except (TypeError, ValueError):
+        pass
 
     return {
         "hostname": socket.gethostname(),
@@ -409,6 +434,10 @@ def get_dashboard_stats(connection: sqlite3.Connection) -> dict:
         "latest_recording_at": latest_recording_at,
         "recorder_recent": recorder_recent,
         "recording_age_seconds": recording_age_seconds,
+        "latest_processed_at": latest_processed_at,
+        "processing_age_seconds": processing_age_seconds,
+        "birdnet_recent": birdnet_recent,
+        "queue_depth": recording_stats["queue_depth"] or 0,
         "detections_last_24_hours": (
             recent_stats["detections_last_24_hours"] or 0
         ),
@@ -418,7 +447,18 @@ def get_dashboard_stats(connection: sqlite3.Connection) -> dict:
         "disk_total": disk.total,
         "disk_used": disk.used,
         "disk_free": disk.free,
-        "disk_percent": round((disk.used / disk.total) * 100, 1),
+        "disk_percent": disk_percent,
+        "storage_state": storage_state(
+            disk_percent,
+            advisory=CONFIG.health.disk_advisory_percent,
+            warning=CONFIG.health.disk_warning_percent,
+            critical=CONFIG.health.disk_critical_percent,
+            emergency=CONFIG.health.disk_emergency_percent,
+        ),
+        "storage_forecast": storage_forecast(
+            disk.free,
+            recording_rate,
+        ),
     }
 
 
@@ -549,9 +589,14 @@ def get_detection_rows(
             d.created_at,
             r.recorded_at,
             r.file_path,
-            r.duration_seconds
+            r.duration_seconds,
+            v.consensus_score AS verification_score,
+            v.status AS verification_status,
+            v.reason AS verification_reason,
+            v.evidence_json AS verification_evidence_json
         FROM detections d
         JOIN recordings r ON r.id = d.recording_id
+        LEFT JOIN verifications v ON v.detection_id = d.id
         WHERE d.confidence >= ?
         ORDER BY d.created_at DESC, d.confidence DESC
         LIMIT ? OFFSET ?
@@ -572,10 +617,44 @@ def get_detection_rows(
             recording_path
             and recording_path.is_file()
         )
+        detection["verification"] = build_verification_presentation(
+            detection
+        )
 
         detections.append(detection)
 
     return detections
+
+
+def build_verification_presentation(row: dict) -> dict | None:
+    """Normalize persisted Verification V2 evidence for Dashboard V2."""
+    status = row.get("verification_status")
+    if not status:
+        return None
+
+    try:
+        stored_evidence = json.loads(
+            row.get("verification_evidence_json") or "[]"
+        )
+    except (TypeError, ValueError):
+        stored_evidence = []
+
+    evidence = []
+    for item in stored_evidence if isinstance(stored_evidence, list) else []:
+        if not isinstance(item, dict):
+            continue
+        evidence.append({
+            "source": item.get("source", "Evidence source"),
+            "verdict": item.get("outcome", "neutral"),
+            "reason": item.get("summary", "No explanation supplied."),
+        })
+
+    return {
+        "status": status,
+        "score": row.get("verification_score") or 0.0,
+        "explanation": row.get("verification_reason"),
+        "evidence": evidence,
+    }
 
 
 def get_detection_count(
@@ -941,6 +1020,16 @@ def species_detail(common_name: str):
             """,
             (common_name,),
         ).fetchall()
+        observation_profile = get_species_observation_profile(
+            connection,
+            common_name,
+        )
+        observed_species_names = {
+            row["common_name"]
+            for row in connection.execute(
+                "SELECT DISTINCT common_name FROM detections"
+            ).fetchall()
+        }
 
     return render_template(
         "v3/species.html",
@@ -948,6 +1037,8 @@ def species_detail(common_name: str):
         species=species_stats,
         detections=detections,
         daily_activity=daily_activity,
+        observation_profile=observation_profile,
+        observed_species_names=observed_species_names,
         species_content=get_species_content(common_name),
         confidence_distribution=get_confidence_distribution(detections),
         minimum_confidence=minimum_confidence,

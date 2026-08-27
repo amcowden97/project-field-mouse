@@ -12,6 +12,7 @@ readonly LOCK="/run/lock/project-field-mouse-deploy.lock"
 readonly LEGACY_ROLLBACK="$OPT_ROOT/legacy-rollback"
 readonly PIP_CACHE="/var/cache/fieldmouse/pip"
 readonly MIN_INSTALL_DISK_KIB=2097152
+readonly MAX_INACTIVE_RELEASES=1
 readonly BIRDNET_WHEEL_SHA256="e26ee0419446d3cf634a8f5fb65182626590063f2c0a1ed7cb72659a9ce1ce69"
 readonly SERVICES=(
     fieldmouse-recorder.service
@@ -21,6 +22,7 @@ readonly SERVICES=(
 readonly TIMERS=(
     fieldmouse-backup.timer
     fieldmouse-cleanup.timer
+    fieldmouse-reliability.timer
 )
 
 SOURCE=""
@@ -113,6 +115,11 @@ rollback_on_error() {
         cp -a "$UNIT_BACKUP/." /etc/systemd/system/
     fi
     if ((SWITCHED)) && [[ -n "$PREVIOUS_TARGET" && -d "$PREVIOUS_TARGET" ]]; then
+        if [[ ! -f "$PREVIOUS_TARGET/app/system/reliability_monitor.py" ]]; then
+            systemctl disable --now fieldmouse-reliability.timer 2>/dev/null || true
+            rm -f /etc/systemd/system/fieldmouse-reliability.service \
+                /etc/systemd/system/fieldmouse-reliability.timer
+        fi
         ln -sfn "$PREVIOUS_TARGET" "$CURRENT"
         restore_database || echo "WARNING: automatic database restore failed." >&2
         systemctl daemon-reload
@@ -120,6 +127,9 @@ rollback_on_error() {
         systemctl restart "${SERVICES[@]}" || true
         echo "Rolled back to $PREVIOUS_TARGET." >&2
     elif ((SWITCHED)) && [[ -d "$LEGACY_ROLLBACK/units" ]]; then
+        systemctl disable --now fieldmouse-reliability.timer 2>/dev/null || true
+        rm -f /etc/systemd/system/fieldmouse-reliability.service \
+            /etc/systemd/system/fieldmouse-reliability.timer
         unlink "$CURRENT"
         systemctl daemon-reload
         systemctl enable --now fieldmouse-cleanup.timer \
@@ -325,6 +335,18 @@ for _ in {1..10}; do
     sleep 2
 done
 ((HEALTH_OK == 1))
+
+# Retain current, rollback, and one newest inactive environment for diagnosis.
+# Pruning happens only after the new release passes every health gate.
+release_prune=(
+    "$NEW_RELEASE/.venv/bin/python" -m app.system.release_retention
+    --releases-root "$RELEASES"
+    --protect "$NEW_RELEASE"
+    --keep-inactive "$MAX_INACTIVE_RELEASES"
+    --apply
+)
+[[ -z "$PREVIOUS_TARGET" ]] || release_prune+=(--protect "$PREVIOUS_TARGET")
+(cd "$NEW_RELEASE" && "${release_prune[@]}")
 
 trap - ERR
 echo "Deployed $RELEASE_ID successfully."
