@@ -5,7 +5,7 @@
 - Branch: `feature/rc1.2-evidence-schema-foundation`
 - Canonical baseline: `f85c9332c65deff7f545ccde159cb4e194640861` (`v1.1.0`)
 - Implementation commit: `a0da449f9778b5f7beba955ce140a9e54a194c47`
-- Final documentation commit: recorded in the review handoff after CI completes
+- Validated implementation/report commit: `cda9f22e1efef973334b9de5c0016dc02b144d75`
 - Scope: Recording lifecycle primitives, Evidence, EvidenceSource, Evidence lineage,
   RecordingProtection, conservative migration, compatibility adapters, tests, and
   migration documentation
@@ -147,7 +147,9 @@ The applicable contract invariants were exercised as follows:
 - Ruff: **passed** for `app` and `tests`.
 - Compile check: `python -m compileall -q app tests` **passed**.
 - Patch hygiene: `git diff --check` **passed**.
-- GitHub Actions CI: pending branch push; the final handoff records the run result.
+- GitHub Actions CI: **passed** for `cda9f22` in run
+  [33041280430](https://github.com/amcowden97/project-field-mouse/actions/runs/33041280430)
+  (Ruff, pytest, and compile validation).
 
 The regression suite covers fresh creation, v1.1.0 upgrade, all three availability
 states, provenance rejection, retained path/history, restoration, all EvidenceSource
