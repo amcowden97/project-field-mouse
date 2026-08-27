@@ -2,7 +2,7 @@
 
 Release candidate: `fb9b131`  
 Target tag: `v1.1.0`  
-Status: **HOLD pending production soak and the unchecked release-day controls below**
+Status: **APPROVED FOR PUBLICATION**
 
 ## Candidate evidence
 
@@ -23,14 +23,14 @@ Status: **HOLD pending production soak and the unchecked release-day controls be
 
 ## Acceptance gates
 
-- [ ] Minimum 24-hour production soak completed after deployment at
+- [x] Minimum 24-hour production soak completed after deployment at
   2026-08-18 23:51:35 PDT.
-- [ ] Final soak report confirms stable cadence, near-zero queue, healthy freshness,
+- [x] Final soak report confirms stable cadence, near-zero queue, healthy freshness,
   accurate forecast, successful timers, and no unexpected restarts.
-- [ ] Controlled reboot validation passes after the final candidate deployment.
-- [ ] No open P0 or P1 defects.
-- [ ] HQ accepts all listed v1.1.0 limitations.
-- [ ] RC1.1 Release Acceptance Report recommends release.
+- [x] Controlled reboot validation passes after the final candidate deployment.
+- [x] No open P0 or P1 defects.
+- [x] HQ accepts all listed v1.1.0 limitations.
+- [x] RC1.1 Release Acceptance Report recommends release.
 
 ## Documentation and presentation
 
@@ -46,10 +46,10 @@ Status: **HOLD pending production soak and the unchecked release-day controls be
 
 ## Release-day controls
 
-- [ ] Update `app/version.py` from `1.0.0-rc1` to `1.1.0` in the administrative release
+- [x] Update `app/version.py` from `1.0.0-rc1` to `1.1.0` in the administrative release
   commit. This was deliberately not changed during the no-production-code soak task.
-- [ ] Replace `Unreleased` in `CHANGELOG.md` with the publication date.
-- [ ] Confirm the release commit contains documentation/version metadata only beyond
+- [x] Replace `Unreleased` in `CHANGELOG.md` with the publication date.
+- [x] Confirm the release commit contains documentation/version metadata only beyond
   the already validated candidate.
 - [ ] CI passes on the final primary-branch release commit.
 - [ ] Merge `integration/rc1.1` to `master` using the approved merge strategy.
