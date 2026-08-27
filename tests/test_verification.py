@@ -283,9 +283,14 @@ class PersistenceTests(unittest.TestCase):
         )
         connection.execute(
             """
-            INSERT INTO recordings VALUES
-            (1, 'test-station', 'test.wav', '2026-05-01T07:00:00+00:00',
-             60, 48000, 1, 'S16_LE', 1, 'processed', 'now')
+            INSERT INTO recordings (
+                id, station_id, file_path, recorded_at, duration_seconds,
+                sample_rate, channels, sample_format, file_size_bytes,
+                processing_status, created_at
+            ) VALUES (
+                1, 'test-station', 'test.wav', '2026-05-01T07:00:00+00:00',
+                60, 48000, 1, 'S16_LE', 1, 'processed', 'now'
+            )
             """
         )
         connection.execute(
@@ -380,9 +385,14 @@ class PersistenceTests(unittest.TestCase):
             )
             connection.execute(
                 """
-                INSERT INTO recordings VALUES
-                (1, 's', ?, '2026-05-01T07:00:00+00:00', 60, 48000, 1,
-                 'S16_LE', 1, 'processed', 'now')
+                INSERT INTO recordings (
+                    id, station_id, file_path, recorded_at, duration_seconds,
+                    sample_rate, channels, sample_format, file_size_bytes,
+                    processing_status, created_at
+                ) VALUES (
+                    1, 's', ?, '2026-05-01T07:00:00+00:00', 60, 48000, 1,
+                    'S16_LE', 1, 'processed', 'now'
+                )
                 """,
                 (str(Path(directory) / "clip.wav"),),
             )

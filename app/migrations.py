@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import sqlite3
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,12 +21,23 @@ class Migration:
     checksum: str
 
 
+def _migration_checksum(content: bytes) -> str:
+    """Hash SQL using repository-canonical LF line endings.
+
+    Git may materialize a working tree with CRLF line endings on Windows.  The
+    migration itself is unchanged in that case, so its immutable history hash
+    must not depend on the platform that staged the release.
+    """
+    normalized = content.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return hashlib.sha256(normalized).hexdigest()
+
+
 def discover_migrations(directory: Path = MIGRATIONS_DIRECTORY) -> list[Migration]:
     migrations: list[Migration] = []
     for path in sorted(directory.glob("[0-9][0-9][0-9][0-9]_*.sql")):
         prefix, _, label = path.stem.partition("_")
         content = path.read_bytes()
-        migrations.append(Migration(int(prefix), label, path, hashlib.sha256(content).hexdigest()))
+        migrations.append(Migration(int(prefix), label, path, _migration_checksum(content)))
     versions = [migration.version for migration in migrations]
     if versions != sorted(set(versions)):
         raise RuntimeError("Migration versions must be unique and ordered")
@@ -95,8 +107,22 @@ def migrate(
         for migration in pending:
             try:
                 connection.execute("BEGIN IMMEDIATE")
+                index_creation_ms = 0.0
                 for statement in _statements(migration.path.read_text(encoding="utf-8")):
+                    started = time.perf_counter()
                     connection.execute(statement)
+                    if statement.lstrip().upper().startswith(
+                        ("CREATE INDEX", "CREATE UNIQUE INDEX")
+                    ):
+                        index_creation_ms += (time.perf_counter() - started) * 1000
+                if migration.version == 6:
+                    from app.science.migration import backfill_recording_lifecycle
+
+                    backfill_recording_lifecycle(
+                        connection,
+                        migration_version=migration.version,
+                        index_creation_ms=index_creation_ms,
+                    )
                 connection.execute(
                     "INSERT INTO schema_migrations VALUES (?, ?, ?, ?)",
                     (migration.version, migration.name, migration.checksum,

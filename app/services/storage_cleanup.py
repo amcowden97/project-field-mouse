@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import sqlite3
+import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -16,7 +17,17 @@ def table_columns(
         f"PRAGMA table_info({table_name})"
     ).fetchall()
 
-    return {str(row["name"]) for row in rows}
+    return {
+        str(row["name"] if isinstance(row, sqlite3.Row) else row[1])
+        for row in rows
+    }
+
+
+def table_exists(connection: sqlite3.Connection, table_name: str) -> bool:
+    return connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        (table_name,),
+    ).fetchone() is not None
 
 
 def choose_column(
@@ -142,6 +153,17 @@ def get_candidates(
         else ""
     )
     limit_clause = "LIMIT ?" if limit is not None else ""
+    protection_filter = (
+        """
+        AND NOT EXISTS (
+            SELECT 1 FROM recording_protections AS protection
+            WHERE protection.recording_id = r.id
+              AND protection.released_at IS NULL
+        )
+        """
+        if table_exists(connection, "recording_protections")
+        else ""
+    )
     common_parameters: list[object] = (
         list(excluded_statuses) if status_column else []
     )
@@ -156,6 +178,7 @@ def get_candidates(
         FROM recordings AS r
         WHERE datetime(r.{timestamp_column}) < datetime(?)
           {status_filter}
+          {protection_filter}
           AND NOT EXISTS (
               SELECT 1 FROM detections AS d WHERE d.recording_id = r.id
           )
@@ -191,6 +214,7 @@ def get_candidates(
         FROM recordings AS r
         WHERE datetime(r.{timestamp_column}) < datetime(?)
           {status_filter}
+          {protection_filter}
           AND EXISTS (SELECT 1 FROM detections AS d WHERE d.recording_id = r.id)
           AND NOT EXISTS (
               SELECT 1 FROM detections AS d
@@ -213,6 +237,12 @@ def expire_recording_audio(
 ) -> tuple[bool, int]:
     deleted_file = False
     freed_bytes = 0
+    lifecycle_enabled = "source_availability" in table_columns(connection, "recordings")
+    if lifecycle_enabled:
+        from app.science.recordings import is_recording_protected
+
+        if is_recording_protected(connection, recording_id):
+            raise RuntimeError("Active recording protection blocks expiration")
 
     if audio_path.exists():
         try:
@@ -224,12 +254,20 @@ def expire_recording_audio(
                 f"Could not delete {audio_path}: {error}"
             ) from error
 
+    if lifecycle_enabled:
+        from app.science.recordings import SourceAvailability, set_source_availability
+
+        set_source_availability(
+            connection,
+            recording_id=recording_id,
+            availability=SourceAvailability.INTENTIONALLY_EXPIRED,
+            reason_code="RETENTION_POLICY_EXPIRATION",
+            authorized_by="STORAGE_CLEANUP",
+            authorization_reference=str(audio_path),
+            operation_id=f"storage-cleanup-{recording_id}-{uuid.uuid4()}",
+        )
     connection.execute(
-        """
-        UPDATE recordings
-        SET processing_status = 'audio_expired'
-        WHERE id = ?
-        """,
+        "UPDATE recordings SET processing_status = 'audio_expired' WHERE id = ?",
         (recording_id,),
     )
 

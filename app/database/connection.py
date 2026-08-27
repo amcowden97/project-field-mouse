@@ -179,6 +179,23 @@ def insert_recording(
                 "Recording was inserted, but no ID was returned."
             )
 
+        columns = {
+            str(row["name"])
+            for row in connection.execute("PRAGMA table_info(recordings)").fetchall()
+        }
+        if "source_availability" in columns:
+            from app.science.recordings import SourceAvailability, set_source_availability
+
+            set_source_availability(
+                connection,
+                recording_id=int(recording_id),
+                availability=SourceAvailability.AVAILABLE,
+                reason_code="RECORDER_CREATED_SOURCE",
+                authorized_by="RECORDER",
+                authorization_reference=str(file_path),
+                operation_id=f"recorder-create-{recording_id}",
+            )
+
         return recording_id
     except sqlite3.IntegrityError as error:
         raise DatabaseError(

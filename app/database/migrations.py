@@ -53,6 +53,14 @@ def apply_migrations(
         checksum = hashlib.sha256(sql.encode("utf-8")).hexdigest()
         try:
             connection.executescript(f"BEGIN IMMEDIATE;\n{sql}")
+            if version == 6:
+                from app.science.migration import backfill_recording_lifecycle
+
+                backfill_recording_lifecycle(
+                    connection,
+                    migration_version=version,
+                    index_creation_ms=0.0,
+                )
             connection.execute(
                 """
                 INSERT INTO schema_migrations (
