@@ -29,3 +29,11 @@ and `ignored` remain only in legacy history. Imported Reviews are marked
 `LEGACY_IMPORT`, keep a unique legacy-row anchor, and do not fabricate Evidence links.
 Counts, timings, invalid rows, ambiguities, and warnings are retained in
 `review_schema_migration_runs`.
+
+Migration 0008 adds the RC1.2 Assessment Provenance Foundation. It creates
+Detection-scoped, append-only `assessments` and the many-to-many
+`assessment_evidence` relationship. Assessment results use their own scientific
+vocabulary, Evidence links are constrained to the assessed Detection, and explicit
+supersession preserves all prior conclusions. This migration is schema-only: it does
+not infer Assessments from Review or legacy Verification state, so historical
+Assessment backfill is always zero.
