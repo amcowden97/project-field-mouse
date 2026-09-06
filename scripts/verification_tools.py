@@ -46,6 +46,9 @@ def review_command(arguments: argparse.Namespace) -> None:
                 corrected_scientific_name=arguments.corrected_scientific_name,
                 corrected_common_name=arguments.corrected_common_name,
                 confidence_after=arguments.confidence_after,
+                evidence_ids=tuple(arguments.evidence_id),
+                reviewer_role=arguments.reviewer_role,
+                reason_code=arguments.reason_code,
             ),
         )
         connection.commit()
@@ -172,6 +175,9 @@ def parser() -> argparse.ArgumentParser:
     review.add_argument("--corrected-scientific-name")
     review.add_argument("--corrected-common-name")
     review.add_argument("--confidence-after", type=float)
+    review.add_argument("--evidence-id", type=int, action="append", default=[])
+    review.add_argument("--reviewer-role", choices=["USER", "EXPERT"], default="USER")
+    review.add_argument("--reason-code", default="OPERATOR_REVIEW")
     review.set_defaults(handler=review_command)
 
     export = commands.add_parser("export")

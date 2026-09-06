@@ -21,3 +21,11 @@ conservative: a present source becomes `AVAILABLE`; an absent source becomes
 `INTENTIONALLY_EXPIRED` only when the RC1.1 `audio_expired` status supplies affirmative
 provenance; every other absent source becomes `MISSING`. The run metrics and any
 warnings are retained in `evidence_schema_migration_runs`.
+
+Migration 0007 adds the RC1.2 Human Review Provenance Foundation. It preserves
+`detection_reviews` as immutable legacy history and imports only `verified`, `rejected`,
+and valid `corrected_species` rows into canonical append-only Reviews. `pending_review`
+and `ignored` remain only in legacy history. Imported Reviews are marked
+`LEGACY_IMPORT`, keep a unique legacy-row anchor, and do not fabricate Evidence links.
+Counts, timings, invalid rows, ambiguities, and warnings are retained in
+`review_schema_migration_runs`.

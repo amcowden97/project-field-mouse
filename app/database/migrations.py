@@ -61,6 +61,13 @@ def apply_migrations(
                     migration_version=version,
                     index_creation_ms=0.0,
                 )
+            if version == 7:
+                from app.science.review_migration import backfill_legacy_reviews
+
+                backfill_legacy_reviews(
+                    connection,
+                    migration_version=version,
+                )
             connection.execute(
                 """
                 INSERT INTO schema_migrations (
