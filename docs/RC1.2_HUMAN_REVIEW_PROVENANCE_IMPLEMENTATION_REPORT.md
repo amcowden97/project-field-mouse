@@ -11,7 +11,8 @@ preserved and remain simultaneously current unless one is explicitly superseded.
 - Branch: `feature/rc1.2-human-review-provenance`
 - Starting point: Evidence Schema Foundation `00bd6c8afb387d12b0c14fe9bbfc7b6f0df3b96a`
 - Implementation commit: `44c708a045da2a70fca80ea7f0993a742ad14d25`
-- Final documentation commit: recorded in the HQ handoff after CI completes
+- Validation report commit: `ff20ec2` (the final status-only commit is recorded in
+  the HQ handoff)
 
 ## Files and final schema
 
@@ -130,7 +131,8 @@ Local validation:
 - `python -m compileall -q app scripts tests`: **passed**.
 - `git diff --check`: **passed**.
 - SQLite synthetic migration: integrity **ok**, foreign-key violations **0**.
-- GitHub Actions: recorded in the final HQ handoff after branch push.
+- GitHub Actions: not triggered. The branch remains local because this assignment did
+  not explicitly authorize external publication; local CI-equivalent checks passed.
 
 The synthetic legacy fixture contained six rows: three migrated, two non-conclusive
 rows skipped, zero ambiguous, and one invalid correction. All six source rows remained
