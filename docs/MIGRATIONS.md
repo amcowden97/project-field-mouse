@@ -37,3 +37,19 @@ vocabulary, Evidence links are constrained to the assessed Detection, and explic
 supersession preserves all prior conclusions. This migration is schema-only: it does
 not infer Assessments from Review or legacy Verification state, so historical
 Assessment backfill is always zero.
+
+Migration 0009 adds the RC1.2 Ground Truth Candidate Membership Foundation. It creates
+immutable named candidate datasets and explicit Assessment-pinned membership in the
+sole `CANDIDATE_POOL` stage. Admission requires Assessment-cited bounded source
+provenance on the Detection Recording and source availability at nomination time.
+The migration is schema-only and creates no datasets, memberships, protections,
+Observations, or other scientific conclusions.
+
+Migration 0010 adds the RC1.2 Ground Truth Adjudication Provenance Foundation. It
+creates append-only, policy-versioned `ground_truth_adjudications` and the explicit
+many-to-many `ground_truth_adjudication_evidence` relationship. The supported write
+boundary derives eligibility from the current candidate, exact pinned Assessment,
+bounded available sources, canonical human/expert Evidence, and adjudicator authority;
+successful adjudication atomically protects only cited required bounded sources. The
+migration itself is schema-only and creates zero adjudications, Evidence links,
+RecordingProtections, or Observations.

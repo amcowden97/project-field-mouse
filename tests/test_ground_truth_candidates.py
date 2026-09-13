@@ -585,7 +585,8 @@ def test_migration_from_assessment_foundation_is_schema_only_and_idempotent(
         }
     applied = migrate(database, tmp_path / "backups")
     assert [(item.version, item.name) for item in applied] == [
-        (9, "ground_truth_candidate_membership")
+        (9, "ground_truth_candidate_membership"),
+        (10, "ground_truth_adjudication_provenance"),
     ]
     with sqlite3.connect(database) as connection:
         tables = {
