@@ -6,9 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-DEFAULT_MIGRATIONS_PATH = (
-    Path(__file__).resolve().parents[2] / "data" / "database" / "migrations"
-)
+DEFAULT_MIGRATIONS_PATH = Path(__file__).resolve().parents[2] / "data" / "database" / "migrations"
 
 
 def apply_migrations(
@@ -25,23 +23,16 @@ def apply_migrations(
         )
         """
     )
-    columns = {
-        row[1]
-        for row in connection.execute("PRAGMA table_info(schema_migrations)")
-    }
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(schema_migrations)")}
     if "name" not in columns:
-        connection.execute(
-            "ALTER TABLE schema_migrations ADD COLUMN name TEXT NOT NULL DEFAULT ''"
-        )
+        connection.execute("ALTER TABLE schema_migrations ADD COLUMN name TEXT NOT NULL DEFAULT ''")
     if "checksum" not in columns:
         connection.execute(
             "ALTER TABLE schema_migrations ADD COLUMN checksum TEXT NOT NULL DEFAULT ''"
         )
     applied = {
         int(str(row[0]).split("_", 1)[0])
-        for row in connection.execute(
-            "SELECT version FROM schema_migrations"
-        ).fetchall()
+        for row in connection.execute("SELECT version FROM schema_migrations").fetchall()
     }
     completed: list[str] = []
     for migration in sorted(migrations_path.glob("*.sql")):
@@ -65,6 +56,13 @@ def apply_migrations(
                 from app.science.review_migration import backfill_legacy_reviews
 
                 backfill_legacy_reviews(
+                    connection,
+                    migration_version=version,
+                )
+            if version == 11:
+                from app.synchronization import backfill_station_sync_identities
+
+                backfill_station_sync_identities(
                     connection,
                     migration_version=version,
                 )

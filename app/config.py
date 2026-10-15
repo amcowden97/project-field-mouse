@@ -1,4 +1,5 @@
 """Central, validated configuration for every Field Mouse service."""
+
 from __future__ import annotations
 
 import os
@@ -7,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from app.synchronization import normalize_station_uuid
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config" / "station.toml"
@@ -120,8 +123,14 @@ class FieldMouseConfig:
 
 
 DEFAULTS: dict[str, dict[str, Any]] = {
-    "station": {}, "audio": {}, "storage": {}, "detection": {},
-    "birdnet": {}, "dashboard": {}, "logging": {}, "health": {},
+    "station": {},
+    "audio": {},
+    "storage": {},
+    "detection": {},
+    "birdnet": {},
+    "dashboard": {},
+    "logging": {},
+    "health": {},
 }
 
 CONFIG_ALIASES: dict[str, dict[str, str]] = {
@@ -148,8 +157,7 @@ def _migrate_compatibility_fields(data: dict[str, dict[str, Any]]) -> None:
                 continue
             if current in values and values[current] != values[legacy]:
                 raise ConfigurationError(
-                    f"Conflicting configuration fields: {section}.{legacy} "
-                    f"and {section}.{current}"
+                    f"Conflicting configuration fields: {section}.{legacy} and {section}.{current}"
                 )
             values[current] = values.pop(legacy)
     health = data["health"]
@@ -158,10 +166,7 @@ def _migrate_compatibility_fields(data: dict[str, dict[str, Any]]) -> None:
         "disk_critical_percent",
         "disk_emergency_percent",
     }
-    if (
-        health.get("disk_warning_percent") == 85.0
-        and not new_watermarks.intersection(health)
-    ):
+    if health.get("disk_warning_percent") == 85.0 and not new_watermarks.intersection(health):
         # RC1 used one 85% blocking threshold. RC1.1.1 replaces it with the
         # documented 80/90/95/98 graduated policy.
         health.pop("disk_warning_percent")
@@ -173,9 +178,7 @@ def _environment(data: dict[str, Any], environ: dict[str, str]) -> None:
         if not name.startswith("PFM_") or name == "PFM_CONFIG":
             continue
         remainder = name[4:].lower()
-        matches = [
-            section for section in data if remainder.startswith(section + "_")
-        ]
+        matches = [section for section in data if remainder.startswith(section + "_")]
         if not matches:
             continue
         section = max(matches, key=len)
@@ -216,9 +219,7 @@ def load_config(
     environ: dict[str, str] | None = None,
 ) -> FieldMouseConfig:
     environ = dict(os.environ if environ is None else environ)
-    selected = Path(
-        config_path or environ.get("PFM_CONFIG", DEFAULT_CONFIG_PATH)
-    ).resolve()
+    selected = Path(config_path or environ.get("PFM_CONFIG", DEFAULT_CONFIG_PATH)).resolve()
     values: dict[str, Any] = {}
     if selected.exists():
         try:
@@ -233,10 +234,14 @@ def load_config(
     _migrate_compatibility_fields(data)
     # Dataclass defaults supply missing keys while still permitting env-only setup.
     prototypes = {
-        "station": StationConfig(), "audio": AudioConfig(),
-        "storage": StorageConfig(), "detection": DetectionConfig(),
-        "birdnet": BirdNETConfig(), "dashboard": DashboardConfig(),
-        "logging": LoggingConfig(), "health": HealthConfig(),
+        "station": StationConfig(),
+        "audio": AudioConfig(),
+        "storage": StorageConfig(),
+        "detection": DetectionConfig(),
+        "birdnet": BirdNETConfig(),
+        "dashboard": DashboardConfig(),
+        "logging": LoggingConfig(),
+        "health": HealthConfig(),
     }
     for section, prototype in prototypes.items():
         for key, value in prototype.__dict__.items():
@@ -250,47 +255,69 @@ def load_config(
         if not station_id or not station_name:
             raise ConfigurationError("station id and name cannot be empty")
         station = StationConfig(
-            id=station_id, uuid=str(data["station"]["uuid"]), name=station_name,
+            id=station_id,
+            uuid=normalize_station_uuid(str(data["station"]["uuid"])),
+            name=station_name,
             timezone=str(data["station"]["timezone"]),
-            latitude=(None if data["station"]["latitude"] is None else
-                      _bounded("station.latitude", data["station"]["latitude"], -90, 90)),
-            longitude=(None if data["station"]["longitude"] is None else
-                       _bounded("station.longitude", data["station"]["longitude"], -180, 180)),
+            latitude=(
+                None
+                if data["station"]["latitude"] is None
+                else _bounded("station.latitude", data["station"]["latitude"], -90, 90)
+            ),
+            longitude=(
+                None
+                if data["station"]["longitude"] is None
+                else _bounded("station.longitude", data["station"]["longitude"], -180, 180)
+            ),
             location_name=str(data["station"]["location_name"]),
             hardware_version=str(data["station"]["hardware_version"]),
             deployment_date=str(data["station"]["deployment_date"]),
             capabilities=tuple(data["station"]["capabilities"]),
         )
-        audio = AudioConfig(**{
-            **data["audio"],
-            "sample_rate": int(data["audio"]["sample_rate"]),
-            "channels": int(data["audio"]["channels"]),
-            "recording_duration_seconds": int(data["audio"]["recording_duration_seconds"]),
-            "recording_interval_seconds": int(data["audio"]["recording_interval_seconds"]),
-        })
-        if min(audio.sample_rate, audio.channels, audio.recording_duration_seconds,
-               audio.recording_interval_seconds) < 1:
+        audio = AudioConfig(
+            **{
+                **data["audio"],
+                "sample_rate": int(data["audio"]["sample_rate"]),
+                "channels": int(data["audio"]["channels"]),
+                "recording_duration_seconds": int(data["audio"]["recording_duration_seconds"]),
+                "recording_interval_seconds": int(data["audio"]["recording_interval_seconds"]),
+            }
+        )
+        if (
+            min(
+                audio.sample_rate,
+                audio.channels,
+                audio.recording_duration_seconds,
+                audio.recording_interval_seconds,
+            )
+            < 1
+        ):
             raise ConfigurationError("audio numeric values must be positive")
         storage_values = dict(data["storage"])
         for key in ("recordings_directory", "database_path", "logs_directory", "backups_directory"):
             storage_values[key] = _path(storage_values[key], selected)
-        storage_values["rare_species"] = tuple(
-            storage_values["rare_species"]
-        )
+        storage_values["rare_species"] = tuple(storage_values["rare_species"])
         storage = StorageConfig(**storage_values)
         detection = DetectionConfig(
-            **{**data["detection"],
-               "minimum_confidence": _bounded("detection.minimum_confidence",
-                                               data["detection"]["minimum_confidence"], 0, 1),
-               "species_include": tuple(data["detection"]["species_include"]),
-               "species_exclude": tuple(data["detection"]["species_exclude"])}
+            **{
+                **data["detection"],
+                "minimum_confidence": _bounded(
+                    "detection.minimum_confidence", data["detection"]["minimum_confidence"], 0, 1
+                ),
+                "species_include": tuple(data["detection"]["species_include"]),
+                "species_exclude": tuple(data["detection"]["species_exclude"]),
+            }
         )
         birdnet = BirdNETConfig(
-            **{**data["birdnet"],
-               "minimum_confidence": _bounded("birdnet.minimum_confidence",
-                                               data["birdnet"]["minimum_confidence"], 0, 1),
-               "occurrence_threshold": _bounded("birdnet.occurrence_threshold",
-                                                data["birdnet"]["occurrence_threshold"], 0, 1)}
+            **{
+                **data["birdnet"],
+                "minimum_confidence": _bounded(
+                    "birdnet.minimum_confidence", data["birdnet"]["minimum_confidence"], 0, 1
+                ),
+                "occurrence_threshold": _bounded(
+                    "birdnet.occurrence_threshold", data["birdnet"]["occurrence_threshold"], 0, 1
+                ),
+            }
         )
         dashboard = DashboardConfig(
             host=str(data["dashboard"]["host"]),
@@ -308,13 +335,10 @@ def load_config(
             health.disk_critical_percent,
             health.disk_emergency_percent,
         )
-        if not (
-            0 < thresholds[0] < thresholds[1] < thresholds[2] < thresholds[3] < 100
-        ):
+        if not (0 < thresholds[0] < thresholds[1] < thresholds[2] < thresholds[3] < 100):
             raise ConfigurationError(
                 "health disk thresholds must increase from advisory to emergency"
             )
     except (TypeError, ValueError, ZoneInfoNotFoundError) as error:
         raise ConfigurationError(f"Invalid configuration: {error}") from error
-    return FieldMouseConfig(station, audio, storage, detection, birdnet,
-                            dashboard, logging, health)
+    return FieldMouseConfig(station, audio, storage, detection, birdnet, dashboard, logging, health)

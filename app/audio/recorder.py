@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import subprocess
 import sys
 from contextlib import closing
@@ -26,9 +27,7 @@ def get_station_time(config: FieldMouseConfig) -> datetime:
     try:
         timezone = ZoneInfo(config.station.timezone)
     except ZoneInfoNotFoundError as error:
-        raise ConfigurationError(
-            f"Unknown station timezone: {config.station.timezone}"
-        ) from error
+        raise ConfigurationError(f"Unknown station timezone: {config.station.timezone}") from error
 
     return datetime.now(timezone)
 
@@ -38,11 +37,7 @@ def create_recording_path(
     station_id: str,
     recorded_at: datetime,
 ) -> Path:
-    date_directory = (
-        recordings_root
-        / station_id
-        / recorded_at.strftime("%Y-%m-%d")
-    )
+    date_directory = recordings_root / station_id / recorded_at.strftime("%Y-%m-%d")
 
     date_directory.mkdir(parents=True, exist_ok=True)
 
@@ -73,18 +68,25 @@ def build_arecord_command(
 
 def validate_recording(output_path: Path) -> int:
     if not output_path.exists():
-        raise RuntimeError(
-            "Recording completed, but no output file was created."
-        )
+        raise RuntimeError("Recording completed, but no output file was created.")
 
     file_size_bytes = output_path.stat().st_size
 
     if file_size_bytes <= 44:
-        raise RuntimeError(
-            "Recording file contains no usable audio data."
-        )
+        raise RuntimeError("Recording file contains no usable audio data.")
 
     return file_size_bytes
+
+
+def calculate_content_sha256(output_path: Path) -> str:
+    digest = hashlib.sha256()
+    try:
+        with output_path.open("rb") as recording:
+            for chunk in iter(lambda: recording.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError as error:
+        raise RuntimeError(f"Could not calculate recording SHA-256: {error}") from error
+    return digest.hexdigest()
 
 
 def save_recording_to_database(
@@ -94,12 +96,11 @@ def save_recording_to_database(
     recorded_at: datetime,
     duration_seconds: int,
     file_size_bytes: int,
+    content_sha256: str,
 ) -> int:
     initialize_database(config.storage.database_path)
 
-    with closing(
-        connect_database(config.storage.database_path)
-    ) as connection:
+    with closing(connect_database(config.storage.database_path)) as connection:
         upsert_station(connection, config)
 
         recording_id = insert_recording(
@@ -112,6 +113,8 @@ def save_recording_to_database(
             channels=config.audio.channels,
             sample_format=config.audio.sample_format,
             file_size_bytes=file_size_bytes,
+            content_sha256=content_sha256,
+            station_uuid=config.station.uuid or None,
         )
 
         connection.commit()
@@ -130,9 +133,7 @@ def record_audio(
     )
 
     if duration_seconds <= 0:
-        raise ValueError(
-            "Recording duration must be greater than zero."
-        )
+        raise ValueError("Recording duration must be greater than zero.")
 
     recorded_at = get_station_time(config)
 
@@ -161,16 +162,15 @@ def record_audio(
             check=True,
         )
     except FileNotFoundError as error:
-        raise RuntimeError(
-            "The arecord command is not installed."
-        ) from error
+        output_path.unlink(missing_ok=True)
+        raise RuntimeError("The arecord command is not installed.") from error
     except subprocess.CalledProcessError as error:
-        raise RuntimeError(
-            f"Recording failed with exit code {error.returncode}."
-        ) from error
+        output_path.unlink(missing_ok=True)
+        raise RuntimeError(f"Recording failed with exit code {error.returncode}.") from error
 
     try:
         file_size_bytes = validate_recording(output_path)
+        content_sha256 = calculate_content_sha256(output_path)
 
         recording_id = save_recording_to_database(
             config=config,
@@ -178,6 +178,7 @@ def record_audio(
             recorded_at=recorded_at,
             duration_seconds=duration_seconds,
             file_size_bytes=file_size_bytes,
+            content_sha256=content_sha256,
         )
     except Exception:
         output_path.unlink(missing_ok=True)
@@ -190,9 +191,7 @@ def record_audio(
 
 
 def parse_arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Record audio for Project Field Mouse."
-    )
+    parser = argparse.ArgumentParser(description="Record audio for Project Field Mouse.")
 
     parser.add_argument(
         "--config",

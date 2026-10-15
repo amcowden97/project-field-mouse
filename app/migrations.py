@@ -1,4 +1,5 @@
 """Ordered, transactional SQLite migrations with automatic safety backups."""
+
 from __future__ import annotations
 
 import hashlib
@@ -64,11 +65,11 @@ def ensure_history(connection: sqlite3.Connection) -> None:
         version INTEGER PRIMARY KEY, name TEXT NOT NULL, checksum TEXT NOT NULL,
         applied_at TEXT NOT NULL)"""
     )
-    columns = {
-        row[1] for row in connection.execute("PRAGMA table_info(schema_migrations)")
-    }
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(schema_migrations)")}
     if "checksum" not in columns:
-        connection.execute("ALTER TABLE schema_migrations ADD COLUMN checksum TEXT NOT NULL DEFAULT ''")
+        connection.execute(
+            "ALTER TABLE schema_migrations ADD COLUMN checksum TEXT NOT NULL DEFAULT ''"
+        )
     connection.commit()
 
 
@@ -94,7 +95,10 @@ def migrate(
         }
     migrations = discover_migrations(directory)
     for migration in migrations:
-        if migration.version in applied and applied[migration.version] not in {"", migration.checksum}:
+        if migration.version in applied and applied[migration.version] not in {
+            "",
+            migration.checksum,
+        }:
             raise RuntimeError(f"Applied migration {migration.version} was modified")
     pending = [item for item in migrations if item.version not in applied]
     if not pending:
@@ -111,8 +115,10 @@ def migrate(
                 for statement in _statements(migration.path.read_text(encoding="utf-8")):
                     started = time.perf_counter()
                     connection.execute(statement)
-                    if statement.lstrip().upper().startswith(
-                        ("CREATE INDEX", "CREATE UNIQUE INDEX")
+                    if (
+                        statement.lstrip()
+                        .upper()
+                        .startswith(("CREATE INDEX", "CREATE UNIQUE INDEX"))
                     ):
                         index_creation_ms += (time.perf_counter() - started) * 1000
                 if migration.version == 6:
@@ -130,10 +136,21 @@ def migrate(
                         connection,
                         migration_version=migration.version,
                     )
+                if migration.version == 11:
+                    from app.synchronization import backfill_station_sync_identities
+
+                    backfill_station_sync_identities(
+                        connection,
+                        migration_version=migration.version,
+                    )
                 connection.execute(
                     "INSERT INTO schema_migrations VALUES (?, ?, ?, ?)",
-                    (migration.version, migration.name, migration.checksum,
-                     datetime.now(timezone.utc).isoformat()),
+                    (
+                        migration.version,
+                        migration.name,
+                        migration.checksum,
+                        datetime.now(timezone.utc).isoformat(),
+                    ),
                 )
                 if connection.execute("PRAGMA foreign_key_check").fetchone():
                     raise RuntimeError("foreign key validation failed")
