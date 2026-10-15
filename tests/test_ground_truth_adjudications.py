@@ -1105,7 +1105,7 @@ def test_migration_from_candidate_foundation_is_schema_only_and_idempotent(
             for table in tables
         }
     applied = migrate(database, tmp_path / "backups-after")
-    assert [item.version for item in applied] == [10]
+    assert [item.version for item in applied] == [10, 11]
     assert migrate(database, tmp_path / "backups-after") == []
     with sqlite3.connect(database) as connection:
         after = {

@@ -96,9 +96,7 @@ def add_evidence(
     recording_id: int | None = None,
 ) -> int:
     sources = (
-        (EvidenceSourceInput(recording_id, SourceRole.PRIMARY),)
-        if recording_id is not None
-        else ()
+        (EvidenceSourceInput(recording_id, SourceRole.PRIMARY),) if recording_id is not None else ()
     )
     return append_evidence(
         connection,
@@ -165,8 +163,7 @@ def test_valid_review_is_queryable_and_append_only(tmp_path: Path) -> None:
     relationship_id = get_review_evidence(connection, review_id)[0].review_evidence_id
     with pytest.raises(sqlite3.IntegrityError, match="append-only"):
         connection.execute(
-            "UPDATE review_evidence SET relationship_role = 'CONTEXT' "
-            "WHERE review_evidence_id = ?",
+            "UPDATE review_evidence SET relationship_role = 'CONTEXT' WHERE review_evidence_id = ?",
             (relationship_id,),
         )
     with pytest.raises(sqlite3.IntegrityError, match="append-only"):
@@ -274,9 +271,12 @@ def test_review_evidence_many_to_many_and_duplicate_rejection(tmp_path: Path) ->
         reviewer="user-two",
     )
     assert len(get_review_evidence(connection, first_review)) == 2
-    assert connection.execute(
-        "SELECT COUNT(*) FROM review_evidence WHERE evidence_id = ?", (first_evidence,)
-    ).fetchone()[0] == 2
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM review_evidence WHERE evidence_id = ?", (first_evidence,)
+        ).fetchone()[0]
+        == 2
+    )
     assert second_review != first_review
     with pytest.raises(ScienceInvariantError, match="Duplicate"):
         create_review(
@@ -350,9 +350,7 @@ def test_legacy_import_without_evidence_requires_legacy_provenance(tmp_path: Pat
 def test_initial_review_decisions(tmp_path: Path, decision: ReviewDecision) -> None:
     connection, _, _, detection_id, _ = open_database(tmp_path)
     evidence_id = add_evidence(connection, detection_id, f"decision-{decision.value}")
-    review_id = add_review(
-        connection, detection_id, evidence_id, decision=decision
-    )
+    review_id = add_review(connection, detection_id, evidence_id, decision=decision)
     assert get_review(connection, review_id).decision == decision.value  # type: ignore[union-attr]
 
 
@@ -481,12 +479,18 @@ def test_review_provenance_survives_source_lifecycle_change(tmp_path: Path) -> N
         authorization_reference="retention-run-1",
         operation_id="review-source-expiration",
     )
-    assert connection.execute(
-        "SELECT COUNT(*) FROM detections WHERE id = ?", (detection_id,)
-    ).fetchone()[0] == 1
-    assert connection.execute(
-        "SELECT COUNT(*) FROM evidence WHERE evidence_id = ?", (evidence_id,)
-    ).fetchone()[0] == 1
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM detections WHERE id = ?", (detection_id,)
+        ).fetchone()[0]
+        == 1
+    )
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM evidence WHERE evidence_id = ?", (evidence_id,)
+        ).fetchone()[0]
+        == 1
+    )
     assert get_review(connection, review_id) is not None
     assert get_review_evidence(connection, review_id)[0].evidence_id == evidence_id
 
@@ -515,9 +519,7 @@ def test_legacy_backfill_is_conservative_idempotent_and_non_destructive(
             """,
             (str(tmp_path / "missing.wav"), NOW, NOW),
         )
-        detection_id = _insert_detection(
-            connection, 1, "Turdus migratorius", "American Robin"
-        )
+        detection_id = _insert_detection(connection, 1, "Turdus migratorius", "American Robin")
         legacy_rows = (
             ("verified", None, None, 0.95),
             ("rejected", None, None, 0.05),
@@ -547,18 +549,14 @@ def test_legacy_backfill_is_conservative_idempotent_and_non_destructive(
                     NOW,
                 ),
             )
-        before = connection.execute(
-            "SELECT * FROM detection_reviews ORDER BY id"
-        ).fetchall()
+        before = connection.execute("SELECT * FROM detection_reviews ORDER BY id").fetchall()
         connection.commit()
 
     applied = migrate(database, tmp_path / "backups")
-    assert [item.version for item in applied] == [7, 8, 9, 10]
+    assert [item.version for item in applied] == [7, 8, 9, 10, 11]
     assert migrate(database, tmp_path / "backups") == []
     with sqlite3.connect(database) as connection:
-        after = connection.execute(
-            "SELECT * FROM detection_reviews ORDER BY id"
-        ).fetchall()
+        after = connection.execute("SELECT * FROM detection_reviews ORDER BY id").fetchall()
         assert after == before
         assert connection.execute(
             "SELECT decision, COUNT(*) FROM reviews GROUP BY decision ORDER BY decision"
@@ -581,9 +579,7 @@ def test_legacy_backfill_is_conservative_idempotent_and_non_destructive(
             connection.execute("DELETE FROM detection_reviews WHERE id = 1")
         assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
         assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
-        review_columns = {
-            row[1] for row in connection.execute("PRAGMA table_info(reviews)")
-        }
+        review_columns = {row[1] for row in connection.execute("PRAGMA table_info(reviews)")}
         assert "confidence_after" not in review_columns
 
 
@@ -607,5 +603,7 @@ def test_legacy_adapter_can_create_explicit_canonical_provenance(tmp_path: Path)
     ).fetchone()
     assert canonical is not None
     assert canonical["reviewer_role"] == "USER"
-    assert get_review_evidence(connection, int(canonical["review_id"]))[0].evidence_id == evidence_id
+    assert (
+        get_review_evidence(connection, int(canonical["review_id"]))[0].evidence_id == evidence_id
+    )
     assert connection.execute("SELECT COUNT(*) FROM detection_reviews").fetchone()[0] == 1

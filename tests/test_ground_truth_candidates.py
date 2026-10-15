@@ -587,6 +587,7 @@ def test_migration_from_assessment_foundation_is_schema_only_and_idempotent(
     assert [(item.version, item.name) for item in applied] == [
         (9, "ground_truth_candidate_membership"),
         (10, "ground_truth_adjudication_provenance"),
+        (11, "station_sync_identity_outbox"),
     ]
     with sqlite3.connect(database) as connection:
         tables = {

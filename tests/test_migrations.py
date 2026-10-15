@@ -9,30 +9,22 @@ from app.migrations import discover_migrations, migrate, migration_history
 def test_migrations_are_ordered_and_idempotent(tmp_path: Path) -> None:
     database = tmp_path / "station.db"
     applied = migrate(database, tmp_path / "backups")
-    expected_versions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    expected_versions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     assert [item.version for item in applied] == expected_versions
     assert migrate(database, tmp_path / "backups") == []
     history = migration_history(database)
     assert [row[0] for row in history] == expected_versions
     assert len({row[0] for row in history}) == len(expected_versions)
     with sqlite3.connect(database) as connection:
-        station_columns = {
-            row[1] for row in connection.execute("PRAGMA table_info(stations)")
-        }
-        recording_columns = {
-            row[1] for row in connection.execute("PRAGMA table_info(recordings)")
-        }
+        station_columns = {row[1] for row in connection.execute("PRAGMA table_info(stations)")}
+        recording_columns = {row[1] for row in connection.execute("PRAGMA table_info(recordings)")}
         tables = {
             row[0]
-            for row in connection.execute(
-                "SELECT name FROM sqlite_master WHERE type = 'table'"
-            )
+            for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
         }
         indexes = {
             row[0]
-            for row in connection.execute(
-                "SELECT name FROM sqlite_master WHERE type = 'index'"
-            )
+            for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'index'")
         }
     assert "station_uuid" in station_columns
     assert {
@@ -40,6 +32,7 @@ def test_migrations_are_ordered_and_idempotent(tmp_path: Path) -> None:
         "source_availability",
         "media_type",
         "source_sha256",
+        "content_sha256",
     } <= recording_columns
     assert {
         "detections",
@@ -57,10 +50,13 @@ def test_migrations_are_ordered_and_idempotent(tmp_path: Path) -> None:
         "ground_truth_members",
         "ground_truth_adjudications",
         "ground_truth_adjudication_evidence",
+        "station_sync_outbox",
+        "station_sync_migration_runs",
     } <= tables
     assert {
         "idx_detections_created",
         "idx_detections_datetime_created",
+        "idx_station_sync_outbox_state_created",
     } <= indexes
 
 
@@ -88,10 +84,9 @@ def test_migration_checksum_is_stable_across_line_endings(tmp_path: Path) -> Non
     crlf_directory.mkdir()
     sql = "CREATE TABLE example (id INTEGER);\nINSERT INTO example VALUES (1);\n"
     (lf_directory / "0001_example.sql").write_bytes(sql.encode("utf-8"))
-    (crlf_directory / "0001_example.sql").write_bytes(
-        sql.replace("\n", "\r\n").encode("utf-8")
-    )
+    (crlf_directory / "0001_example.sql").write_bytes(sql.replace("\n", "\r\n").encode("utf-8"))
 
-    assert discover_migrations(lf_directory)[0].checksum == discover_migrations(
-        crlf_directory
-    )[0].checksum
+    assert (
+        discover_migrations(lf_directory)[0].checksum
+        == discover_migrations(crlf_directory)[0].checksum
+    )

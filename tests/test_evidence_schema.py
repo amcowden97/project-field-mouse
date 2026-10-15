@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 import sqlite3
+import uuid
 from pathlib import Path
 
 import pytest
@@ -110,7 +111,7 @@ def test_fresh_database_has_foundation_and_stable_identity(tmp_path: Path) -> No
     row = connection.execute(
         "SELECT recording_identity, source_availability, media_type FROM recordings"
     ).fetchone()
-    assert row["recording_identity"] == f"station-one:{recording_id:020d}"
+    assert uuid.UUID(row["recording_identity"])
     assert row["source_availability"] == "AVAILABLE"
     assert row["media_type"] == "audio/wav"
     with pytest.raises(sqlite3.IntegrityError, match="identity is immutable"):
@@ -285,16 +286,25 @@ def test_evidence_supports_one_multiple_and_shared_recording_sources(tmp_path: P
             EvidenceSourceInput(second_recording, SourceRole.CONTEXT),
         ),
     )
-    assert connection.execute(
-        "SELECT COUNT(*) FROM evidence_sources WHERE evidence_id = ?", (first,)
-    ).fetchone()[0] == 1
-    assert connection.execute(
-        "SELECT COUNT(*) FROM evidence_sources WHERE evidence_id = ?", (second,)
-    ).fetchone()[0] == 2
-    assert connection.execute(
-        "SELECT COUNT(DISTINCT evidence_id) FROM evidence_sources WHERE recording_id = ?",
-        (recording_id,),
-    ).fetchone()[0] == 2
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM evidence_sources WHERE evidence_id = ?", (first,)
+        ).fetchone()[0]
+        == 1
+    )
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM evidence_sources WHERE evidence_id = ?", (second,)
+        ).fetchone()[0]
+        == 2
+    )
+    assert (
+        connection.execute(
+            "SELECT COUNT(DISTINCT evidence_id) FROM evidence_sources WHERE recording_id = ?",
+            (recording_id,),
+        ).fetchone()[0]
+        == 2
+    )
 
 
 @pytest.mark.parametrize(
@@ -331,16 +341,20 @@ def test_evidence_survives_source_expiration_and_has_no_availability_copy(tmp_pa
         authorization_reference="cleanup-run-3",
         operation_id="expire-three",
     )
-    columns = {
-        row[1] for row in connection.execute("PRAGMA table_info(evidence_sources)")
-    }
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(evidence_sources)")}
     assert "source_availability" not in columns
-    assert connection.execute(
-        "SELECT COUNT(*) FROM evidence WHERE evidence_id = ?", (evidence_id,)
-    ).fetchone()[0] == 1
-    assert connection.execute(
-        "SELECT COUNT(*) FROM detections WHERE id = ?", (detection_id,)
-    ).fetchone()[0] == 1
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM evidence WHERE evidence_id = ?", (evidence_id,)
+        ).fetchone()[0]
+        == 1
+    )
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM detections WHERE id = ?", (detection_id,)
+        ).fetchone()[0]
+        == 1
+    )
 
 
 def test_automated_human_evidence_and_unparented_derived_evidence_are_rejected(
@@ -513,7 +527,10 @@ def test_scientific_metadata_survives_lifecycle_changes(tmp_path: Path) -> None:
     )
     assert connection.execute("SELECT COUNT(*) FROM recordings").fetchone()[0] == 1
     assert connection.execute("SELECT COUNT(*) FROM detections").fetchone()[0] == 1
-    assert connection.execute(
-        "SELECT COUNT(*) FROM evidence WHERE evidence_id = ?", (evidence_id,)
-    ).fetchone()[0] == 1
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM evidence WHERE evidence_id = ?", (evidence_id,)
+        ).fetchone()[0]
+        == 1
+    )
     assert connection.execute("PRAGMA foreign_key_check").fetchall() == []

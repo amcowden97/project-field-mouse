@@ -102,9 +102,7 @@ def add_model_evidence(
     recording_id: int | None = None,
 ) -> int:
     sources = (
-        (EvidenceSourceInput(recording_id, SourceRole.PRIMARY),)
-        if recording_id is not None
-        else ()
+        (EvidenceSourceInput(recording_id, SourceRole.PRIMARY),) if recording_id is not None else ()
     )
     return append_evidence(
         connection,
@@ -181,14 +179,9 @@ def add_assessment(
 
 def test_fresh_schema_has_constraints_indexes_and_no_confidence(tmp_path: Path) -> None:
     connection, _, _, detection_id, _ = open_database(tmp_path)
-    columns = {
-        row[1] for row in connection.execute("PRAGMA table_info(assessments)")
-    }
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(assessments)")}
     indexes = {
-        row[0]
-        for row in connection.execute(
-            "SELECT name FROM sqlite_master WHERE type = 'index'"
-        )
+        row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'index'")
     }
     assert "confidence" not in columns
     assert "review_id" not in columns
@@ -241,7 +234,9 @@ def test_standard_assessment_results_preserve_detection(
 ) -> None:
     connection, _, _, detection_id, _ = open_database(tmp_path)
     evidence_id = add_model_evidence(connection, detection_id, f"result-{result.value}")
-    before = tuple(connection.execute("SELECT * FROM detections WHERE id = ?", (detection_id,)).fetchone())
+    before = tuple(
+        connection.execute("SELECT * FROM detections WHERE id = ?", (detection_id,)).fetchone()
+    )
     assessment_id = add_assessment(
         connection,
         detection_id,
@@ -254,7 +249,9 @@ def test_standard_assessment_results_preserve_detection(
     assert assessment.result == result.value
     assert assessment.assessed_scientific_name == "Turdus migratorius"
     assert assessment.assessed_common_name == "American Robin"
-    after = tuple(connection.execute("SELECT * FROM detections WHERE id = ?", (detection_id,)).fetchone())
+    after = tuple(
+        connection.execute("SELECT * FROM detections WHERE id = ?", (detection_id,)).fetchone()
+    )
     assert after == before
 
 
@@ -292,12 +289,8 @@ def test_many_to_many_evidence_and_idempotent_retry(tmp_path: Path) -> None:
     connection, _, _, detection_id, _ = open_database(tmp_path)
     first = add_model_evidence(connection, detection_id, "many-first")
     second = add_model_evidence(connection, detection_id, "many-second")
-    assessment_id = add_assessment(
-        connection, detection_id, (second, first), key="many-assessment"
-    )
-    retry_id = add_assessment(
-        connection, detection_id, (first, second), key="many-assessment"
-    )
+    assessment_id = add_assessment(connection, detection_id, (second, first), key="many-assessment")
+    retry_id = add_assessment(connection, detection_id, (first, second), key="many-assessment")
     historical_id = add_assessment(
         connection,
         detection_id,
@@ -310,9 +303,12 @@ def test_many_to_many_evidence_and_idempotent_retry(tmp_path: Path) -> None:
         first,
         second,
     ]
-    assert connection.execute(
-        "SELECT COUNT(*) FROM assessment_evidence WHERE evidence_id = ?", (first,)
-    ).fetchone()[0] == 2
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM assessment_evidence WHERE evidence_id = ?", (first,)
+        ).fetchone()[0]
+        == 2
+    )
     assert historical_id != assessment_id
     assert connection.execute("SELECT COUNT(*) FROM assessments").fetchone()[0] == 2
     with pytest.raises(ScienceInvariantError, match="different inputs"):
@@ -336,9 +332,7 @@ def test_missing_duplicate_and_unrelated_evidence_are_rejected(tmp_path: Path) -
     with pytest.raises(ScienceInvariantError, match="assessed Detection"):
         add_assessment(connection, detection_id, (unrelated,), key="unrelated")
     with pytest.raises(ScienceInvariantError, match="Duplicate"):
-        add_assessment(
-            connection, detection_id, (evidence_id, evidence_id), key="duplicate"
-        )
+        add_assessment(connection, detection_id, (evidence_id, evidence_id), key="duplicate")
     with pytest.raises(ScienceInvariantError, match="Unknown Detection"):
         add_assessment(connection, 999999, (evidence_id,), key="missing-detection")
 
@@ -366,9 +360,7 @@ def test_assessment_write_is_atomic_on_relationship_failure(tmp_path: Path) -> N
 def test_assessment_and_relationships_are_append_only(tmp_path: Path) -> None:
     connection, _, _, detection_id, _ = open_database(tmp_path)
     evidence_id = add_model_evidence(connection, detection_id, "append-only")
-    assessment_id = add_assessment(
-        connection, detection_id, (evidence_id,), key="append-only"
-    )
+    assessment_id = add_assessment(connection, detection_id, (evidence_id,), key="append-only")
     link_id = get_assessment_evidence(connection, assessment_id)[0].assessment_evidence_id
     with pytest.raises(sqlite3.IntegrityError, match="append-only"):
         connection.execute(
@@ -496,9 +488,7 @@ def test_legacy_truth_looking_states_do_not_create_assessments(tmp_path: Path) -
         reviewer_role=ReviewerRole.USER,
         reviewed_at=NOW,
         reason_code="CONFIRM",
-        evidence=(
-            ReviewEvidenceInput(create_review_evidence, ReviewEvidenceRole.PRIMARY),
-        ),
+        evidence=(ReviewEvidenceInput(create_review_evidence, ReviewEvidenceRole.PRIMARY),),
     )
     assert connection.execute("SELECT COUNT(*) FROM assessments").fetchone()[0] == 0
 
@@ -538,15 +528,19 @@ def test_source_lifecycle_preserves_assessment_provenance(
     )
     assert get_assessment(connection, assessment_id) is not None
     assert get_assessment_evidence(connection, assessment_id)[0].evidence_id == evidence_id
-    assert connection.execute(
-        "SELECT COUNT(*) FROM evidence WHERE evidence_id = ?", (evidence_id,)
-    ).fetchone()[0] == 1
-    assert connection.execute(
-        "SELECT COUNT(*) FROM recording_protections"
-    ).fetchone()[0] == protections_before == 0
+    assert (
+        connection.execute(
+            "SELECT COUNT(*) FROM evidence WHERE evidence_id = ?", (evidence_id,)
+        ).fetchone()[0]
+        == 1
+    )
+    assert (
+        connection.execute("SELECT COUNT(*) FROM recording_protections").fetchone()[0]
+        == protections_before
+        == 0
+    )
     assert not {
-        row[0]
-        for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
     } & {"observations", "observation"}
 
 
@@ -593,7 +587,7 @@ def test_migration_from_review_foundation_backfills_zero_assessments(
             reason_code="PREVIOUS_FOUNDATION",
             evidence=(ReviewEvidenceInput(evidence_id, ReviewEvidenceRole.PRIMARY),),
         )
-        tables = ("recordings", "detections", "evidence", "reviews", "review_evidence")
+        tables = ("detections", "evidence", "reviews", "review_evidence")
         before = {
             table: hashlib.sha256(
                 json.dumps(
@@ -606,7 +600,7 @@ def test_migration_from_review_foundation_backfills_zero_assessments(
         connection.commit()
 
     applied = migrate(database, tmp_path / "backups")
-    assert [item.version for item in applied] == [8, 9, 10]
+    assert [item.version for item in applied] == [8, 9, 10, 11]
     assert migrate(database, tmp_path / "backups") == []
     with sqlite3.connect(database) as connection:
         after = {
@@ -622,8 +616,11 @@ def test_migration_from_review_foundation_backfills_zero_assessments(
         assert connection.execute("SELECT COUNT(*) FROM assessments").fetchone()[0] == 0
         assert connection.execute("SELECT COUNT(*) FROM assessment_evidence").fetchone()[0] == 0
         assert connection.execute("SELECT COUNT(*) FROM reviews").fetchone()[0] == 1
-        assert connection.execute(
-            "SELECT COUNT(*) FROM reviews WHERE review_id = ?", (review_id,)
-        ).fetchone()[0] == 1
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM reviews WHERE review_id = ?", (review_id,)
+            ).fetchone()[0]
+            == 1
+        )
         assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
         assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
