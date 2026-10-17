@@ -9,7 +9,7 @@ from app.migrations import discover_migrations, migrate, migration_history
 def test_migrations_are_ordered_and_idempotent(tmp_path: Path) -> None:
     database = tmp_path / "station.db"
     applied = migrate(database, tmp_path / "backups")
-    expected_versions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    expected_versions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     assert [item.version for item in applied] == expected_versions
     assert migrate(database, tmp_path / "backups") == []
     history = migration_history(database)
@@ -52,11 +52,13 @@ def test_migrations_are_ordered_and_idempotent(tmp_path: Path) -> None:
         "ground_truth_adjudication_evidence",
         "station_sync_outbox",
         "station_sync_migration_runs",
+        "server_recording_ingestions",
     } <= tables
     assert {
         "idx_detections_created",
         "idx_detections_datetime_created",
         "idx_station_sync_outbox_state_created",
+        "idx_server_recording_ingestions_state_created",
     } <= indexes
 
 

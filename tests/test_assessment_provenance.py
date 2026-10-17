@@ -600,7 +600,7 @@ def test_migration_from_review_foundation_backfills_zero_assessments(
         connection.commit()
 
     applied = migrate(database, tmp_path / "backups")
-    assert [item.version for item in applied] == [8, 9, 10, 11]
+    assert [item.version for item in applied] == [8, 9, 10, 11, 12]
     assert migrate(database, tmp_path / "backups") == []
     with sqlite3.connect(database) as connection:
         after = {

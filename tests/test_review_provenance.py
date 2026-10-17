@@ -553,7 +553,7 @@ def test_legacy_backfill_is_conservative_idempotent_and_non_destructive(
         connection.commit()
 
     applied = migrate(database, tmp_path / "backups")
-    assert [item.version for item in applied] == [7, 8, 9, 10, 11]
+    assert [item.version for item in applied] == [7, 8, 9, 10, 11, 12]
     assert migrate(database, tmp_path / "backups") == []
     with sqlite3.connect(database) as connection:
         after = connection.execute("SELECT * FROM detection_reviews ORDER BY id").fetchall()

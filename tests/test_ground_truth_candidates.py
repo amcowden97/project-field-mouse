@@ -588,6 +588,7 @@ def test_migration_from_assessment_foundation_is_schema_only_and_idempotent(
         (9, "ground_truth_candidate_membership"),
         (10, "ground_truth_adjudication_provenance"),
         (11, "station_sync_identity_outbox"),
+        (12, "server_ingestion_metadata_foundation"),
     ]
     with sqlite3.connect(database) as connection:
         tables = {
